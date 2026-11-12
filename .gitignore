@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.tools/
+cloudflared.exe
+tunnel*.log
+static/ui/node_modules/

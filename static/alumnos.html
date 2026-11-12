@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0e13" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>hecTHOR WOD</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icon-512.png" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img class="brand-logo" src="/icon-192.png" alt="hecTHOR WOD" />
+        <div>
+          <div class="brand-title">hecTHOR WOD</div>
+          <div class="brand-sub" id="headerSub">App de Entrenamiento</div>
+        </div>
+      </div>
+      <div class="nav-pills">
+        <span class="badge badge-ground hidden" id="syncBadge">● Sincronizado</span>
+        <button class="btn btn-sm" id="btnFullscreen" title="Ocultar barra del navegador">⛶ Pantalla completa</button>
+        <button class="btn btn-sm hidden" id="btnStudentLogout">Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <!-- STUDENT LOGIN & REGISTRATION -->
+    <section id="loginSection" class="card" style="max-width:460px; margin:32px auto;">
+      <div class="row-wrap" style="margin-bottom:14px;">
+        <button class="btn btn-sm active-tab" id="tabLoginBtn" style="flex:1;">Entrar</button>
+        <button class="btn btn-sm" id="tabRegisterBtn" style="flex:1;">Solicitar Alta</button>
+      </div>
+
+      <div id="studentLoginBox">
+        <h1 style="margin:0 0 8px; font-size:1.35rem;">Acceso de Alumnos</h1>
+        <p class="muted" style="margin:0 0 16px;">Inicia sesión con tu correo y contraseña una vez que tu entrenador haya aprobado tu alta.</p>
+        <div class="field">
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" type="email" class="input" placeholder="tu@email.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" class="input" placeholder="Tu contraseña" autocomplete="current-password" />
+        </div>
+        <button class="btn btn-primary" id="btnStudentLogin" style="width:100%;">Entrar al Entrenamiento</button>
+        <p id="loginError" style="color:#fda4af; font-size:0.88rem; margin:10px 0 0;"></p>
+      </div>
+
+      <div id="studentRegisterBox" class="hidden">
+        <h1 style="margin:0 0 8px; font-size:1.35rem;">Solicitar Alta de Alumno</h1>
+        <p class="muted" style="margin:0 0 16px;">Regístrate con tus datos. Tu entrenador comprobará y aprobará tu acceso antes de poder entrar.</p>
+        <div class="field">
+          <label for="regName">Nombre y Apellidos</label>
+          <input id="regName" class="input" placeholder="Ej: Carlos García" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="regEmail">Correo electrónico</label>
+          <input id="regEmail" type="email" class="input" placeholder="carlos@email.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="regPhone">Teléfono / WhatsApp (opcional)</label>
+          <input id="regPhone" type="tel" class="input" placeholder="600 000 000" />
+        </div>
+        <div class="field">
+          <label for="regPassword">Crea tu contraseña (mín. 4 caracteres)</label>
+          <input id="regPassword" type="password" class="input" placeholder="Elige una contraseña" autocomplete="new-password" />
+        </div>
+        <button class="btn btn-primary" id="btnStudentRegister" style="width:100%;">Enviar Solicitud de Alta</button>
+        <p id="regStatusMsg" style="font-size:0.88rem; margin:10px 0 0;"></p>
+      </div>
+    </section>
+
+    <!-- STUDENT DASHBOARD -->
+    <section id="studentApp" class="hidden">
+      <div class="card">
+        <div class="row-between">
+          <div>
+            <span class="badge badge-accent" id="mcGoalBadge">Objetivo</span>
+            <h1 id="mcTitle" style="margin:6px 0 4px; font-size:1.3rem;"></h1>
+            <p id="mcDesc" class="muted" style="margin:0;"></p>
+          </div>
+          <div id="studentMcSelectWrap" class="hidden">
+            <select id="studentMcSelect" class="input" style="min-width:190px;"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="weekTabs" class="week-tabs"></div>
+        <div id="dayTabs" class="week-tabs"></div>
+      </div>
+
+      <div id="dayContent"></div>
+
+      <!-- WOD-SPECIFIC SMART TIMER CARD -->
+      <div class="card" id="timerCard" style="border-color: rgba(200,247,62,0.35);">
+        <div class="section-header">
+          <div>
+            <span class="badge badge-accent" id="timerWodBadge">⏱ CRONO PREPARADO</span>
+            <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro del WOD</h2>
+          </div>
+          <button class="btn btn-sm" id="btnOpenFsClock">⛶ Ampliar</button>
+        </div>
+
+        <div id="timerStatusLine" style="text-align:center; font-weight:800; font-size:1rem; color:var(--orange); min-height:22px;"></div>
+        <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
+          <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
+        </div>
+        <div id="timerSubInfo" class="muted" style="text-align:center; margin-bottom:10px;">
+          Toca el reloj para abrir en pantalla completa. Al girar el móvil en horizontal se ampliará solo.
+        </div>
+
+        <div class="row-wrap" style="justify-content:center; margin-bottom:12px;">
+          <button class="btn btn-primary" id="btnTimerStart">▶ Iniciar</button>
+          <button class="btn" id="btnTimerPause">⏸ Pausar</button>
+          <button class="btn btn-orange" id="btnTimerAddRound">+1 Ronda (0)</button>
+          <button class="btn btn-ground hidden" id="btnTimerFinish">🏁 ¡Terminado!</button>
+          <button class="btn btn-danger btn-sm" id="btnTimerReset">↺ Reiniciar</button>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="timerPrecountSelect">Cuenta regresiva inicial</label>
+            <select id="timerPrecountSelect" class="input">
+              <option value="10">10 segundos</option>
+              <option value="5">5 segundos</option>
+              <option value="3" selected>3 segundos</option>
+              <option value="0">Sin cuenta regresiva</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="timerSoundSelect">Sonido del crono</label>
+            <select id="timerSoundSelect" class="input">
+              <option value="pitido">Pitido Gimnasio (Clásico)</option>
+              <option value="bocina">Bocina / Claxon</option>
+              <option value="campana">Campana Boxeo</option>
+              <option value="suave">Tono Suave</option>
+              <option value="silencio">Silencio</option>
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top:6px;">
+          <summary class="muted" style="cursor:pointer;">Ajustar manualmente formato o minutos</summary>
+          <div class="grid-2" style="margin-top:10px;">
+            <div class="field" style="margin-bottom:0;">
+              <label for="timerModeSelect">Formato</label>
+              <select id="timerModeSelect" class="input">
+                <option value="AMRAP">AMRAP (Cuenta atrás)</option>
+                <option value="EMOM">EMOM (Cada minuto)</option>
+                <option value="TABATA">TABATA (20s / 10s × 8)</option>
+                <option value="FOR TIME">FOR TIME (Cronómetro + Cap)</option>
+                <option value="CRONO">CRONO LIBRE</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="timerMinutes">Duración / Time Cap (min)</label>
+              <input id="timerMinutes" type="number" min="1" max="90" value="12" class="input" />
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- LOG RESULT CARD -->
+      <div class="card">
+        <h2 class="section-title" style="margin-bottom:10px;">🏆 Registrar mi Resultado</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label for="logName">Tu nombre</label>
+            <input id="logName" class="input" placeholder="Ej: Laura M." />
+          </div>
+          <div class="field">
+            <label for="logScore">Marca / Tiempo / Rondas</label>
+            <input id="logScore" class="input" placeholder="Ej: 4 rondas + 12 reps / 11:45" />
+          </div>
+          <div class="field">
+            <label for="logRx">Categoría</label>
+            <select id="logRx" class="input">
+              <option value="Rx">Rx</option>
+              <option value="Scaled">Scaled (Escalado)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="logWeights">Pesos utilizados</label>
+            <input id="logWeights" class="input" placeholder="Ej: 35 kg" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="logNotes">Sensaciones / Notas</label>
+          <input id="logNotes" class="input" placeholder="Opcional..." />
+        </div>
+        <button class="btn btn-primary" id="btnSubmitLog">Guardar Resultado</button>
+
+        <div style="margin-top:16px;">
+          <h3 class="section-title" style="font-size:0.98rem; margin-bottom:8px;">Resultados del día</h3>
+          <div id="dayLeaderboard"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FULLSCREEN GYM CLOCK OVERLAY -->
+  <div id="fsClockOverlay" class="fs-clock-overlay">
+    <div class="row-between">
+      <div class="row-wrap">
+        <span class="badge" id="fsClockBadge">⏱ WOD</span>
+        <strong id="fsClockTitle" style="font-size:1rem; color:#ffffff;">Cronómetro</strong>
+      </div>
+    </div>
+
+    <div class="fs-clock-main">
+      <div id="fsClockStatus" style="font-size:1.35rem; font-weight:800; color:#ffffff; min-height:28px;"></div>
+      <div id="fsClockDigits" class="fs-clock-digits">
+        <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
+      </div>
+      <div id="fsRoundsDisplay" style="font-size:1.35rem; font-weight:800; color:#ffffff;">Rondas: 0</div>
+    </div>
+
+    <div class="fs-clock-controls">
+      <button class="fs-sym-btn" id="fsBtnSubRound" aria-label="Restar ronda">−</button>
+      <button class="fs-sym-btn fs-sym-pause" id="fsBtnTogglePause" aria-label="Pausar o iniciar">⏸</button>
+      <button class="fs-sym-btn" id="fsBtnAddRound" aria-label="Sumar ronda">+</button>
+    </div>
+  </div>
+
+  <!-- MODAL: VIDEO -->
+  <div id="videoModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title" id="videoModalTitle">Vídeo explicativo</h3>
+        <button class="btn btn-sm" id="btnCloseVideo">✕</button>
+      </div>
+      <div id="videoContainer"></div>
+      <div id="videoDescription" class="item-box hidden" style="margin-top:10px; white-space:pre-wrap; font-size:0.92rem;"></div>
+      <div class="row-between" style="margin-top:12px;">
+        <div class="row-wrap">
+          <a id="videoExternalLink" class="btn btn-sm" href="#" target="_blank" rel="noopener">Abrir en YouTube ↗</a>
+          <a id="videoSearchLink" class="btn btn-sm" href="#" target="_blank" rel="noopener">🔍 Buscar en YouTube</a>
+        </div>
+        <button class="btn btn-sm" id="btnCloseVideoBottom">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="/static/js/alumnos.js"></script>
+</body>
+</html>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c0e13" />
+  <title>hecTHOR WOD — Coach</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icon-512.png" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img class="brand-logo" src="/icon-192.png" alt="hecTHOR WOD" />
+        <div>
+          <div class="brand-title">hecTHOR WOD</div>
+          <div class="brand-sub">Panel del Entrenador · Microciclos, WODs &amp; Movilidad</div>
+        </div>
+      </div>
+      <div class="nav-pills hidden" id="coachNavPills">
+        <button class="btn active-tab" data-tab="planner">Planificador</button>
+        <button class="btn" data-tab="library">Biblioteca &amp; Vídeos</button>
+        <button class="btn" data-tab="students">👥 Alumnos <span class="badge badge-orange hidden" id="pendingStudentsBadge">0</span></button>
+        <button class="btn" data-tab="logs">Resultados Alumnos</button>
+        <button class="btn btn-primary" id="btnShareMobile">📱 Abrir / Pasar al Móvil</button>
+        <a class="btn" href="/alumnos" target="_blank">Vista Alumnos ↗</a>
+        <button class="btn btn-sm" id="btnCoachChangePw" title="Cambiar contraseña">🔒 Clave</button>
+        <button class="btn btn-sm" id="btnCoachLogout" title="Cerrar sesión">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <!-- COACH PRIVATE LOGIN / FIRST SETUP -->
+    <section id="coachAuthSection" class="card hidden" style="max-width:440px; margin:36px auto;">
+      <span class="badge badge-accent" id="coachAuthBadge">ACCESO PRIVADO DEL ENTRENADOR</span>
+      <h1 id="coachAuthTitle" style="margin:8px 0 6px; font-size:1.35rem;">Iniciar sesión</h1>
+      <p id="coachAuthDesc" class="muted" style="margin:0 0 16px;">Introduce tu contraseña privada para gestionar entrenamientos y aprobar alumnos.</p>
+      <div class="field">
+        <label for="coachAuthUser">Usuario</label>
+        <input id="coachAuthUser" class="input" value="coach" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="coachAuthPass">Contraseña</label>
+        <input id="coachAuthPass" type="password" class="input" placeholder="Mínimo 4 caracteres" autocomplete="current-password" />
+      </div>
+      <div class="field hidden" id="coachAuthConfirmWrap">
+        <label for="coachAuthPassConfirm">Confirmar contraseña</label>
+        <input id="coachAuthPassConfirm" type="password" class="input" placeholder="Repite la contraseña" autocomplete="new-password" />
+      </div>
+      <button class="btn btn-primary" id="btnCoachAuthSubmit" style="width:100%;">Entrar al Panel</button>
+      <p id="coachAuthError" style="color:#fda4af; font-size:0.88rem; margin:10px 0 0;"></p>
+    </section>
+
+    <div id="coachAppContent" class="hidden">
+    <!-- TAB: PLANNER -->
+    <section id="tab-planner">
+      <div class="card">
+        <div class="row-between">
+          <div class="row-wrap" style="flex:1; min-width:240px;">
+            <div style="flex:1; min-width:220px;">
+              <label class="muted" for="microcycleSelect">Microciclo activo</label>
+              <select id="microcycleSelect" class="input"></select>
+            </div>
+          </div>
+          <div class="row-wrap">
+            <button class="btn btn-primary" id="btnNewMicrocycle">+ Nuevo Microciclo</button>
+            <button class="btn btn-danger btn-sm" id="btnDeleteMicrocycle">Eliminar</button>
+          </div>
+        </div>
+
+        <div id="microcycleMeta" class="row-wrap" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">Calendario del Microciclo</h2>
+          <span class="muted">Haz clic en cualquier día para editar Warm Up (GROUND), Bloques y WOD</span>
+        </div>
+        <div id="weekTabs" class="week-tabs"></div>
+        <div id="daysGrid" class="grid-days"></div>
+      </div>
+
+      <!-- DAY EDITOR -->
+      <div id="dayEditorCard" class="card hidden">
+        <div class="section-header">
+          <div>
+            <span class="badge badge-accent" id="editorDayBadge">Semana 1 · Día 1</span>
+            <h2 class="section-title" style="margin-top:6px;">Editor de Sesión</h2>
+          </div>
+          <div class="row-wrap">
+            <select id="copyTargetDay" class="input" style="width:auto; min-width:190px;"></select>
+            <button class="btn btn-sm" id="btnCopyDay">Copiar a este día</button>
+            <button class="btn btn-primary" id="btnSaveDay">💾 Guardar Sesión</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="dayTitle">Título del día</label>
+            <input id="dayTitle" class="input" placeholder="Ej: Sentadilla Pesada + Sprint Engine" />
+          </div>
+          <div class="field">
+            <label for="dayCoachingTips">Notas del Coach para los alumnos</label>
+            <input id="dayCoachingTips" class="input" placeholder="Enfoque técnico, estímulo buscado, sensaciones..." />
+          </div>
+        </div>
+
+        <!-- 1. WARM UP & GROUND -->
+        <div class="item-box" style="border-color: rgba(45,212,191,0.35);">
+          <div class="section-header">
+            <div class="row-wrap">
+              <span class="badge badge-ground">WARM UP · <span id="warmupTypeHeaderBadge">Movilidad GROUND</span></span>
+            </div>
+            <div class="row-wrap">
+              <button class="btn btn-ground btn-sm" id="btnAddWarmupGround">+ Añadir GROUND</button>
+              <button class="btn btn-sm" id="btnAddWarmupAny">+ Añadir ejercicio</button>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div class="field" style="margin-bottom:0;">
+              <label for="warmupTypeSelect">Tipo de Warm Up (aparece en cabecera)</label>
+              <div class="row-wrap">
+                <select id="warmupTypeSelect" class="input" style="flex:1;"></select>
+                <button class="btn btn-sm" id="btnToggleNewWarmupType" type="button">+ Añadir tipo</button>
+              </div>
+              <div id="newWarmupTypeBox" class="row-wrap hidden" style="margin-top:6px;">
+                <input id="newWarmupTypeInput" class="input" style="flex:1;" placeholder="Ej: Movilidad Tobillo & Cadera..." />
+                <button class="btn btn-primary btn-sm" id="btnSaveWarmupType" type="button">Guardar tipo</button>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="warmupNotes">Indicaciones generales de calentamiento</label>
+              <input id="warmupNotes" class="input" placeholder="Ej: 10' de movilidad GROUND + activación..." />
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:10px;">
+            <div class="field" style="margin-bottom:0;">
+              <label for="warmupTimerType">Formato de crono del Warm Up</label>
+              <select id="warmupTimerType" class="input">
+                <option value="AMRAP">AMRAP</option>
+                <option value="EMOM">EMOM</option>
+                <option value="TABATA">TABATA</option>
+                <option value="FOR TIME">FOR TIME</option>
+                <option value="CRONO">CRONO LIBRE</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="warmupTimerMinutes">Tiempo de trabajo Warm Up (min)</label>
+              <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input" />
+            </div>
+          </div>
+          <div id="warmupList"></div>
+        </div>
+
+        <!-- 2. PARTS / BLOCKS -->
+        <div class="item-box">
+          <div class="section-header">
+            <h3 class="section-title">Partes del Entreno (Bloques A, B, C...)</h3>
+            <button class="btn btn-sm" id="btnAddPart">+ Añadir Bloque</button>
+          </div>
+          <div id="partsList"></div>
+        </div>
+
+        <!-- 3. WOD & GENERATOR -->
+        <div class="item-box" style="border-color: rgba(255,107,53,0.4);">
+          <div class="section-header">
+            <span class="badge badge-orange">WOD FINAL &amp; GENERADOR AUTOMÁTICO</span>
+            <button class="btn btn-orange btn-sm" id="btnToggleWodGen">⚡ Generador de WOD</button>
+          </div>
+
+          <div id="wodGeneratorBox" class="item-box hidden" style="background: rgba(255,107,53,0.06);">
+            <div class="field">
+              <label>Material disponible (pulsa para seleccionar)</label>
+              <div id="genEquipmentChips" class="chip-group"></div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="genWodType">Tipo de WOD</label>
+                <div class="row-wrap">
+                  <select id="genWodType" class="input" style="flex:1;">
+                    <option value="AMRAP">AMRAP</option>
+                    <option value="EMOM">EMOM</option>
+                    <option value="FOR TIME">FOR TIME</option>
+                    <option value="TABATA">TABATA</option>
+                    <option value="CHIPPER">CHIPPER</option>
+                    <option value="ENDURANCE">ENDURANCE</option>
+                    <option value="__new__">+ Añadir nuevo estilo...</option>
+                  </select>
+                  <button class="btn btn-sm" id="btnNewWodType" type="button" title="Añadir nuevo estilo de WOD">+</button>
+                </div>
+                <div id="newWodTypeBox" class="row-wrap hidden" style="margin-top:6px;">
+                  <input id="newWodTypeInput" class="input" style="flex:1;" placeholder="Ej: INTERVALS / DEATH BY..." />
+                  <button class="btn btn-primary btn-sm" id="btnSaveWodType" type="button">Añadir</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="genTime">Tiempo (minutos)</label>
+                <input id="genTime" type="number" min="4" max="60" value="15" class="input" />
+              </div>
+              <div class="field">
+                <label for="genGoal">Objetivo</label>
+                <div class="row-wrap">
+                  <select id="genGoal" class="input" style="flex:1;">
+                    <option value="Híbrido">Híbrido</option>
+                    <option value="Fuerza">Fuerza</option>
+                    <option value="Fondo / Engine">Fondo / Engine</option>
+                    <option value="Halterofilia">Halterofilia</option>
+                    <option value="Gimnásticos">Gimnásticos</option>
+                    <option value="__new__">+ Añadir nuevo objetivo...</option>
+                  </select>
+                  <button class="btn btn-sm" id="btnNewGenGoal" type="button" title="Añadir nuevo objetivo de WOD">+</button>
+                </div>
+                <div id="newGenGoalBox" class="row-wrap hidden" style="margin-top:6px;">
+                  <input id="newGenGoalInput" class="input" style="flex:1;" placeholder="Ej: Resistencia muscular / Agilidad..." />
+                  <button class="btn btn-primary btn-sm" id="btnSaveGenGoal" type="button">Añadir</button>
+                </div>
+              </div>
+              <div class="field" style="justify-content:flex-end;">
+                <button class="btn btn-primary" id="btnRunWodGen">🎲 Generar WOD ahora</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="wodTitle">Título del WOD</label>
+              <input id="wodTitle" class="input" placeholder="Ej: WOD 'Fire Breather'" />
+            </div>
+            <div class="field">
+              <label for="wodType">Formato</label>
+              <input id="wodType" class="input" list="wodTypeList" placeholder="AMRAP / EMOM / FOR TIME / TABATA / ENDURANCE" />
+              <datalist id="wodTypeList">
+                <option value="AMRAP"></option>
+                <option value="EMOM"></option>
+                <option value="FOR TIME"></option>
+                <option value="TABATA"></option>
+                <option value="CHIPPER"></option>
+                <option value="ENDURANCE"></option>
+              </datalist>
+            </div>
+            <div class="field">
+              <label for="wodTimeCap">Time Cap / Duración</label>
+              <input id="wodTimeCap" class="input" placeholder="Ej: 15 Minutos" />
+            </div>
+            <div class="field">
+              <label for="wodTarget">Objetivo / Marca esperada</label>
+              <input id="wodTarget" class="input" placeholder="Ej: 4-5 rondas o < 12 min" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="wodDescription">Descripción del WOD</label>
+            <textarea id="wodDescription" class="input" placeholder="Movimientos, repeticiones y esquema..."></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="wodRx">Pesos Rx</label>
+              <input id="wodRx" class="input" placeholder="Ej: Chicos 43 kg / Chicas 30 kg" />
+            </div>
+            <div class="field">
+              <label for="wodScaled">Opciones Escaladas (Scaled)</label>
+              <input id="wodScaled" class="input" placeholder="Alternativa de carga o movimiento" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="wodStrategy">Estrategia recomendada</label>
+            <input id="wodStrategy" class="input" placeholder="Cómo partir las series, ritmo recomendado..." />
+          </div>
+
+          <div class="item-box" style="margin-top:10px; background: var(--bg-elev);">
+            <div class="section-header" style="margin-bottom:8px;">
+              <span class="badge badge-orange">🎬 Vídeos explicativos de movimientos del WOD</span>
+              <div class="row-wrap">
+                <button class="btn btn-sm" id="btnAddWodMovementLib">+ Desde biblioteca</button>
+                <button class="btn btn-sm" id="btnAddWodMovementManual">+ Añadir manual</button>
+              </div>
+            </div>
+            <div id="wodMovementsList"></div>
+          </div>
+        </div>
+
+        <div class="row-between" style="margin-top:12px;">
+          <span class="muted">Los cambios se reflejan al instante en la app de alumnos al guardar.</span>
+          <button class="btn btn-primary" id="btnSaveDayBottom">💾 Guardar Sesión</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: LIBRARY -->
+    <section id="tab-library" class="hidden">
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">Biblioteca de Ejercicios &amp; Vídeos Explicativos</h2>
+          <button class="btn btn-primary" id="btnNewExercise">+ Añadir Ejercicio</button>
+        </div>
+        <div class="chip-group" id="libraryFilters" style="margin-bottom:14px;"></div>
+        <div id="libraryGrid" class="grid-2"></div>
+      </div>
+    </section>
+
+    <!-- TAB: STUDENTS APPROVAL & ACCESS -->
+    <section id="tab-students" class="hidden">
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Solicitudes Pendientes de Aprobación</h2>
+            <p class="muted" style="margin:2px 0 0;">Solo los alumnos que apruebes aquí podrán entrar a ver los entrenamientos.</p>
+          </div>
+          <div class="row-wrap">
+            <button class="btn btn-sm" id="btnRefreshStudents">↻ Actualizar</button>
+            <button class="btn btn-primary btn-sm" id="btnToggleAddStudent">+ Dar de alta alumno</button>
+          </div>
+        </div>
+
+        <div id="manualStudentForm" class="item-box hidden" style="margin-bottom:14px;">
+          <strong style="display:block; margin-bottom:8px;">Alta directa de alumno (ya aprobado)</strong>
+          <div class="grid-2">
+            <div class="field" style="margin-bottom:0;">
+              <label for="newStuName">Nombre completo</label>
+              <input id="newStuName" class="input" placeholder="Ej: Laura Martínez" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="newStuEmail">Email</label>
+              <input id="newStuEmail" type="email" class="input" placeholder="laura@email.com" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="newStuPhone">Teléfono (opcional)</label>
+              <input id="newStuPhone" class="input" placeholder="600 000 000" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="newStuPass">Contraseña inicial</label>
+              <input id="newStuPass" type="password" class="input" placeholder="Mínimo 4 caracteres" />
+            </div>
+          </div>
+          <div class="row-wrap" style="margin-top:10px;">
+            <button class="btn btn-primary btn-sm" id="btnCreateStudentSubmit">Guardar y Aprobar</button>
+            <button class="btn btn-sm" id="btnCancelManualStudent">Cancelar</button>
+          </div>
+        </div>
+
+        <div id="pendingStudentsList"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title" style="margin-bottom:10px;">Alumnos Aprobados / Historial</h2>
+        <div id="approvedStudentsList"></div>
+      </div>
+    </section>
+
+    <!-- TAB: STUDENT LOGS -->
+    <section id="tab-logs" class="hidden">
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">Resultados Registrados por Alumnos</h2>
+          <button class="btn btn-sm" id="btnRefreshLogs">↻ Actualizar</button>
+        </div>
+        <div id="logsContainer"></div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- MODAL: CHANGE COACH PASSWORD -->
+  <div id="coachPwModal" class="modal-backdrop">
+    <div class="modal" style="max-width:420px;">
+      <div class="section-header">
+        <h3 class="section-title">🔒 Cambiar Contraseña del Entrenador</h3>
+        <button class="btn btn-sm" data-close="coachPwModal">✕</button>
+      </div>
+      <div class="field">
+        <label for="curCoachPw">Contraseña actual</label>
+        <input id="curCoachPw" type="password" class="input" />
+      </div>
+      <div class="field">
+        <label for="newCoachPw">Nueva contraseña (mín. 4 caracteres)</label>
+        <input id="newCoachPw" type="password" class="input" />
+      </div>
+      <div class="row-between">
+        <button class="btn" data-close="coachPwModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveCoachPw">Actualizar clave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW MICROCYCLE -->
+  <div id="microcycleModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title">Crear Nuevo Microciclo</h3>
+        <button class="btn btn-sm" data-close="microcycleModal">✕</button>
+      </div>
+      <div class="field">
+        <label for="mcName">Nombre del microciclo</label>
+        <input id="mcName" class="input" placeholder="Ej: Bloque Fuerza &amp; Engine Noviembre" />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="mcWeeks">Semanas</label>
+          <input id="mcWeeks" type="number" min="1" max="12" value="4" class="input" />
+        </div>
+        <div class="field">
+          <label for="mcDays">Días por semana</label>
+          <input id="mcDays" type="number" min="1" max="7" value="5" class="input" />
+        </div>
+        <div class="field">
+          <label for="mcGoal">Objetivo principal</label>
+          <div class="row-wrap">
+            <select id="mcGoal" class="input" style="flex:1;">
+              <option value="Fuerza &amp; Halterofilia">Fuerza &amp; Halterofilia</option>
+              <option value="Fuerza">Fuerza</option>
+              <option value="Fondo / Engine">Fondo / Engine</option>
+              <option value="Movilidad &amp; GROUND">Movilidad &amp; GROUND</option>
+              <option value="Halterofilia">Halterofilia</option>
+              <option value="Gimnásticos &amp; Metcon">Gimnásticos &amp; Metcon</option>
+              <option value="Híbrido Completo">Híbrido Completo</option>
+              <option value="__new__">+ Añadir nuevo objetivo...</option>
+            </select>
+            <button class="btn btn-sm" id="btnNewMcGoal" type="button" title="Añadir nuevo objetivo">+</button>
+          </div>
+          <div id="newMcGoalBox" class="row-wrap hidden" style="margin-top:6px;">
+            <input id="newMcGoalInput" class="input" style="flex:1;" placeholder="Escribe el nuevo objetivo..." />
+            <button class="btn btn-primary btn-sm" id="btnSaveMcGoal" type="button">Añadir</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="mcCode">Código de acceso para alumnos</label>
+          <input id="mcCode" class="input" placeholder="Ej: CF2026" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="mcStartDate">Fecha de inicio (Semana 1)</label>
+        <input id="mcStartDate" type="date" class="input" />
+      </div>
+      <div class="field">
+        <label for="mcDesc">Descripción</label>
+        <textarea id="mcDesc" class="input" placeholder="Enfoque general del ciclo..."></textarea>
+      </div>
+      <div class="row-between">
+        <button class="btn" data-close="microcycleModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnCreateMicrocycleSubmit">Crear Microciclo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXERCISE PICKER -->
+  <div id="pickerModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title" id="pickerTitle">Seleccionar Ejercicio</h3>
+        <div class="row-wrap">
+          <button class="btn btn-sm btn-primary" id="btnPickerAddNewEx">+ Crear nuevo</button>
+          <button class="btn btn-sm" data-close="pickerModal">✕</button>
+        </div>
+      </div>
+      <div class="row-wrap" style="margin-bottom:10px;">
+        <input id="pickerSearch" class="input" style="flex:1;" placeholder="Buscar ejercicio o movimiento..." />
+        <label class="chip" id="pickerGroundToggle">Solo GROUND</label>
+      </div>
+      <div id="pickerList" style="max-height:55vh; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT EXERCISE -->
+  <div id="exerciseModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title" id="exerciseModalTitle">Añadir Ejercicio a la Biblioteca</h3>
+        <button class="btn btn-sm" data-close="exerciseModal">✕</button>
+      </div>
+      <div class="field">
+        <label for="exName">Nombre del ejercicio</label>
+        <input id="exName" class="input" placeholder="Ej: Hang Power Clean" />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="exCategory">Categoría / Clasificación</label>
+          <select id="exCategory" class="input"></select>
+          <input id="exCategoryCustom" class="input hidden" placeholder="Escribe la nueva categoría..." style="margin-top:6px;" />
+        </div>
+        <div class="field">
+          <label for="exLevel">Nivel GROUND (si aplica)</label>
+          <select id="exLevel" class="input">
+            <option value="Todos">Todos</option>
+            <option value="Fundamental">Fundamental</option>
+            <option value="Intermedio">Intermedio</option>
+            <option value="Avanzado">Avanzado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="row-wrap" style="cursor:pointer; color:var(--text);">
+          <input type="checkbox" id="exIsGround" style="width:18px; height:18px; accent-color: var(--ground);" />
+          <span><strong>Marcar como ejercicio GROUND</strong> (desmarca esta casilla para quitarle la etiqueta GROUND)</span>
+        </label>
+      </div>
+      <div class="field">
+        <label for="exVideo">URL del vídeo explicativo (YouTube)</label>
+        <div class="row-wrap">
+          <input id="exVideo" class="input" style="flex:1;" placeholder="https://www.youtube.com/watch?v=..." />
+          <a id="exSearchYt" class="btn btn-sm" href="https://www.youtube.com" target="_blank" rel="noopener">🔍 Buscar en YouTube</a>
+        </div>
+      </div>
+      <div class="field">
+        <label for="exDesc">Descripción</label>
+        <textarea id="exDesc" class="input"></textarea>
+      </div>
+      <div class="field">
+        <label for="exCues">Puntos clave / Coaching Cues</label>
+        <input id="exCues" class="input" placeholder="Espalda neutra, codos altos..." />
+      </div>
+      <div class="row-between">
+        <button class="btn" data-close="exerciseModal">Cancelar</button>
+        <button class="btn btn-primary" id="btnSaveExerciseSubmit">Guardar Ejercicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SHARE & MOBILE QR -->
+  <div id="shareModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title">📱 Abrir en tu Móvil / Compartir con Alumnos</h3>
+        <button class="btn btn-sm" data-close="shareModal">✕</button>
+      </div>
+      <div class="chip-group" style="margin-bottom:12px;">
+        <span class="chip selected" id="qrModeStudent">Vista Alumnos (con código)</span>
+        <span class="chip" id="qrModeCoach">Vista Entrenador (esta pantalla)</span>
+      </div>
+      <div style="text-align:center;">
+        <div class="qr-box" id="qrContainer">Cargando QR...</div>
+        <p style="font-weight:700; word-break:break-all; margin:8px 0;" id="shareUrlText"></p>
+        <div class="row-wrap" style="justify-content:center; margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" id="btnCopyShareUrl">📋 Copiar enlace</button>
+        </div>
+      </div>
+      <div class="item-box">
+        <p style="margin:0 0 6px; font-weight:700;">Cómo instalarla como App en el móvil:</p>
+        <p class="muted" style="margin:0;">
+          1. Conecta el móvil y este PC a la <strong>misma red Wi-Fi privada</strong> (en casa o usando la Zona Wi-Fi de tu propio móvil; las redes Wi-Fi públicas como ayuntamientos/hoteles suelen bloquear conexiones entre dispositivos).<br/>
+          2. Escanea el QR de arriba con la cámara del móvil.<br/>
+          3. En Android (Chrome): menú <strong>⋮ → Añadir a pantalla de inicio / Instalar app</strong>. En iPhone (Safari): <strong>Compartir → Añadir a pantalla de inicio</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VIDEO -->
+  <div id="videoModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="section-header">
+        <h3 class="section-title" id="videoModalTitle">Vídeo explicativo</h3>
+        <button class="btn btn-sm" id="btnCloseVideo">✕</button>
+      </div>
+      <div id="videoContainer"></div>
+      <div id="videoDescription" class="item-box hidden" style="margin-top:10px; white-space:pre-wrap; font-size:0.92rem;"></div>
+      <div class="row-between" style="margin-top:12px;">
+        <div class="row-wrap">
+          <a id="videoExternalLink" class="btn btn-sm" href="#" target="_blank" rel="noopener">Abrir en YouTube ↗</a>
+          <a id="videoSearchLink" class="btn btn-sm" href="#" target="_blank" rel="noopener">🔍 Buscar otro vídeo en YouTube</a>
+        </div>
+        <button class="btn btn-sm" id="btnCloseVideoBottom">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script type="module" src="/static/js/coach.js"></script>
+</body>
+</html>
