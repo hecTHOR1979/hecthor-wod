@@ -283,7 +283,7 @@ async function loadMicrocycles(selectId = null) {
     sel.innerHTML = '<option value="">Sin microciclos (crea uno nuevo)</option>';
     state.currentMicrocycle = null;
     $('microcycleMeta').innerHTML = '';
-    $('weekTabs').innerHTML = '';
+    if ($('coachWeekSelect')) $('coachWeekSelect').innerHTML = '';
     $('daysGrid').innerHTML = '<p class="muted">Pulsa "+ Nuevo Microciclo" para empezar.</p>';
     $('dayEditorCard').classList.add('hidden');
     return;
@@ -308,7 +308,7 @@ async function selectMicrocycle(id) {
   state.currentMicrocycle = mc;
   state.selectedWeek = 1;
   renderMicrocycleMeta();
-  renderWeekTabs();
+  renderWeekSelect();
   renderDaysGrid();
   if (mc.days && mc.days.length > 0) {
     openDayEditor(mc.days[0].id);
@@ -340,7 +340,7 @@ function renderMicrocycleMeta() {
         body: JSON.stringify({ start_date: val }),
       });
       mc.start_date = val;
-      renderWeekTabs();
+      renderWeekSelect();
       if (state.currentDay) {
         $('editorDayBadge').textContent = `${formatWeekLabel(mc, state.currentDay.week_number)} · Día ${state.currentDay.day_number}`;
       }
@@ -351,22 +351,28 @@ function renderMicrocycleMeta() {
   });
 }
 
-function renderWeekTabs() {
+function renderWeekSelect() {
   const mc = state.currentMicrocycle;
-  const wrap = $('weekTabs');
-  wrap.innerHTML = '';
+  const sel = $('coachWeekSelect');
+  if (!sel || !mc) return;
+  sel.innerHTML = '';
   for (let w = 1; w <= mc.weeks_count; w++) {
-    const btn = document.createElement('button');
-    btn.className = `btn btn-sm ${w === state.selectedWeek ? 'btn-primary' : ''}`;
-    btn.textContent = formatWeekLabel(mc, w);
-    btn.addEventListener('click', () => {
-      state.selectedWeek = w;
-      renderWeekTabs();
-      renderDaysGrid();
-    });
-    wrap.appendChild(btn);
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = formatWeekLabel(mc, w);
+    if (w === state.selectedWeek) opt.selected = true;
+    sel.appendChild(opt);
   }
 }
+
+$('coachWeekSelect')?.addEventListener('change', (e) => {
+  state.selectedWeek = Number(e.target.value);
+  renderDaysGrid();
+  const weekDays = (state.currentMicrocycle?.days || []).filter((d) => d.week_number === state.selectedWeek);
+  if (weekDays.length > 0) {
+    openDayEditor(weekDays[0].id);
+  }
+});
 
 function renderDaysGrid() {
   const mc = state.currentMicrocycle;
