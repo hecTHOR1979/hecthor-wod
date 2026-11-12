@@ -292,29 +292,32 @@ function renderStudentApp(resetTimer = true) {
   $('headerSub').textContent = state.student?.full_name
     ? `Hola, ${state.student.full_name}`
     : `Programa: ${mc.name}`;
-  renderWeekTabs();
+  renderWeekSelect();
   renderDayTabs();
   renderCurrentDay(resetTimer);
 }
 
-function renderWeekTabs() {
-  const wrap = $('weekTabs');
-  wrap.innerHTML = '';
+function renderWeekSelect() {
+  const sel = $('weekSelect');
+  if (!sel || !state.microcycle) return;
+  sel.innerHTML = '';
   for (let w = 1; w <= state.microcycle.weeks_count; w++) {
-    const btn = document.createElement('button');
-    btn.className = `btn btn-sm ${w === state.selectedWeek ? 'btn-primary' : ''}`;
-    btn.textContent = formatWeekLabel(state.microcycle, w);
-    btn.addEventListener('click', () => {
-      state.selectedWeek = w;
-      const firstDay = state.microcycle.days.find((d) => d.week_number === w);
-      state.selectedDayId = firstDay?.id || null;
-      renderWeekTabs();
-      renderDayTabs();
-      renderCurrentDay(true);
-    });
-    wrap.appendChild(btn);
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = `Semana ${w}`;
+    if (w === state.selectedWeek) opt.selected = true;
+    sel.appendChild(opt);
   }
 }
+
+$('weekSelect')?.addEventListener('change', (e) => {
+  const w = Number(e.target.value);
+  state.selectedWeek = w;
+  const firstDay = state.microcycle.days.find((d) => d.week_number === w);
+  state.selectedDayId = firstDay?.id || null;
+  renderDayTabs();
+  renderCurrentDay(true);
+});
 
 function renderDayTabs() {
   const wrap = $('dayTabs');

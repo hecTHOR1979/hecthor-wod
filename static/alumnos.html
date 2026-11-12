@@ -98,7 +98,10 @@
       </div>
 
       <div class="card">
-        <div id="weekTabs" class="week-tabs"></div>
+        <div style="margin-bottom:12px;">
+          <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Semana</label>
+          <select id="weekSelect" class="input" style="font-size:1.05rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
+        </div>
         <div id="dayTabs" class="week-tabs"></div>
       </div>
 
@@ -115,8 +118,10 @@
         </div>
 
         <div id="timerStatusLine" style="text-align:center; font-weight:800; font-size:1rem; color:var(--orange); min-height:22px;"></div>
-        <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
-          <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
+        <div style="text-align:center;">
+          <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
+            <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
+          </div>
         </div>
         <div id="timerSubInfo" class="muted" style="text-align:center; margin-bottom:10px;">
           Toca el reloj para abrir en pantalla completa. Al girar el móvil en horizontal se ampliará solo.
