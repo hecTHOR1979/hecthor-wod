@@ -462,29 +462,29 @@ textarea.input {
 }
 
 .tm-min {
-  color: #ff2222;
-  text-shadow: 0 0 10px rgba(255, 34, 34, 0.75), 0 0 22px rgba(255, 34, 34, 0.35);
+  color: #3b82f6;
+  text-shadow: none;
 }
 
 .tm-sep {
-  color: #ff2222;
-  text-shadow: 0 0 10px rgba(255, 34, 34, 0.75);
+  color: #3b82f6;
+  text-shadow: none;
 }
 
 .tm-sec {
-  color: #ff2222;
-  text-shadow: 0 0 10px rgba(255, 34, 34, 0.75), 0 0 22px rgba(255, 34, 34, 0.35);
+  color: #3b82f6;
+  text-shadow: none;
 }
 
 .tm-dot {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.75);
+  color: #f8fafc;
+  text-shadow: none;
 }
 
 .tm-cs {
-  color: #ffffff;
+  color: #f8fafc;
   font-size: 0.65em;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.75);
+  text-shadow: none;
 }
 
 /* Columnar exercise table: Rondas | Repes | Ejercicio */
@@ -659,8 +659,8 @@ textarea.input {
   font-family: 'Digital-7 Mono', 'Digital-7', 'Orbitron', 'Chakra Petch', 'Courier New', monospace;
   font-size: clamp(5rem, 24vw, 12rem);
   font-weight: 900;
-  color: #ff2222;
-  text-shadow: 0 0 20px rgba(255, 34, 34, 0.85);
+  color: #3b82f6;
+  text-shadow: none;
   line-height: 1;
 }
 
