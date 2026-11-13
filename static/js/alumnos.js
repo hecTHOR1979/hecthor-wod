@@ -382,10 +382,29 @@ function renderCurrentDay(resetTimer = true) {
   const wu = day.warmup_exercises || [];
 
   let html = `
-    <div class="card">
-      <span class="badge badge-accent">${esc(formatWeekLabel(state.microcycle, day.week_number))} · Día ${day.day_number}</span>
-      <h2 style="margin:8px 0 4px;">${esc(day.title)}</h2>
-      ${day.coaching_tips ? `<p class="muted" style="margin:0;">💡 <strong>Coach:</strong> ${esc(day.coaching_tips)}</p>` : ''}
+    <div class="print-header-brand">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <h1 style="margin:0; font-size:1.45rem; color:#0369a1; font-weight:900;">⚡ hecTHOR WOD</h1>
+          <div style="font-size:0.88rem; color:#475569; margin-top:2px;">${esc(state.microcycle?.name || 'Crossfit Training')}</div>
+        </div>
+        <div style="text-align:right; font-size:0.9rem; color:#0369a1; font-weight:800;">
+          ${esc(formatWeekLabel(state.microcycle, day.week_number))} · Día ${day.day_number}
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-block-celeste">
+      <div class="row-between" style="align-items:flex-start;">
+        <div>
+          <span class="badge badge-celeste-matte">${esc(formatWeekLabel(state.microcycle, day.week_number))} · Día ${day.day_number}</span>
+          <h2 style="margin:8px 0 4px;">${esc(day.title)}</h2>
+          ${day.coaching_tips ? `<p class="muted" style="margin:0;">💡 <strong>Coach:</strong> ${esc(day.coaching_tips)}</p>` : ''}
+        </div>
+        <button class="btn btn-sm btn-celeste-matte no-print" id="btnPrintDayPdf" style="display:inline-flex; align-items:center; gap:6px; white-space:nowrap; margin-top:2px;">
+          🖨️ Imprimir / Guardar en PDF
+        </button>
+      </div>
     </div>
   `;
 
@@ -393,10 +412,10 @@ function renderCurrentDay(resetTimer = true) {
   const rawWuTimerType = (warmupTimer.type || 'AMRAP').toUpperCase();
   const wuTimerMode = getTimedBlockMode(rawWuTimerType) || (rawWuTimerType.includes('CRONO') && !rawWuTimerType.includes('SIN CRONO') ? 'CRONO' : null);
   html += `
-    <div class="card" style="border-color: rgba(45,212,191,0.35);">
+    <div class="card card-block-celeste">
       <div class="section-header">
-        <span class="badge badge-ground">WARM UP · ${esc(warmupType)}</span>
-        ${wuTimerMode ? `<span class="badge">${esc(wuTimerMode)} · ${esc(warmupTimer.minutes || 8)} min</span>` : ''}
+        <span class="badge badge-celeste-matte">WARM UP · ${esc(warmupType)}</span>
+        ${wuTimerMode ? `<span class="badge badge-celeste-matte">${esc(wuTimerMode)} · ${esc(warmupTimer.minutes || 8)} min</span>` : ''}
       </div>
       ${day.warmup_notes ? `<p class="muted" style="margin-top:0;">${esc(day.warmup_notes)}</p>` : ''}
       ${wu.length === 0 ? '<p class="muted">Sin movimientos listados.</p>' : `
@@ -410,9 +429,9 @@ function renderCurrentDay(resetTimer = true) {
         </div>
       `}
       ${wuTimerMode ? `
-        <div class="section-timer-bar" id="btnWarmupTimerBar" title="Pulsa para iniciar o ampliar en pantalla completa">
+        <div class="section-timer-bar no-print" id="btnWarmupTimerBar" title="Pulsa para iniciar o ampliar en pantalla completa">
           <div>
-            <span class="badge badge-ground">⏱ CRONO WARM UP · ${esc(wuTimerMode)}</span>
+            <span class="badge badge-celeste-matte">⏱ CRONO WARM UP · ${esc(wuTimerMode)}</span>
             <div class="muted" style="margin-top:4px;">Tiempo designado: <strong>${esc(warmupTimer.minutes || 8)} min</strong> · Toca para abrir crono</div>
           </div>
           <div class="section-timer-readout" id="wuTimerPreview">${renderColoredDigitsHtml((Number(warmupTimer.minutes) || 8) * 60000)}</div>
@@ -426,14 +445,15 @@ function renderCurrentDay(resetTimer = true) {
   parts.forEach((p, idx) => {
     const blockTimerMode = getTimedBlockMode(p.timer_type !== undefined && p.timer_type !== '' ? p.timer_type : p.type);
     const bMins = p.timer_minutes || 12;
+    const blockLabel = `BLOQUE ${idx + 1}`;
     html += `
-      <div class="card">
+      <div class="card card-block-celeste">
         <div class="section-header">
           <div>
-            <span class="badge badge-blue">${esc(p.part_label || `Bloque ${idx + 1}`)}${p.type ? ' · ' + esc(p.type) : ''}</span>
-            <h3 class="section-title" style="margin-top:6px;">${esc(p.title)}</h3>
+            <span class="badge badge-celeste-matte">${esc(blockLabel)}${p.type ? ' · ' + esc(p.type) : ''}</span>
+            <h3 class="section-title" style="margin-top:6px;">${esc(p.title || `Trabajo ${blockLabel}`)}</h3>
           </div>
-          ${blockTimerMode ? `<span class="badge">${esc(blockTimerMode)} · ${esc(bMins)} min</span>` : ''}
+          ${blockTimerMode ? `<span class="badge badge-celeste-matte">${esc(blockTimerMode)} · ${esc(bMins)} min</span>` : ''}
         </div>
         ${p.description ? `<p class="muted" style="margin-top:0;">${esc(p.description)}</p>` : ''}
         ${(p.exercises || []).length > 0 ? `
@@ -447,9 +467,9 @@ function renderCurrentDay(resetTimer = true) {
           </div>
         ` : ''}
         ${blockTimerMode ? `
-          <div class="section-timer-bar" data-block-timer="${idx}" title="Pulsa para iniciar o ampliar en pantalla completa">
+          <div class="section-timer-bar no-print" data-block-timer="${idx}" title="Pulsa para iniciar o ampliar en pantalla completa">
             <div>
-              <span class="badge badge-blue">⏱ CRONO ${esc(p.part_label || `BLOQUE ${idx + 1}`)} · ${esc(blockTimerMode)}</span>
+              <span class="badge badge-celeste-matte">⏱ CRONO ${esc(blockLabel)} · ${esc(blockTimerMode)}</span>
               <div class="muted" style="margin-top:4px;">${esc(p.type || 'Entreno')} · ${esc(bMins)} min · Toca para pantalla completa</div>
             </div>
             <div class="section-timer-readout">${renderColoredDigitsHtml((Number(bMins) || 12) * 60000)}</div>
@@ -463,10 +483,10 @@ function renderCurrentDay(resetTimer = true) {
   const wod = day.wod || {};
   const wodMovements = wod.movements || [];
   html += `
-    <div class="card" style="border-color: rgba(255,107,53,0.4);">
+    <div class="card card-block-celeste">
       <div class="section-header">
-        <span class="badge badge-orange">WOD FINAL · ${esc(wod.type || 'WOD')}</span>
-        ${wod.time_cap ? `<span class="badge">${esc(wod.time_cap)}</span>` : ''}
+        <span class="badge badge-celeste-matte">WOD FINAL · ${esc(wod.type || 'WOD')}</span>
+        ${wod.time_cap ? `<span class="badge badge-celeste-matte">${esc(wod.time_cap)}</span>` : ''}
       </div>
       <h3 style="margin:4px 0 8px;">${esc(wod.title || 'Entrenamiento del día')}</h3>
       ${wod.description ? `<div class="wod-pre">${esc(wod.description)}</div>` : '<p class="muted">Sin descripción.</p>'}
@@ -475,7 +495,7 @@ function renderCurrentDay(resetTimer = true) {
       ${wod.target_score ? `<p style="margin:6px 0;" class="muted"><strong>Objetivo:</strong> ${esc(wod.target_score)}</p>` : ''}
       ${wod.strategy ? `<p style="margin:6px 0;" class="muted"><strong>Estrategia:</strong> ${esc(wod.strategy)}</p>` : ''}
       ${wodMovements.length > 0 ? `
-        <div class="wod-videos-box">
+        <div class="wod-videos-box no-print">
           <div class="muted" style="font-size:0.8rem; font-weight:800; text-transform:uppercase;">🎬 Vídeos de movimientos del WOD</div>
           <div id="stuWodMovements"></div>
         </div>
@@ -484,6 +504,17 @@ function renderCurrentDay(resetTimer = true) {
   `;
 
   container.innerHTML = html;
+
+  // Print Day to PDF handler
+  $('btnPrintDayPdf')?.addEventListener('click', () => {
+    const prevTitle = document.title;
+    const cleanDayTitle = (day.title || `Dia ${day.day_number}`).replace(/[/\\?%*:|"<>]/g, '-');
+    document.title = `hecTHOR WOD - Semana ${day.week_number} - Día ${day.day_number} - ${cleanDayTitle}`;
+    window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 1500);
+  });
 
   // Populate Warmup columnar rows: Col1 Rondas | Col2 Repes | Col3 Nombre(+video) + explicación debajo
   const wuWrap = $('stuWarmupList');

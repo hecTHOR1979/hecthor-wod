@@ -19,6 +19,11 @@
   --ground-soft: rgba(45, 212, 191, 0.15);
   --blue: #60a5fa;
   --blue-soft: rgba(96, 165, 250, 0.15);
+  --celeste-matte: #0284c7;
+  --celeste-matte-dark: #0369a1;
+  --celeste-matte-text: #bae6fd;
+  --celeste-matte-soft: rgba(2, 132, 199, 0.16);
+  --celeste-matte-border: rgba(14, 165, 233, 0.42);
   --danger: #f43f5e;
   --danger-soft: rgba(244, 63, 94, 0.16);
   --radius: 14px;
@@ -229,6 +234,41 @@ button, input, select, textarea {
 .badge-blue {
   background: var(--blue-soft);
   color: var(--blue);
+}
+
+.badge-celeste-matte {
+  background: var(--celeste-matte-soft);
+  color: var(--celeste-matte-text);
+  border: 1px solid var(--celeste-matte-border);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.btn-celeste-matte {
+  background: var(--celeste-matte-soft);
+  color: var(--celeste-matte-text);
+  border-color: var(--celeste-matte-border);
+}
+
+.btn-celeste-matte:hover {
+  background: rgba(2, 132, 199, 0.28);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #ffffff;
+}
+
+.card-block-celeste {
+  border: 1.5px solid var(--celeste-matte-border) !important;
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.08) 0%, rgba(21, 25, 35, 1) 120px) !important;
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.08);
+}
+
+.item-box-celeste {
+  border: 1.5px solid var(--celeste-matte-border) !important;
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.06) 0%, rgba(16, 20, 28, 1) 90px) !important;
+}
+
+.print-header-brand {
+  display: none;
 }
 
 .field {
@@ -739,5 +779,137 @@ textarea.input {
   .btn {
     padding: 8px 11px;
     font-size: 0.85rem;
+  }
+}
+
+/* ==========================================================================
+   PRINT / PDF STYLES
+   Optimized layout for printing complete daily session to PDF or paper
+   ========================================================================== */
+@media print {
+  /* Hide all interactive app bars, floating clocks, buttons and controls */
+  .topbar,
+  .bottom-nav,
+  #studentBottomNav,
+  .offline-banner,
+  #weekSelect,
+  label[for="weekSelect"],
+  #dayTabs,
+  #timerCard,
+  .section-timer-bar,
+  .fs-clock-overlay,
+  .modal-backdrop,
+  .btn,
+  button,
+  .no-print,
+  #copyTargetDay,
+  #btnCopyDay,
+  #btnSaveDay,
+  #btnCoachPrintDay,
+  #studentMcSelectWrap,
+  #btnStudentLogout,
+  #syncBadge,
+  #btnLoginCoachJump,
+  .video-btn,
+  .wod-videos-box {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  .app-shell {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-header-brand {
+    display: block !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #0284c7 !important;
+  }
+
+  .card, .item-box {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1.5px solid #0284c7 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    margin-bottom: 14px !important;
+    padding: 12px 14px !important;
+    page-break-inside: avoid;
+  }
+
+  .badge {
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #0284c7 !important;
+    font-weight: 800 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge-accent, .badge-ground, .badge-orange, .badge-blue, .badge-celeste-matte {
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #0284c7 !important;
+  }
+
+  .section-title, h1, h2, h3 {
+    color: #0f172a !important;
+  }
+
+  .ex-table {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+  }
+
+  .ex-table-head {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ex-table-row {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+
+  .ex-cell-num {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  .ex-cell-reps, .ex-cell-sets {
+    color: #0369a1 !important;
+  }
+
+  .ex-video-link {
+    color: #0f172a !important;
+    text-decoration: none !important;
+    pointer-events: none !important;
+  }
+
+  .wod-pre {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    white-space: pre-wrap !important;
+    padding: 10px !important;
+    border-radius: 6px !important;
+  }
+
+  .muted, .text-muted {
+    color: #475569 !important;
   }
 }

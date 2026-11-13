@@ -563,16 +563,17 @@ function renderPartsList() {
   const list = $('partsList');
   const parts = state.currentDay.parts || [];
   if (parts.length === 0) {
-    list.innerHTML = '<p class="muted">Sin bloques añadidos (p. ej. Bloque A: Fuerza, Bloque B: Halterofilia). Pulsa "+ Añadir Bloque".</p>';
+    list.innerHTML = '<p class="muted">Sin bloques añadidos (p. ej. BLOQUE 1: Fuerza, BLOQUE 2: Halterofilia). Pulsa "+ Añadir Bloque".</p>';
     return;
   }
   list.innerHTML = '';
   parts.forEach((part, pIdx) => {
     const box = document.createElement('div');
-    box.className = 'item-box';
+    box.className = 'item-box item-box-celeste';
+    const blockLabel = `BLOQUE ${pIdx + 1}`;
     box.innerHTML = `
       <div class="row-between" style="margin-bottom:8px;">
-        <span class="badge badge-blue">${esc(part.part_label || `Bloque ${String.fromCharCode(65 + pIdx)}`)}</span>
+        <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
         <div class="row-wrap">
           <button class="btn btn-sm" data-add-ex="${pIdx}">+ Ejercicio</button>
           <button class="btn btn-danger btn-sm" data-del-part="${pIdx}">Eliminar bloque</button>
@@ -764,13 +765,21 @@ $('btnAddPart').addEventListener('click', () => {
   if (!state.currentDay) return;
   const idx = (state.currentDay.parts || []).length;
   state.currentDay.parts.push({
-    part_label: `Bloque ${String.fromCharCode(65 + idx)}`,
+    part_label: `BLOQUE ${idx + 1}`,
     title: '',
     type: 'Fuerza',
     description: '',
     exercises: [],
   });
   renderPartsList();
+});
+
+$('btnCoachPrintDay')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    alert('Selecciona un día en la planificación primero.');
+    return;
+  }
+  window.open(`/alumnos#day=${state.currentDay.id}`, '_blank');
 });
 
 // Exercise picker & target insertion
