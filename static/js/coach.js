@@ -515,36 +515,40 @@ function renderWarmupList() {
   const list = $('warmupList');
   const items = state.currentDay.warmup_exercises || [];
   if (items.length === 0) {
-    list.innerHTML = '<p class="muted">Sin ejercicios añadidos en Warm Up. Usa "+ Añadir GROUND" para movilidad.</p>';
+    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en Warm Up. Pulsa "+ Añadir línea" o "+ Añadir GROUND".</p>';
     return;
   }
   list.innerHTML = '';
   items.forEach((item, idx) => {
     const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((item.name || '').replace(/\(GROUND\)/gi, '').trim() + ' crossfit tutorial')}`;
     const row = document.createElement('div');
-    row.className = 'item-box';
+    row.className = 'ex-coach-line';
     row.innerHTML = `
-      <div class="row-between" style="margin-bottom:8px;">
-        <strong>${esc(item.name)}</strong>
-        <div class="row-wrap">
-          ${item.video_url ? `<button class="btn btn-sm" data-play="${idx}">▶ Vídeo</button>` : ''}
-          <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener">🔍 YouTube</a>
-          <button class="btn btn-sm btn-outline" data-save-lib-wu title="Guardar este ejercicio y su enlace de vídeo en la biblioteca">💾 Guardar en biblioteca</button>
-          <button class="btn btn-danger btn-sm" data-del-wu="${idx}">Quitar</button>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+        <div style="width:70px;">
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas (ej: 3 rondas)" />
+        </div>
+        <div style="width:85px;">
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+        </div>
+        <div style="flex:1; min-width:140px;">
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" placeholder="Nombre del ejercicio..." value="${esc(item.name || '')}" />
+        </div>
+        <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+          <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wu-field="video_url" placeholder="URL vídeo explicativo..." value="${esc(item.video_url || '')}" />
+          <button class="btn btn-sm ${item.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play="${idx}" title="${item.video_url ? 'Ver vídeo explicativo' : 'Buscar o ver vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
+            🎬
+          </button>
+        </div>
+        <div class="row-wrap" style="gap:4px;">
+          <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener" title="Buscar en YouTube" style="padding:6px 8px;">🔍</a>
+          <button class="btn btn-sm btn-outline" data-save-lib-wu title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
+          <button class="btn btn-danger btn-sm" data-del-wu="${idx}" title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
         </div>
       </div>
-      <div class="grid-2">
-        <div class="field" style="margin-bottom:0;">
-          <label>Repeticiones</label>
-          <input class="input" data-wu-field="reps" data-idx="${idx}" placeholder="Reps / Tiempo (ej: 8 por lado)" value="${esc(item.reps || '')}" />
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Rondas</label>
-          <input class="input" data-wu-field="sets" data-idx="${idx}" placeholder="Rondas (ej: 3 rondas)" value="${esc(item.sets || '')}" />
-        </div>
+      <div style="margin-top:4px;">
+        <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.1);" data-wu-field="notes" placeholder="Notas técnicas opcionales..." value="${esc(item.notes || '')}" />
       </div>
-      <input class="input" style="margin-top:8px;" data-wu-field="notes" data-idx="${idx}" placeholder="Notas técnicas..." value="${esc(item.notes || '')}" />
-      <input class="input" style="margin-top:8px;" data-wu-field="video_url" data-idx="${idx}" placeholder="URL del vídeo (YouTube)..." value="${esc(item.video_url || '')}" />
     `;
     row.querySelector('[data-del-wu]').addEventListener('click', () => {
       state.currentDay.warmup_exercises.splice(idx, 1);
@@ -552,7 +556,14 @@ function renderWarmupList() {
     });
     const playBtn = row.querySelector('[data-play]');
     if (playBtn) {
-      playBtn.addEventListener('click', () => openVideoModal(item.name, state.currentDay.warmup_exercises[idx].video_url));
+      playBtn.addEventListener('click', () => {
+        const url = state.currentDay.warmup_exercises[idx].video_url;
+        if (url) {
+          openVideoModal(item.name, url);
+        } else {
+          window.open(ytSearch, '_blank', 'noopener');
+        }
+      });
     }
     row.querySelector('[data-save-lib-wu]')?.addEventListener('click', async () => {
       const cur = state.currentDay.warmup_exercises[idx];
@@ -594,9 +605,9 @@ function renderPartsList() {
       <div class="row-between" style="margin-bottom:8px;">
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
         <div class="row-wrap" style="gap:6px;">
-          ${normalizedTimer !== 'SIN CRONO' ? `<button class="btn btn-sm btn-outline" type="button" data-launch-part-crono="${pIdx}" title="Probar en Crono Oficial">⚡ Crono Oficial ↗</button>` : ''}
-          <button class="btn btn-sm" data-add-ex="${pIdx}">+ Ejercicio</button>
-          <button class="btn btn-danger btn-sm" data-del-part="${pIdx}">Eliminar bloque</button>
+          <button class="btn btn-primary btn-sm" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
+          <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-part="${pIdx}">Eliminar bloque</button>
         </div>
       </div>
       <div class="grid-2">
@@ -608,57 +619,101 @@ function renderPartsList() {
           <label>Tipo de ejercicio / trabajo</label>
           <input class="input" data-part-field="type" placeholder="Fuerza, Halterofilia, Gimnásticos..." value="${esc(part.type || '')}" />
         </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Formato de crono del bloque (solo si aplica)</label>
-          <select class="input" data-part-field="timer_type">
-            ${['SIN CRONO', 'AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => {
-              return `<option value="${opt}" ${normalizedTimer === opt ? 'selected' : ''}>${opt === 'SIN CRONO' ? 'Sin crono (Fuerza / Técnica)' : opt}</option>`;
-            }).join('')}
-          </select>
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>Tiempo de trabajo / Cap (min)</label>
-          <input class="input" type="number" min="1" max="60" data-part-field="timer_minutes" value="${esc(part.timer_minutes || 12)}" />
-        </div>
       </div>
-      ${normalizedTimer === 'TABATA' ? `
-        <div class="grid-3" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
-          <div class="field" style="margin-bottom:0;">
-            <label style="color:#0284c7; font-weight:700;">🔵 Trabajo (segundos)</label>
-            <input class="input" type="number" min="5" max="300" step="5" data-part-field="tabata_work" value="${esc(part.tabata_work !== undefined ? part.tabata_work : 20)}" />
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label style="color:#10b981; font-weight:700;">🟢 Descanso (segundos)</label>
-            <input class="input" type="number" min="0" max="300" step="5" data-part-field="tabata_rest" value="${esc(part.tabata_rest !== undefined ? part.tabata_rest : 10)}" />
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
-            <input class="input" type="number" min="1" max="50" data-part-field="tabata_rounds" value="${esc(part.tabata_rounds !== undefined ? part.tabata_rounds : 8)}" />
-          </div>
-        </div>
-      ` : ''}
-      ${normalizedTimer === 'EMOM' ? `
-        <div class="grid-2" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
-          <div class="field" style="margin-bottom:0;">
-            <label style="color:#0284c7; font-weight:700;">Intervalo (segundos)</label>
-            <input class="input" type="number" min="10" max="300" step="10" data-part-field="emom_interval" value="${esc(part.emom_interval !== undefined ? part.emom_interval : 60)}" />
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
-            <input class="input" type="number" min="1" max="60" data-part-field="emom_rounds" value="${esc(part.emom_rounds !== undefined ? part.emom_rounds : 10)}" />
+
+      <div style="margin-top:8px; margin-bottom:8px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:6px; padding:6px 10px;">
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:var(--accent); font-size:0.88rem; margin:0;">
+          <input type="checkbox" data-part-field="has_score" ${part.has_score ? 'checked' : ''} style="width:18px; height:18px; accent-color:var(--accent);" />
+          🏆 Permitir a los alumnos registrar marca / resultado en este bloque
+        </label>
+      </div>
+
+      <textarea class="input" style="margin-bottom:8px;" data-part-field="description" placeholder="Esquema general del bloque, %RM, descansos...">${esc(part.description || '')}</textarea>
+
+      <!-- LÍNEAS DE EJERCICIOS DEL BLOQUE (FORMATO LÍNEAS CON VÍDEO A LA DERECHA) -->
+      <div style="margin-bottom:12px;">
+        <div class="row-between" style="margin-bottom:6px; align-items:center;">
+          <span style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">📋 Ejercicios del bloque</span>
+          <div class="row-wrap" style="gap:6px;">
+            <button class="btn btn-sm btn-primary" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
+            <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           </div>
         </div>
-      ` : ''}
-      <textarea class="input" style="margin-top:8px;" data-part-field="description" placeholder="Esquema de series, %RM, descansos...">${esc(part.description || '')}</textarea>
-      <div data-part-ex-list="${pIdx}" style="margin-top:8px;"></div>
+        <div data-part-ex-list="${pIdx}"></div>
+      </div>
+
+      <!-- CRONO DEL BLOQUE (AL FINAL DEL BLOQUE) -->
+      <div style="margin-top:14px; padding-top:10px; border-top:1px solid rgba(2,132,199,0.25);">
+        <div class="row-between" style="margin-bottom:8px; align-items:center;">
+          <label style="color:#38bdf8; font-weight:800; font-size:0.85rem; margin:0;">⏱ Formato de crono del bloque (al final)</label>
+          ${normalizedTimer !== 'SIN CRONO' ? `<button class="btn btn-sm btn-outline" type="button" data-launch-part-crono="${pIdx}" title="Probar en Crono Oficial">⚡ Crono Oficial ↗</button>` : ''}
+        </div>
+        <div class="grid-2">
+          <div class="field" style="margin-bottom:0;">
+            <select class="input" data-part-field="timer_type">
+              ${['SIN CRONO', 'AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => {
+                return `<option value="${opt}" ${normalizedTimer === opt ? 'selected' : ''}>${opt === 'SIN CRONO' ? 'Sin crono (Fuerza / Técnica)' : opt}</option>`;
+              }).join('')}
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <input class="input" type="number" min="1" max="60" data-part-field="timer_minutes" placeholder="Tiempo / Cap (min)" value="${esc(part.timer_minutes || 12)}" />
+          </div>
+        </div>
+        ${normalizedTimer === 'TABATA' ? `
+          <div class="grid-3" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
+            <div class="field" style="margin-bottom:0;">
+              <label style="color:#0284c7; font-weight:700;">🔵 Trabajo (segundos)</label>
+              <input class="input" type="number" min="5" max="300" step="5" data-part-field="tabata_work" value="${esc(part.tabata_work !== undefined ? part.tabata_work : 20)}" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label style="color:#10b981; font-weight:700;">🟢 Descanso (segundos)</label>
+              <input class="input" type="number" min="0" max="300" step="5" data-part-field="tabata_rest" value="${esc(part.tabata_rest !== undefined ? part.tabata_rest : 10)}" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
+              <input class="input" type="number" min="1" max="50" data-part-field="tabata_rounds" value="${esc(part.tabata_rounds !== undefined ? part.tabata_rounds : 8)}" />
+            </div>
+          </div>
+        ` : ''}
+        ${normalizedTimer === 'EMOM' ? `
+          <div class="grid-2" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
+            <div class="field" style="margin-bottom:0;">
+              <label style="color:#0284c7; font-weight:700;">Intervalo (segundos)</label>
+              <input class="input" type="number" min="10" max="300" step="10" data-part-field="emom_interval" value="${esc(part.emom_interval !== undefined ? part.emom_interval : 60)}" />
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
+              <input class="input" type="number" min="1" max="60" data-part-field="emom_rounds" value="${esc(part.emom_rounds !== undefined ? part.emom_rounds : 10)}" />
+            </div>
+          </div>
+        ` : ''}
+      </div>
     `;
 
     box.querySelector('[data-del-part]').addEventListener('click', () => {
       state.currentDay.parts.splice(pIdx, 1);
       renderPartsList();
     });
-    box.querySelector('[data-add-ex]').addEventListener('click', () => {
-      openExercisePicker({ type: 'part', partIdx: pIdx }, false);
+    box.querySelectorAll('[data-add-part-line]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!Array.isArray(part.exercises)) part.exercises = [];
+        part.exercises.push({
+          name: '',
+          sets: '',
+          reps: '',
+          load: '',
+          rest: '',
+          notes: '',
+          video_url: '',
+        });
+        renderPartsList();
+      });
+    });
+    box.querySelectorAll('[data-add-ex]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openExercisePicker({ type: 'part', partIdx: pIdx }, false);
+      });
     });
     box.querySelector('[data-launch-part-crono]')?.addEventListener('click', () => {
       const mode = (part.timer_type || 'SIN CRONO').toUpperCase();
@@ -676,6 +731,10 @@ function renderPartsList() {
     box.querySelectorAll('[data-part-field]').forEach((inp) => {
       const handler = () => {
         const field = inp.dataset.partField;
+        if (field === 'has_score') {
+          state.currentDay.parts[pIdx].has_score = inp.checked;
+          return;
+        }
         const val = inp.value;
         state.currentDay.parts[pIdx][field] = val;
         if (field === 'timer_type') {
@@ -710,65 +769,81 @@ function renderPartsList() {
     });
 
     const exWrap = box.querySelector(`[data-part-ex-list="${pIdx}"]`);
-    (part.exercises || []).forEach((ex, eIdx) => {
-      const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((ex.name || '').replace(/\(GROUND\)/gi, '').trim() + ' crossfit tutorial')}`;
-      const exRow = document.createElement('div');
-      exRow.className = 'item-box';
-      exRow.style.background = 'var(--bg-elev)';
-      exRow.innerHTML = `
-        <div class="row-between" style="margin-bottom:6px;">
-          <strong>${esc(ex.name)}</strong>
-          <div class="row-wrap">
-            ${ex.video_url ? `<button class="btn btn-sm" data-play-ex>▶ Vídeo</button>` : ''}
-            <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener">🔍 YouTube</a>
-            <button class="btn btn-sm btn-outline" data-save-lib title="Guardar este ejercicio y su enlace de vídeo en la biblioteca">💾 Guardar en biblioteca</button>
-            <button class="btn btn-danger btn-sm" data-del-ex>✕</button>
+    const partExercises = part.exercises || [];
+    if (partExercises.length === 0) {
+      exWrap.innerHTML = '<p class="muted" style="font-size:0.85rem; margin:6px 0;">Sin ejercicios añadidos. Pulsa "+ Añadir línea" o "📚 Biblioteca".</p>';
+    } else {
+      exWrap.innerHTML = '';
+      partExercises.forEach((ex, eIdx) => {
+        const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((ex.name || '').replace(/\(GROUND\)/gi, '').trim() + ' crossfit tutorial')}`;
+        const exRow = document.createElement('div');
+        exRow.className = 'ex-coach-line';
+        exRow.innerHTML = `
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+            <div style="width:60px;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series (ej: 5)" />
+            </div>
+            <div style="width:70px;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="Repes" value="${esc(ex.reps || '')}" title="Repeticiones (ej: 5 o 8-10)" />
+            </div>
+            <div style="width:80px;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="load" placeholder="Carga/%" value="${esc(ex.load || '')}" title="Carga o %RM (ej: 80 kg o 75%)" />
+            </div>
+            <div style="width:65px;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="Desc." value="${esc(ex.rest || '')}" title="Descanso (ej: 90s)" />
+            </div>
+            <div style="flex:1; min-width:130px;">
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" placeholder="Nombre del ejercicio..." value="${esc(ex.name || '')}" />
+            </div>
+            <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
+              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-ex-f="video_url" placeholder="URL vídeo..." value="${esc(ex.video_url || '')}" />
+              <button class="btn btn-sm ${ex.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-ex title="${ex.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
+                🎬
+              </button>
+            </div>
+            <div class="row-wrap" style="gap:4px;">
+              <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener" title="Buscar en YouTube" style="padding:6px 8px;">🔍</a>
+              <button class="btn btn-sm btn-outline" data-save-lib title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
+              <button class="btn btn-danger btn-sm" data-del-ex title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
+            </div>
           </div>
-        </div>
-        <div class="grid-2">
-          <div class="field" style="margin-bottom:0;">
-            <label>Series</label>
-            <input class="input" data-ex-f="sets" placeholder="Ej: 5" value="${esc(ex.sets || '')}" />
+          <div style="margin-top:4px;">
+            <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.1);" data-ex-f="notes" placeholder="Notas técnicas opcionales..." value="${esc(ex.notes || '')}" />
           </div>
-          <div class="field" style="margin-bottom:0;">
-            <label>Repeticiones</label>
-            <input class="input" data-ex-f="reps" placeholder="Ej: 5 o 8-10" value="${esc(ex.reps || '')}" />
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label>Porcentaje / Carga (%RM / kg)</label>
-            <input class="input" data-ex-f="load" placeholder="Ej: 75% 1RM o 60 kg" value="${esc(ex.load || '')}" />
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label>Descanso</label>
-            <input class="input" data-ex-f="rest" placeholder="Ej: 120 seg" value="${esc(ex.rest || '')}" />
-          </div>
-        </div>
-        <input class="input" style="margin-top:8px;" data-ex-f="notes" placeholder="Explicación opcional (técnica, estímulo...)" value="${esc(ex.notes || '')}" />
-        <input class="input" style="margin-top:8px;" data-ex-f="video_url" placeholder="URL del vídeo (YouTube)..." value="${esc(ex.video_url || '')}" />
-      `;
-      exRow.querySelector('[data-del-ex]').addEventListener('click', () => {
-        state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
-        renderPartsList();
-      });
-      const play = exRow.querySelector('[data-play-ex]');
-      if (play) play.addEventListener('click', () => openVideoModal(ex.name, state.currentDay.parts[pIdx].exercises[eIdx].video_url));
-      exRow.querySelector('[data-save-lib]')?.addEventListener('click', async () => {
-        const cur = state.currentDay.parts[pIdx].exercises[eIdx];
-        const ok = await saveExerciseToLibrary({
-          name: cur.name,
-          video_url: cur.video_url,
-          notes: cur.notes,
-          category: part.type || 'Fuerza',
+        `;
+        exRow.querySelector('[data-del-ex]').addEventListener('click', () => {
+          state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
+          renderPartsList();
         });
-        if (ok) renderPartsList();
-      });
-      exRow.querySelectorAll('[data-ex-f]').forEach((inp) => {
-        inp.addEventListener('input', () => {
-          state.currentDay.parts[pIdx].exercises[eIdx][inp.dataset.exF] = inp.value;
+        const play = exRow.querySelector('[data-play-ex]');
+        if (play) {
+          play.addEventListener('click', () => {
+            const url = state.currentDay.parts[pIdx].exercises[eIdx].video_url;
+            if (url) {
+              openVideoModal(ex.name, url);
+            } else {
+              window.open(ytSearch, '_blank', 'noopener');
+            }
+          });
+        }
+        exRow.querySelector('[data-save-lib]')?.addEventListener('click', async () => {
+          const cur = state.currentDay.parts[pIdx].exercises[eIdx];
+          const ok = await saveExerciseToLibrary({
+            name: cur.name,
+            video_url: cur.video_url,
+            notes: cur.notes,
+            category: part.type || 'Fuerza',
+          });
+          if (ok) renderPartsList();
         });
+        exRow.querySelectorAll('[data-ex-f]').forEach((inp) => {
+          inp.addEventListener('input', () => {
+            state.currentDay.parts[pIdx].exercises[eIdx][inp.dataset.exF] = inp.value;
+          });
+        });
+        exWrap.appendChild(exRow);
       });
-      exWrap.appendChild(exRow);
-    });
+    }
 
     list.appendChild(box);
   });
@@ -848,6 +923,18 @@ $('btnAddWodMovementManual').addEventListener('click', () => {
   renderWodMovementsList();
 });
 
+$('btnAddWarmupLine')?.addEventListener('click', () => {
+  if (!state.currentDay) return;
+  if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
+  state.currentDay.warmup_exercises.push({
+    name: '',
+    sets: '',
+    reps: '',
+    notes: '',
+    video_url: '',
+  });
+  renderWarmupList();
+});
 $('btnAddWarmupGround').addEventListener('click', () => openExercisePicker({ type: 'warmup' }, true));
 $('btnAddWarmupAny').addEventListener('click', () => openExercisePicker({ type: 'warmup' }, false));
 $('btnAddPart').addEventListener('click', () => {

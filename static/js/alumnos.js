@@ -580,15 +580,8 @@ function renderCurrentDay(resetTimer = true) {
         ${wuSpec ? `<span class="badge badge-celeste-matte">${esc(wuSpec.mode)} · ${esc(wuSpec.minutes)} min</span>` : ''}
       </div>
       ${day.warmup_notes ? `<p class="muted" style="margin-top:0;">${esc(day.warmup_notes)}</p>` : ''}
-      ${wu.length === 0 ? '<p class="muted">Sin movimientos listados.</p>' : `
-        <div class="ex-table">
-          <div class="ex-table-head">
-            <div>Rondas</div>
-            <div>Repes</div>
-            <div>Ejercicio</div>
-          </div>
-          <div id="stuWarmupList"></div>
-        </div>
+      ${wu.length === 0 ? '<p class="muted">Sin movimientos listados en el calentamiento.</p>' : `
+        <div class="ex-clean-list" id="stuWarmupList"></div>
       `}
       ${wuSpec ? renderCronoWodHtml(wuSpec, false) : ''}
     </div>
@@ -608,13 +601,18 @@ function renderCurrentDay(resetTimer = true) {
           </div>
           ${p.description ? `<p class="muted" style="margin-top:0;">${esc(p.description)}</p>` : ''}
           ${(p.exercises || []).length > 0 ? `
-            <div class="ex-table">
-              <div class="ex-table-head">
-                <div>Rondas</div>
-                <div>Repes</div>
-                <div>Ejercicio</div>
+            <div class="ex-clean-list stu-part-ex" data-part-idx="${idx}"></div>
+          ` : ''}
+          ${p.has_score ? `
+            <div class="block-score-box" style="margin-top:12px; background:rgba(255,107,53,0.08); border:1px dashed rgba(255,107,53,0.4); border-radius:8px; padding:10px 14px;">
+              <div style="font-size:0.82rem; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">
+                🏆 Registrar mi resultado en este bloque (${esc(p.title || blockLabel)})
               </div>
-              <div class="stu-part-ex" data-part-idx="${idx}"></div>
+              <div class="row-wrap" style="gap:8px;">
+                <input class="input" style="flex:1; min-width:180px;" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
+                <button class="btn btn-primary btn-sm" data-block-score-btn="${idx}" data-part-title="${esc(p.title || blockLabel)}">Guardar Marca</button>
+              </div>
+              <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px;"></div>
             </div>
           ` : ''}
           ${pSpec ? renderCronoWodHtml(pSpec, false) : ''}
@@ -657,105 +655,59 @@ function renderCurrentDay(resetTimer = true) {
     }, 1500);
   });
 
-  // Populate Warmup columnar rows: Col1 Rondas | Col2 Repes | Col3 Nombre(+video) + explicación debajo
+  // Populate Warmup clean rows: Badges on left + Exercise name + Video symbol button on right
   const wuWrap = $('stuWarmupList');
   if (wuWrap) {
     wu.forEach((item) => {
       const row = document.createElement('div');
-      row.className = 'ex-table-row';
+      row.className = 'ex-clean-line';
       row.innerHTML = `
-        <div class="ex-cell-num ex-cell-sets">${esc(item.sets || '-')}</div>
-        <div class="ex-cell-num ex-cell-reps">${esc(item.reps || '-')}</div>
-        <div class="ex-cell-info">
-          ${buildExerciseNameHtml(item.name, item.video_url)}
+        <div class="ex-clean-left">
+          <div class="ex-clean-badges">
+            ${item.sets ? `<span class="badge badge-celeste-matte">${esc(item.sets)}</span>` : ''}
+            ${item.reps ? `<span class="badge badge-accent">${esc(item.reps)}</span>` : ''}
+          </div>
+          <div class="ex-clean-title">
+            <strong>${esc(item.name)}</strong>
+            ${item.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(item.notes)}</div>` : ''}
+          </div>
         </div>
+        ${item.video_url ? `
+          <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
+            🎬 <span class="video-btn-text">Vídeo</span>
+          </button>
+        ` : ''}
       `;
-      const link = row.querySelector('[data-video-link]');
-      if (link) {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          openVideoModal(item.name, item.video_url, item.notes || item.description || '');
-        });
-      }
       wuWrap.appendChild(row);
     });
   }
 
-  // Attach Crono WOD action handlers
-  container.querySelectorAll('[data-crono-action="start"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      startTimerForSection(btn.dataset.cronoId);
-    });
-  });
-  container.querySelectorAll('[data-crono-action="pause"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      pauseTimer();
-    });
-  });
-  container.querySelectorAll('[data-crono-action="round"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      addRoundForSection(btn.dataset.cronoId);
-    });
-  });
-  container.querySelectorAll('[data-crono-action="finish"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      finishTimer();
-    });
-  });
-  container.querySelectorAll('[data-crono-action="reset"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      resetTimerForSection(btn.dataset.cronoId);
-    });
-  });
-  container.querySelectorAll('[data-crono-action="fullscreen"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (currentDaySpecs[btn.dataset.cronoId]) {
-        loadSpecIntoTimer(currentDaySpecs[btn.dataset.cronoId]);
-      }
-      openFsClock();
-    });
-  });
-  container.querySelectorAll('[data-crono-action="pro"]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      openCronoProModal(currentDaySpecs[btn.dataset.cronoId]);
-    });
-  });
-  container.querySelectorAll('[data-crono-display]').forEach((el) => {
-    el.addEventListener('click', () => {
-      if (currentDaySpecs[el.dataset.cronoDisplay]) {
-        loadSpecIntoTimer(currentDaySpecs[el.dataset.cronoDisplay]);
-      }
-      openFsClock();
-    });
-  });
-
-  // Populate Parts columnar rows
+  // Populate Parts clean rows: Badges on left + Exercise name + Video symbol button on right
   parts.forEach((p, idx) => {
     const pWrap = container.querySelector(`.stu-part-ex[data-part-idx="${idx}"]`);
     if (pWrap) {
       (p.exercises || []).forEach((ex) => {
-        const expParts = [];
-        if (ex.load && ex.load !== '-') expParts.push(`Carga: ${ex.load}`);
-        if (ex.rest && ex.rest !== '-') expParts.push(`Descanso: ${ex.rest}`);
-        const expText = expParts.join(' · ');
-
         const row = document.createElement('div');
-        row.className = 'ex-table-row';
+        row.className = 'ex-clean-line';
         row.innerHTML = `
-          <div class="ex-cell-num ex-cell-sets">${esc(ex.sets || '-')}</div>
-          <div class="ex-cell-num ex-cell-reps">${esc(ex.reps || '-')}</div>
-          <div class="ex-cell-info">
-            ${buildExerciseNameHtml(ex.name, ex.video_url)}
-            ${expText ? `<div class="ex-explanation">${esc(expText)}</div>` : ''}
+          <div class="ex-clean-left">
+            <div class="ex-clean-badges">
+              ${ex.sets ? `<span class="badge badge-celeste-matte">${esc(ex.sets)}</span>` : ''}
+              ${ex.reps ? `<span class="badge badge-accent">${esc(ex.reps)}</span>` : ''}
+              ${ex.load ? `<span class="badge" style="background:rgba(255,255,255,0.08); color:#f8fafc;">${esc(ex.load)}</span>` : ''}
+              ${ex.rest ? `<span class="badge" style="background:rgba(255,255,255,0.05); color:#94a3b8;">⏱ ${esc(ex.rest)}</span>` : ''}
+            </div>
+            <div class="ex-clean-title">
+              <strong>${esc(ex.name)}</strong>
+              ${ex.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(ex.notes)}</div>` : ''}
+            </div>
           </div>
+          ${ex.video_url ? `
+            <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
+              🎬 <span class="video-btn-text">Vídeo</span>
+            </button>
+          ` : ''}
         `;
-        const link = row.querySelector('[data-video-link]');
-        if (link) {
-          link.addEventListener('click', (e) => {
-            e.preventDefault();
-            openVideoModal(ex.name, ex.video_url, ex.notes || ex.description || '');
-          });
-        }
         pWrap.appendChild(row);
       });
     }
@@ -764,22 +716,80 @@ function renderCurrentDay(resetTimer = true) {
   // Populate WOD movements videos
   const wodMovWrap = $('stuWodMovements');
   if (wodMovWrap) {
-    wodMovements.forEach((m) => {
+    (wod.movements || []).forEach((m) => {
       const box = document.createElement('div');
       box.className = 'wod-video-item';
+      box.style.display = 'flex';
+      box.style.alignItems = 'center';
+      box.style.justifyContent = 'space-between';
+      box.style.gap = '10px';
       box.innerHTML = `
-        ${buildExerciseNameHtml(m.name || 'Movimiento', m.video_url)}
+        <div>
+          <strong>${esc(m.name || 'Movimiento')}</strong>
+          ${m.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(m.notes)}</div>` : ''}
+        </div>
+        ${m.video_url ? `
+          <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(m.name || 'Movimiento')}" data-url="${esc(m.video_url)}" data-notes="${esc(m.notes || '')}" title="Ver vídeo explicativo">
+            🎬 <span class="video-btn-text">Vídeo</span>
+          </button>
+        ` : ''}
       `;
-      const link = box.querySelector('[data-video-link]');
-      if (link) {
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          openVideoModal(m.name || 'Movimiento WOD', m.video_url, m.notes || m.description || '');
-        });
-      }
       wodMovWrap.appendChild(box);
     });
   }
+
+  // Handle all video buttons
+  container.querySelectorAll('[data-video-btn]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openVideoModal(btn.dataset.name, btn.dataset.url, btn.dataset.notes || '');
+    });
+  });
+
+  // Handle Block Score submissions
+  container.querySelectorAll('[data-block-score-btn]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idx = btn.dataset.blockScoreBtn;
+      const input = container.querySelector(`[data-block-score-input="${idx}"]`);
+      const status = container.querySelector(`[data-block-score-status="${idx}"]`);
+      const scoreVal = (input?.value || '').trim();
+      if (!scoreVal) {
+        if (status) status.innerHTML = '<span style="color:#f87171;">Introduce tu marca antes de guardar.</span>';
+        return;
+      }
+      const day = state.microcycle.days.find((d) => d.id === state.selectedDayId);
+      const part = (day?.parts || [])[idx];
+      const blockLabel = `BLOQUE ${Number(idx) + 1}`;
+      const blockTitle = btn.dataset.partTitle || part?.title || blockLabel;
+
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+      try {
+        const studentName = state.student?.full_name || $('logName')?.value || 'Alumno';
+        await apiFetch('/api/student/log', {
+          method: 'POST',
+          body: JSON.stringify({
+            microcycle_id: state.microcycle.id,
+            day_id: day.id,
+            student_name: studentName,
+            score: scoreVal,
+            rx_status: 'Bloque',
+            weights_used: '',
+            notes: `[${blockLabel}] ${blockTitle}`,
+          }),
+        });
+        if (status) status.innerHTML = '<span style="color:#22c55e; font-weight:800;">✓ ¡Marca registrada con éxito!</span>';
+        showToast(`Marca de ${blockLabel} registrada`);
+        loadDayLeaderboard();
+      } catch (err) {
+        if (status) status.innerHTML = `<span style="color:#f87171;">Error al guardar: ${esc(err.message)}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Marca';
+      }
+    });
+  });
 
   loadDayLeaderboard();
 }

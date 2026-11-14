@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=15" />
+  <link rel="stylesheet" href="/static/css/app.css?v=24" />
 </head>
 <body>
   <header class="topbar">
@@ -126,7 +126,7 @@
               <button class="btn btn-sm" id="btnAddWarmupAny">+ Añadir ejercicio</button>
             </div>
           </div>
-          <div class="grid-2" style="margin-bottom:8px;">
+          <div class="grid-2" style="margin-bottom:12px;">
             <div class="field" style="margin-bottom:0;">
               <label for="warmupTypeSelect">Tipo de Warm Up (aparece en cabecera)</label>
               <div class="row-wrap">
@@ -143,8 +143,23 @@
               <input id="warmupNotes" class="input" placeholder="Ej: 10' de movilidad GROUND + activación..." />
             </div>
           </div>
-          <div class="field" style="margin-bottom:10px;">
-            <label for="warmupTimerType">Formato de crono del Warm Up</label>
+
+          <!-- ESPACIO DE EJERCICIOS DEL CALENTAMIENTO (FORMATO LÍNEAS) -->
+          <div style="margin-top:10px; margin-bottom:12px;">
+            <div class="row-between" style="margin-bottom:8px; align-items:center;">
+              <span style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📋 Ejercicios del Calentamiento</span>
+              <div class="row-wrap" style="gap:6px;">
+                <button class="btn btn-primary btn-sm" id="btnAddWarmupLine" type="button">+ Añadir línea</button>
+                <button class="btn btn-ground btn-sm" id="btnAddWarmupGround" type="button">+ Añadir GROUND</button>
+                <button class="btn btn-sm btn-outline" id="btnAddWarmupAny" type="button">📚 Biblioteca</button>
+              </div>
+            </div>
+            <div id="warmupList"></div>
+          </div>
+
+          <!-- CRONÓMETRO AL FINAL DEL ESPACIO DE CALENTAMIENTO -->
+          <div class="field" style="margin-top:16px; margin-bottom:10px; padding-top:12px; border-top:1px solid rgba(2,132,199,0.25);">
+            <label for="warmupTimerType" style="color:#38bdf8; font-weight:800;">⏱ Formato de crono del Warm Up (al final)</label>
             <select id="warmupTimerType" class="input">
               <option value="SIN CRONO">Sin crono (Movilidad / Estiramientos libres)</option>
               <option value="AMRAP">AMRAP (Cuenta atrás)</option>
@@ -250,7 +265,6 @@
               </div>
             </div>
           </div>
-          <div id="warmupList"></div>
         </div>
 
         <!-- 2. PARTS / BLOCKS -->
@@ -779,6 +793,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=23"></script>
+  <script type="module" src="/static/js/coach.js?v=24"></script>
 </body>
 </html>

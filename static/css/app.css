@@ -710,6 +710,115 @@ textarea.input {
   color: #e2ff85;
 }
 
+/* ==========================================================================
+   CLEAN LINE FORMAT (WARM UP & BLOQUES)
+   ========================================================================== */
+.ex-clean-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.ex-clean-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ex-clean-line:hover {
+  border-color: rgba(2, 132, 199, 0.4);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.ex-clean-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ex-clean-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.ex-clean-title {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.95rem;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.btn-video-sym {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(2, 132, 199, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(2, 132, 199, 0.35);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-video-sym:hover {
+  background: rgba(2, 132, 199, 0.35);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-video-sym:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 600px) {
+  .ex-clean-line {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .ex-clean-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+  }
+  .btn-video-sym {
+    align-self: flex-end;
+    margin-top: 2px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Coach exercise line */
+.ex-coach-line {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
 .ex-explanation {
   margin-top: 4px;
   font-size: 0.82rem;
