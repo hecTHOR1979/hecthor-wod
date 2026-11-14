@@ -76,17 +76,6 @@ $('btnFullscreen').addEventListener('click', () => {
 document.addEventListener('fullscreenchange', updateFullscreenBtn);
 updateFullscreenBtn();
 
-// Auto-enter fullscreen on first valid user gesture (click / touchend) on mobile
-function autoFullscreenOnFirstTouch(e) {
-  if (e?.target?.closest?.('#btnFullscreen')) return;
-  if (state.userExitedBrowserFs || isBrowserFullscreen() || isStandalonePwa()) return;
-  if (window.innerWidth <= 960 || window.matchMedia('(pointer: coarse)').matches) {
-    enterBrowserFullscreen();
-  }
-}
-document.addEventListener('touchend', autoFullscreenOnFirstTouch, { passive: true });
-document.addEventListener('click', autoFullscreenOnFirstTouch, { passive: true });
-
 // ================= VIDEO MODAL =================
 $('btnCloseVideo').addEventListener('click', closeVideoModal);
 $('btnCloseVideoBottom').addEventListener('click', closeVideoModal);
@@ -1211,75 +1200,44 @@ function addRound(delta) {
   renderTimerUI();
 }
 
-// ================= FULLSCREEN GYM CLOCK + LANDSCAPE AUTO-FULLSCREEN =================
-let fsHistoryPushed = false;
-let lastWasLandscape = window.innerWidth > window.innerHeight;
-
-function openFsClock(fromOrientation = false) {
-  autoOpenedByLandscape = fromOrientation;
+// ================= FULLSCREEN GYM CLOCK =================
+function openFsClock() {
   const overlay = $('fsClockOverlay');
-  if (!overlay.classList.contains('open')) {
+  if (overlay) {
     overlay.classList.add('open');
-    if (!fsHistoryPushed) {
-      try {
-        history.pushState({ fsClock: true }, '');
-        fsHistoryPushed = true;
-      } catch {}
-    }
-  }
-  if (!isBrowserFullscreen() && !state.userExitedBrowserFs) {
-    enterBrowserFullscreen();
   }
   renderTimerUI();
 }
 
 function closeFsClock() {
-  autoOpenedByLandscape = false;
-  $('fsClockOverlay').classList.remove('open');
-  if (fsHistoryPushed) {
-    fsHistoryPushed = false;
+  const overlay = $('fsClockOverlay');
+  if (overlay) {
+    overlay.classList.remove('open');
   }
 }
 
+// When resizing / rotating, refresh digits rendering smoothly without system alerts
 function handleOrientationCheck() {
-  const isPortrait = window.innerHeight >= window.innerWidth;
-  const isLandscape = window.innerWidth > window.innerHeight;
-
-  if (isPortrait && lastWasLandscape && $('fsClockOverlay').classList.contains('open')) {
-    closeFsClock();
-  }
-  lastWasLandscape = isLandscape;
-
-  if (!state.microcycle || $('studentApp').classList.contains('hidden')) return;
-  const isPhoneSize = Math.min(window.innerWidth, window.innerHeight) <= 600;
-  const isLandscapeMobile = isLandscape && isPhoneSize;
-
-  if (isLandscapeMobile) {
-    if (!$('fsClockOverlay').classList.contains('open')) {
-      openFsClock(true);
-    }
-  } else if (autoOpenedByLandscape && isPortrait) {
-    closeFsClock();
+  if ($('fsClockOverlay')?.classList.contains('open')) {
+    renderTimerUI();
   }
 }
 
 window.addEventListener('resize', handleOrientationCheck);
 screen.orientation?.addEventListener('change', handleOrientationCheck);
-window.addEventListener('popstate', () => {
-  if ($('fsClockOverlay').classList.contains('open')) {
-    fsHistoryPushed = false;
-    closeFsClock();
-  }
-});
+
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && $('fsClockOverlay').classList.contains('open')) {
+  if (e.key === 'Escape' && $('fsClockOverlay')?.classList.contains('open')) {
     closeFsClock();
   }
 });
 
+// Close button on fullscreen clock
+$('btnCloseFsClock')?.addEventListener('click', closeFsClock);
+
 // Tap inline clock or "Ampliar" -> open fullscreen clock
-$('timerDisplay').addEventListener('click', () => openFsClock(false));
-$('btnOpenFsClock').addEventListener('click', () => openFsClock(false));
+$('timerDisplay')?.addEventListener('click', openFsClock);
+$('btnOpenFsClock')?.addEventListener('click', openFsClock);
 
 // Fullscreen controls: ONLY "-" (left), "⏸/▶" (center), "+" (right)
 $('fsBtnTogglePause').addEventListener('click', () => {
