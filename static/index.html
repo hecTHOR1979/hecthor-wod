@@ -93,6 +93,7 @@
         <div class="section-header">
           <div>
             <span class="badge badge-accent" id="editorDayBadge">MICROCICLO 1 · Día 1</span>
+            <span class="badge badge-ground hidden" id="autoSaveBadge" style="margin-left:6px; font-size:0.78rem;">✓ Guardado automáticamente</span>
             <h2 class="section-title" style="margin-top:6px;">Editor de Sesión</h2>
           </div>
           <div class="row-wrap">
@@ -121,10 +122,6 @@
             <div class="row-wrap">
               <span class="badge badge-celeste-matte">WARM UP · <span id="warmupTypeHeaderBadge">Movilidad GROUND</span></span>
             </div>
-            <div class="row-wrap">
-              <button class="btn btn-ground btn-sm" id="btnAddWarmupGround">+ Añadir GROUND</button>
-              <button class="btn btn-sm" id="btnAddWarmupAny">+ Añadir ejercicio</button>
-            </div>
           </div>
           <div class="grid-2" style="margin-bottom:12px;">
             <div class="field" style="margin-bottom:0;">
@@ -150,7 +147,6 @@
               <span style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📋 Ejercicios del Calentamiento</span>
               <div class="row-wrap" style="gap:6px;">
                 <button class="btn btn-primary btn-sm" id="btnAddWarmupLine" type="button">+ Añadir línea</button>
-                <button class="btn btn-ground btn-sm" id="btnAddWarmupGround" type="button">+ Añadir GROUND</button>
                 <button class="btn btn-sm btn-outline" id="btnAddWarmupAny" type="button">📚 Biblioteca</button>
               </div>
             </div>
@@ -792,7 +788,10 @@
     <iframe id="cronoProIframe" class="crono-pro-iframe" src="about:blank" title="Crono CrossFit Pro" allow="autoplay; fullscreen"></iframe>
   </div>
 
+  <!-- DATALIST FOR AUTOCOMPLETING EXERCISES FROM LIBRARY -->
+  <datalist id="libraryExercisesDatalist"></datalist>
+
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=25"></script>
+  <script type="module" src="/static/js/coach.js?v=26"></script>
 </body>
 </html>

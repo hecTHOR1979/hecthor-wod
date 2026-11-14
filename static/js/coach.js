@@ -27,6 +27,10 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+let autoSaveTimer = null;
+let isSaving = false;
+let pendingSave = false;
+
 function openModal(id) {
   $(id)?.classList.add('open');
 }
@@ -45,7 +49,10 @@ $('videoModal').addEventListener('click', (e) => {
 
 // Tabs
 document.querySelectorAll('[data-tab]').forEach((btn) => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
+    if (state.currentDay && pendingSave) {
+      await doAutoSave();
+    }
     document.querySelectorAll('[data-tab]').forEach((b) => b.classList.remove('active-tab'));
     btn.classList.add('active-tab');
     ['planner', 'library', 'students', 'logs'].forEach((t) => {
@@ -273,6 +280,52 @@ async function loadServerInfo() {
 
 async function loadExercises() {
   state.exercises = await api('/api/exercises');
+  populateExercisesDatalist();
+}
+
+function populateExercisesDatalist() {
+  const dl = $('libraryExercisesDatalist');
+  if (!dl) return;
+  dl.innerHTML = '';
+  (state.exercises || []).forEach((ex) => {
+    if (!ex.name) return;
+    const opt = document.createElement('option');
+    opt.value = ex.name;
+    if (ex.category) opt.label = ex.category;
+    dl.appendChild(opt);
+  });
+}
+
+function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
+  const nameVal = (itemOrEx.name || '').trim().toLowerCase();
+  if (!nameVal) return false;
+  const match = (state.exercises || []).find((ex) => (ex.name || '').trim().toLowerCase() === nameVal);
+  if (match) {
+    let updated = false;
+    if (match.video_url && (!itemOrEx.video_url || itemOrEx.video_url.trim() === '')) {
+      itemOrEx.video_url = match.video_url;
+      const vInp = rowEl.querySelector(`[data-wu-field="${fieldName}"], [data-ex-f="${fieldName}"]`);
+      if (vInp) vInp.value = match.video_url;
+      const playBtn = rowEl.querySelector('[data-play], [data-play-ex]');
+      if (playBtn) {
+        playBtn.className = 'btn btn-sm btn-primary';
+        playBtn.title = 'Ver vídeo explicativo';
+      }
+      updated = true;
+    }
+    if ((match.notes || match.coaching_cues) && (!itemOrEx.notes || itemOrEx.notes.trim() === '')) {
+      itemOrEx.notes = match.notes || match.coaching_cues || '';
+      const nInp = rowEl.querySelector('[data-wu-field="notes"], [data-ex-f="notes"]');
+      if (nInp) nInp.value = itemOrEx.notes;
+      updated = true;
+    }
+    if (updated) {
+      showToast(`⚡ Enlazado con biblioteca: "${match.name}"`);
+      triggerAutoSave(true);
+    }
+    return true;
+  }
+  return false;
 }
 
 async function loadMicrocycles(selectId = null) {
@@ -299,7 +352,10 @@ async function loadMicrocycles(selectId = null) {
   await selectMicrocycle(targetId);
 }
 
-$('microcycleSelect').addEventListener('change', (e) => {
+$('microcycleSelect').addEventListener('change', async (e) => {
+  if (state.currentDay && pendingSave) {
+    await doAutoSave();
+  }
   if (e.target.value) selectMicrocycle(Number(e.target.value));
 });
 
@@ -365,7 +421,10 @@ function renderWeekSelect() {
   }
 }
 
-$('coachWeekSelect')?.addEventListener('change', (e) => {
+$('coachWeekSelect')?.addEventListener('change', async (e) => {
+  if (state.currentDay && pendingSave) {
+    await doAutoSave();
+  }
   state.selectedWeek = Number(e.target.value);
   renderDaysGrid();
   const weekDays = (state.currentMicrocycle?.days || []).filter((d) => d.week_number === state.selectedWeek);
@@ -402,7 +461,10 @@ function renderDaysGrid() {
   });
 }
 
-function openDayEditor(dayId) {
+async function openDayEditor(dayId) {
+  if (state.currentDay && pendingSave && state.currentDay.id !== dayId) {
+    await doAutoSave();
+  }
   const mc = state.currentMicrocycle;
   const day = (mc.days || []).find((d) => d.id === dayId);
   if (!day) return;
@@ -515,12 +577,11 @@ function renderWarmupList() {
   const list = $('warmupList');
   const items = state.currentDay.warmup_exercises || [];
   if (items.length === 0) {
-    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en Warm Up. Pulsa "+ Añadir línea" o "+ Añadir GROUND".</p>';
+    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en Warm Up. Pulsa "+ Añadir línea" o "📚 Biblioteca".</p>';
     return;
   }
   list.innerHTML = '';
   items.forEach((item, idx) => {
-    const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((item.name || '').replace(/\(GROUND\)/gi, '').trim() + ' crossfit tutorial')}`;
     const row = document.createElement('div');
     row.className = 'ex-coach-line';
     row.innerHTML = `
@@ -532,18 +593,18 @@ function renderWarmupList() {
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
         </div>
         <div style="flex:1; min-width:140px;">
-          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" placeholder="Nombre del ejercicio..." value="${esc(item.name || '')}" />
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(item.name || '')}" autocomplete="off" />
         </div>
         <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
           <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wu-field="video_url" placeholder="URL vídeo explicativo..." value="${esc(item.video_url || '')}" />
-          <button class="btn btn-sm ${item.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play="${idx}" title="${item.video_url ? 'Ver vídeo explicativo' : 'Buscar o ver vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
+          <button class="btn btn-sm ${item.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play="${idx}" title="${item.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
             🎬
           </button>
         </div>
         <div class="row-wrap" style="gap:4px;">
-          <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener" title="Buscar en YouTube" style="padding:6px 8px;">🔍</a>
-          <button class="btn btn-sm btn-outline" data-save-lib-wu title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
-          <button class="btn btn-danger btn-sm" data-del-wu="${idx}" title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
+          <button class="btn btn-sm btn-outline" type="button" data-search-lib-wu="${idx}" title="Buscar este ejercicio en la biblioteca" style="padding:6px 8px;">🔍</button>
+          <button class="btn btn-sm btn-outline" type="button" data-save-lib-wu title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-wu="${idx}" title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
         </div>
       </div>
       <div style="margin-top:4px;">
@@ -553,6 +614,10 @@ function renderWarmupList() {
     row.querySelector('[data-del-wu]').addEventListener('click', () => {
       state.currentDay.warmup_exercises.splice(idx, 1);
       renderWarmupList();
+      triggerAutoSave(true);
+    });
+    row.querySelector(`[data-search-lib-wu="${idx}"]`)?.addEventListener('click', () => {
+      openExercisePicker({ type: 'warmup_replace', idx }, false, item.name);
     });
     const playBtn = row.querySelector('[data-play]');
     if (playBtn) {
@@ -561,7 +626,7 @@ function renderWarmupList() {
         if (url) {
           openVideoModal(item.name, url);
         } else {
-          window.open(ytSearch, '_blank', 'noopener');
+          openExercisePicker({ type: 'warmup_replace', idx }, false, item.name);
         }
       });
     }
@@ -578,8 +643,19 @@ function renderWarmupList() {
       if (ok) renderWarmupList();
     });
     row.querySelectorAll('[data-wu-field]').forEach((inp) => {
-      inp.addEventListener('input', () => {
+      const handleWuInput = (isImmediate) => {
         state.currentDay.warmup_exercises[idx][inp.dataset.wuField] = inp.value;
+        if (inp.dataset.wuField === 'name') {
+          tryAutoLinkExercise(state.currentDay.warmup_exercises[idx], row, 'video_url');
+        }
+        triggerAutoSave(isImmediate);
+      };
+      inp.addEventListener('input', () => handleWuInput(false));
+      inp.addEventListener('change', () => handleWuInput(true));
+      inp.addEventListener('blur', () => {
+        if (inp.dataset.wuField === 'name') {
+          tryAutoLinkExercise(state.currentDay.warmup_exercises[idx], row, 'video_url');
+        }
       });
     });
     list.appendChild(row);
@@ -694,6 +770,7 @@ function renderPartsList() {
     box.querySelector('[data-del-part]').addEventListener('click', () => {
       state.currentDay.parts.splice(pIdx, 1);
       renderPartsList();
+      triggerAutoSave(true);
     });
     box.querySelectorAll('[data-add-part-line]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -708,6 +785,7 @@ function renderPartsList() {
           video_url: '',
         });
         renderPartsList();
+        triggerAutoSave(true);
       });
     });
     box.querySelectorAll('[data-add-ex]').forEach((btn) => {
@@ -733,6 +811,7 @@ function renderPartsList() {
         const field = inp.dataset.partField;
         if (field === 'has_score') {
           state.currentDay.parts[pIdx].has_score = inp.checked;
+          triggerAutoSave(true);
           return;
         }
         const val = inp.value;
@@ -749,6 +828,7 @@ function renderPartsList() {
             part.timer_minutes = Math.round((Number(part.emom_interval) * Number(part.emom_rounds)) / 60);
           }
           renderPartsList();
+          triggerAutoSave(true);
         } else if (field === 'tabata_work' || field === 'tabata_rest' || field === 'tabata_rounds') {
           const w = Number(part.tabata_work !== undefined ? part.tabata_work : 20);
           const r = Number(part.tabata_rest !== undefined ? part.tabata_rest : 10);
@@ -756,12 +836,16 @@ function renderPartsList() {
           part.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
           const minInp = box.querySelector('[data-part-field="timer_minutes"]');
           if (minInp) minInp.value = part.timer_minutes;
+          triggerAutoSave(false);
         } else if (field === 'emom_interval' || field === 'emom_rounds') {
           const intSec = Number(part.emom_interval !== undefined ? part.emom_interval : 60);
           const rounds = Number(part.emom_rounds !== undefined ? part.emom_rounds : 10);
           part.timer_minutes = Math.round((intSec * rounds) / 60);
           const minInp = box.querySelector('[data-part-field="timer_minutes"]');
           if (minInp) minInp.value = part.timer_minutes;
+          triggerAutoSave(false);
+        } else {
+          triggerAutoSave(false);
         }
       };
       inp.addEventListener('input', handler);
@@ -775,7 +859,6 @@ function renderPartsList() {
     } else {
       exWrap.innerHTML = '';
       partExercises.forEach((ex, eIdx) => {
-        const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((ex.name || '').replace(/\(GROUND\)/gi, '').trim() + ' crossfit tutorial')}`;
         const exRow = document.createElement('div');
         exRow.className = 'ex-coach-line';
         exRow.innerHTML = `
@@ -793,7 +876,7 @@ function renderPartsList() {
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="Desc." value="${esc(ex.rest || '')}" title="Descanso (ej: 90s)" />
             </div>
             <div style="flex:1; min-width:130px;">
-              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" placeholder="Nombre del ejercicio..." value="${esc(ex.name || '')}" />
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(ex.name || '')}" autocomplete="off" />
             </div>
             <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
               <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-ex-f="video_url" placeholder="URL vídeo..." value="${esc(ex.video_url || '')}" />
@@ -802,9 +885,9 @@ function renderPartsList() {
               </button>
             </div>
             <div class="row-wrap" style="gap:4px;">
-              <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener" title="Buscar en YouTube" style="padding:6px 8px;">🔍</a>
-              <button class="btn btn-sm btn-outline" data-save-lib title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
-              <button class="btn btn-danger btn-sm" data-del-ex title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
+              <button class="btn btn-sm btn-outline" type="button" data-search-lib-part="${eIdx}" title="Buscar en la biblioteca de ejercicios" style="padding:6px 8px;">🔍</button>
+              <button class="btn btn-sm btn-outline" type="button" data-save-lib title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
+              <button class="btn btn-danger btn-sm" type="button" data-del-ex title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
             </div>
           </div>
           <div style="margin-top:4px;">
@@ -814,6 +897,10 @@ function renderPartsList() {
         exRow.querySelector('[data-del-ex]').addEventListener('click', () => {
           state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
           renderPartsList();
+          triggerAutoSave(true);
+        });
+        exRow.querySelector(`[data-search-lib-part="${eIdx}"]`)?.addEventListener('click', () => {
+          openExercisePicker({ type: 'part_replace', partIdx: pIdx, exIdx: eIdx }, false, ex.name);
         });
         const play = exRow.querySelector('[data-play-ex]');
         if (play) {
@@ -822,7 +909,7 @@ function renderPartsList() {
             if (url) {
               openVideoModal(ex.name, url);
             } else {
-              window.open(ytSearch, '_blank', 'noopener');
+              openExercisePicker({ type: 'part_replace', partIdx: pIdx, exIdx: eIdx }, false, ex.name);
             }
           });
         }
@@ -837,8 +924,19 @@ function renderPartsList() {
           if (ok) renderPartsList();
         });
         exRow.querySelectorAll('[data-ex-f]').forEach((inp) => {
-          inp.addEventListener('input', () => {
+          const handleExInput = (isImmediate) => {
             state.currentDay.parts[pIdx].exercises[eIdx][inp.dataset.exF] = inp.value;
+            if (inp.dataset.exF === 'name') {
+              tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx], exRow, 'video_url');
+            }
+            triggerAutoSave(isImmediate);
+          };
+          inp.addEventListener('input', () => handleExInput(false));
+          inp.addEventListener('change', () => handleExInput(true));
+          inp.addEventListener('blur', () => {
+            if (inp.dataset.exF === 'name') {
+              tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx], exRow, 'video_url');
+            }
           });
         });
         exWrap.appendChild(exRow);
@@ -934,10 +1032,11 @@ $('btnAddWarmupLine')?.addEventListener('click', () => {
     video_url: '',
   });
   renderWarmupList();
+  triggerAutoSave(true);
 });
-$('btnAddWarmupGround').addEventListener('click', () => openExercisePicker({ type: 'warmup' }, true));
-$('btnAddWarmupAny').addEventListener('click', () => openExercisePicker({ type: 'warmup' }, false));
-$('btnAddPart').addEventListener('click', () => {
+$('btnAddWarmupGround')?.addEventListener('click', () => openExercisePicker({ type: 'warmup' }, true));
+$('btnAddWarmupAny')?.addEventListener('click', () => openExercisePicker({ type: 'warmup' }, false));
+$('btnAddPart')?.addEventListener('click', () => {
   if (!state.currentDay) return;
   const idx = (state.currentDay.parts || []).length;
   state.currentDay.parts.push({
@@ -948,6 +1047,7 @@ $('btnAddPart').addEventListener('click', () => {
     exercises: [],
   });
   renderPartsList();
+  triggerAutoSave(true);
 });
 
 $('btnCoachPrintDay')?.addEventListener('click', () => {
@@ -961,24 +1061,54 @@ $('btnCoachPrintDay')?.addEventListener('click', () => {
 // Exercise picker & target insertion
 function pickExerciseIntoTarget(ex) {
   if (!state.pickerTarget || !state.currentDay) return;
+  if (state.pickerTarget.type === 'warmup_replace') {
+    const cur = (state.currentDay.warmup_exercises || [])[state.pickerTarget.idx];
+    if (cur) {
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWarmupList();
+      triggerAutoSave(true);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'part_replace') {
+    const part = (state.currentDay.parts || [])[state.pickerTarget.partIdx];
+    if (part && Array.isArray(part.exercises) && part.exercises[state.pickerTarget.exIdx]) {
+      const cur = part.exercises[state.pickerTarget.exIdx];
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderPartsList();
+      triggerAutoSave(true);
+    }
+    return;
+  }
   if (state.pickerTarget.type === 'warmup') {
+    if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
     state.currentDay.warmup_exercises.push({
       name: ex.name,
       sets: '2-3 rondas',
       reps: '8-10 reps / lado',
-      notes: ex.coaching_cues || '',
+      notes: ex.coaching_cues || ex.description || '',
       video_url: ex.video_url || '',
     });
     renderWarmupList();
+    triggerAutoSave(true);
   } else if (state.pickerTarget.type === 'wod') {
     if (!state.currentDay.wod) state.currentDay.wod = {};
     if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = [];
     state.currentDay.wod.movements.push({
       name: ex.name,
-      notes: ex.coaching_cues || '',
+      notes: ex.coaching_cues || ex.description || '',
       video_url: ex.video_url || '',
     });
     renderWodMovementsList();
+    triggerAutoSave(true);
   } else if (state.pickerTarget.type === 'part') {
     const part = state.currentDay.parts[state.pickerTarget.partIdx];
     if (part) {
@@ -989,22 +1119,23 @@ function pickExerciseIntoTarget(ex) {
         reps: '6-8',
         load: '75% 1RM',
         rest: '90 seg',
-        notes: ex.coaching_cues || '',
+        notes: ex.coaching_cues || ex.description || '',
         video_url: ex.video_url || '',
       });
       renderPartsList();
+      triggerAutoSave(true);
     }
   }
 }
 
-function openExercisePicker(target, groundOnly) {
+function openExercisePicker(target, groundOnly, searchInitial = '') {
   state.pickerTarget = target;
   state.pickerGroundOnly = groundOnly;
   $('pickerTitle').textContent = groundOnly
     ? 'Ejercicios GROUND'
     : 'Seleccionar Ejercicio';
   $('pickerGroundToggle').classList.toggle('selected', groundOnly);
-  $('pickerSearch').value = '';
+  $('pickerSearch').value = searchInitial || '';
   renderPickerList();
   openModal('pickerModal');
 }
@@ -1647,16 +1778,16 @@ $('btnRunWodGen').addEventListener('click', async () => {
   }
 });
 
-// Save day
-async function saveCurrentDay() {
-  if (!state.currentDay) return;
-  const payload = {
-    title: $('dayTitle').value.trim() || `Día ${state.currentDay.day_number}`,
-    warmup_type: $('warmupTypeSelect').value || 'Movilidad GROUND',
-    warmup_notes: $('warmupNotes').value.trim(),
+// ================= AUTOGUARDADO AUTOMÁTICO =================
+function buildCurrentDayPayload() {
+  if (!state.currentDay) return null;
+  return {
+    title: $('dayTitle')?.value.trim() || `Día ${state.currentDay.day_number}`,
+    warmup_type: $('warmupTypeSelect')?.value || 'Movilidad GROUND',
+    warmup_notes: $('warmupNotes')?.value.trim() || '',
     warmup_timer: {
-      type: $('warmupTimerType').value || 'SIN CRONO',
-      minutes: Number($('warmupTimerMinutes').value) || 8,
+      type: $('warmupTimerType')?.value || 'SIN CRONO',
+      minutes: Number($('warmupTimerMinutes')?.value) || 8,
       tabata_work: Number($('warmupTabataWork')?.value) || 20,
       tabata_rest: $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10,
       tabata_rounds: Number($('warmupTabataRounds')?.value) || 8,
@@ -1666,15 +1797,15 @@ async function saveCurrentDay() {
     warmup_exercises: state.currentDay.warmup_exercises || [],
     parts: state.currentDay.parts || [],
     wod: {
-      title: $('wodTitle').value.trim(),
-      type: $('wodType').value.trim(),
-      time_cap: $('wodTimeCap').value.trim(),
-      target_score: $('wodTarget').value.trim(),
-      description: $('wodDescription').value.trim(),
-      rx_weights: $('wodRx').value.trim(),
-      scaled_weights: $('wodScaled').value.trim(),
-      strategy: $('wodStrategy').value.trim(),
-      equipment: Array.from(state.selectedEquipment),
+      title: $('wodTitle')?.value.trim() || '',
+      type: $('wodType')?.value.trim() || '',
+      time_cap: $('wodTimeCap')?.value.trim() || '',
+      target_score: $('wodTarget')?.value.trim() || '',
+      description: $('wodDescription')?.value.trim() || '',
+      rx_weights: $('wodRx')?.value.trim() || '',
+      scaled_weights: $('wodScaled')?.value.trim() || '',
+      strategy: $('wodStrategy')?.value.trim() || '',
+      equipment: Array.from(state.selectedEquipment || []),
       movements: state.currentDay.wod?.movements || [],
       tabata_work: Number($('wodTabataWork')?.value) || 20,
       tabata_rest: $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10,
@@ -1683,25 +1814,164 @@ async function saveCurrentDay() {
       emom_rounds: Number($('wodEmomRounds')?.value) || 10,
       minutes: Number($('wodMinutes')?.value) || 12,
     },
-    coaching_tips: $('dayCoachingTips').value.trim(),
+    coaching_tips: $('dayCoachingTips')?.value.trim() || '',
   };
+}
 
+function setAutoSaveStatus(status) {
+  const badge = $('autoSaveBadge');
+  if (!badge) return;
+  if (status === 'saving') {
+    badge.className = 'badge';
+    badge.style.marginLeft = '6px';
+    badge.style.fontSize = '0.78rem';
+    badge.style.background = 'rgba(250, 204, 21, 0.15)';
+    badge.style.color = '#facc15';
+    badge.style.border = '1px solid rgba(250, 204, 21, 0.35)';
+    badge.textContent = '⏳ Guardando...';
+    badge.classList.remove('hidden');
+  } else if (status === 'saved') {
+    badge.className = 'badge badge-ground';
+    badge.style.marginLeft = '6px';
+    badge.style.fontSize = '0.78rem';
+    badge.style.background = '';
+    badge.style.color = '';
+    badge.style.border = '';
+    badge.textContent = '✓ Guardado automáticamente';
+    badge.classList.remove('hidden');
+    setTimeout(() => {
+      if (badge && !isSaving && !pendingSave) {
+        badge.classList.add('hidden');
+      }
+    }, 3500);
+  } else if (status === 'error') {
+    badge.className = 'badge badge-danger';
+    badge.style.marginLeft = '6px';
+    badge.style.fontSize = '0.78rem';
+    badge.textContent = '⚠ Error al autoguardar';
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function triggerAutoSave(immediate = false) {
+  if (!state.currentDay) return;
+  pendingSave = true;
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = null;
+  }
+  if (immediate) {
+    doAutoSave();
+  } else {
+    autoSaveTimer = setTimeout(() => {
+      doAutoSave();
+    }, 800);
+  }
+}
+
+async function doAutoSave() {
+  if (!state.currentDay || isSaving) return;
+  const payload = buildCurrentDayPayload();
+  if (!payload) return;
+  isSaving = true;
+  pendingSave = false;
+  setAutoSaveStatus('saving');
   try {
     await api(`/api/days/${state.currentDay.id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
-    const mc = await api(`/api/microcycles/${state.currentMicrocycle.id}`);
-    state.currentMicrocycle = mc;
-    renderDaysGrid();
+    if (state.currentMicrocycle && Array.isArray(state.currentMicrocycle.days)) {
+      const idx = state.currentMicrocycle.days.findIndex((d) => d.id === state.currentDay.id);
+      if (idx >= 0) {
+        state.currentMicrocycle.days[idx] = { ...state.currentMicrocycle.days[idx], ...payload };
+      }
+    }
+    setAutoSaveStatus('saved');
+  } catch (err) {
+    console.error('AutoSave error:', err);
+    setAutoSaveStatus('error');
+  } finally {
+    isSaving = false;
+    if (pendingSave) {
+      triggerAutoSave(false);
+    }
+  }
+}
+
+// Save day manual button
+async function saveCurrentDay() {
+  if (!state.currentDay) return;
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = null;
+  }
+  const payload = buildCurrentDayPayload();
+  if (!payload) return;
+  try {
+    await api(`/api/days/${state.currentDay.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    pendingSave = false;
+    if (state.currentMicrocycle?.id) {
+      const mc = await api(`/api/microcycles/${state.currentMicrocycle.id}`);
+      state.currentMicrocycle = mc;
+      renderDaysGrid();
+    }
+    setAutoSaveStatus('saved');
     showToast('Sesión guardada correctamente');
   } catch (err) {
     showToast(err.message);
   }
 }
 
-$('btnSaveDay').addEventListener('click', saveCurrentDay);
-$('btnSaveDayBottom').addEventListener('click', saveCurrentDay);
+$('btnSaveDay')?.addEventListener('click', saveCurrentDay);
+$('btnSaveDayBottom')?.addEventListener('click', saveCurrentDay);
+
+// Listen to all edits on dayEditorCard for continuous auto-save
+$('dayEditorCard')?.addEventListener('input', (e) => {
+  if (e.target.closest('.modal') || e.target.closest('.modal-backdrop')) return;
+  triggerAutoSave(false);
+});
+$('dayEditorCard')?.addEventListener('change', (e) => {
+  if (e.target.closest('.modal') || e.target.closest('.modal-backdrop')) return;
+  triggerAutoSave(true);
+});
+
+// Intercept navigation to Alumnos view or external pages to guarantee changes are saved first
+document.querySelectorAll('a[href*="/alumnos"]').forEach((a) => {
+  a.addEventListener('click', async (e) => {
+    if (state.currentDay && pendingSave) {
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      await doAutoSave();
+      window.location.href = href;
+    }
+  });
+});
+
+// Guard changes on tab close or navigation
+window.addEventListener('beforeunload', () => {
+  if (state.currentDay && pendingSave) {
+    const payload = buildCurrentDayPayload();
+    if (payload) {
+      try {
+        const token = getAuthToken();
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        fetch(`/api/days/${state.currentDay.id}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(payload),
+          keepalive: true,
+        });
+      } catch (_) {}
+    }
+  }
+});
 
 $('btnCopyDay').addEventListener('click', async () => {
   const targetId = Number($('copyTargetDay').value);
