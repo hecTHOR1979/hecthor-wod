@@ -968,6 +968,7 @@ function renderTimerUI() {
   let badgeTxt = '';
   let intervalTxt = '';
   let statusClass = '';
+  let phaseClass = '';
 
   if (timerState.preCounting) {
     const secsLeft = Math.ceil(timerState.preCountMs / 1000);
@@ -1003,12 +1004,15 @@ function renderTimerUI() {
       if (timerState.elapsedMs >= totalTabataMs) {
         intervalTxt = '¡TABATA COMPLETADO!';
         statusClass = 'status-prep';
+        phaseClass = 'phase-prep';
       } else if (isWork) {
-        intervalTxt = `🟢 TRABAJO (${phaseSecLeft}s) · Ronda ${roundIdx} de ${timerState.tabataRounds || 8}`;
+        intervalTxt = `🔵 TRABAJO (${phaseSecLeft}s) · Ronda ${roundIdx} de ${timerState.tabataRounds || 8}`;
         statusClass = 'status-work';
+        phaseClass = 'phase-work';
       } else {
-        intervalTxt = `🔴 DESCANSO (${phaseSecLeft}s) · Ronda ${roundIdx} de ${timerState.tabataRounds || 8}`;
+        intervalTxt = `🟢 DESCANSO (${phaseSecLeft}s) · Ronda ${roundIdx} de ${timerState.tabataRounds || 8}`;
         statusClass = 'status-rest';
+        phaseClass = 'phase-rest';
       }
     } else if (mode === 'FOR TIME') {
       badgeTxt = '⏱ FOR TIME';
@@ -1031,6 +1035,18 @@ function renderTimerUI() {
   const fsSt = $('fsClockStatus');
   fsSt.className = statusClass || '';
   fsSt.textContent = intervalTxt || '';
+
+  const tmDisp = $('timerDisplay');
+  if (tmDisp) {
+    tmDisp.classList.remove('phase-work', 'phase-rest', 'phase-prep');
+    if (phaseClass) tmDisp.classList.add(phaseClass);
+  }
+
+  const fsDigits = $('fsClockDigits');
+  if (fsDigits) {
+    fsDigits.classList.remove('phase-work', 'phase-rest', 'phase-prep');
+    if (phaseClass) fsDigits.classList.add(phaseClass);
+  }
 
   $('btnTimerAddRound').textContent = `+1 Ronda (${timerState.rounds})`;
   $('fsRoundsDisplay').textContent = mode === 'TABATA'

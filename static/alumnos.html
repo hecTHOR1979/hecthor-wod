@@ -156,22 +156,22 @@
             </div>
 
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
-              <!-- Tiempo Trabajo -->
+              <!-- Tiempo Trabajo (Azul) -->
               <div class="timer-stepper-box">
-                <label for="tabataWorkSec" style="font-size:0.78rem; font-weight:800; color:#4ade80;">🟢 TRABAJO</label>
+                <label for="tabataWorkSec" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔵 TRABAJO</label>
                 <div class="stepper-row">
                   <button type="button" class="stepper-btn" id="btnDecWork" title="Restar 5 segundos">-5s</button>
-                  <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" />
+                  <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" style="color:#38bdf8;" />
                   <button type="button" class="stepper-btn" id="btnIncWork" title="Sumar 5 segundos">+5s</button>
                 </div>
               </div>
 
-              <!-- Tiempo Descanso -->
+              <!-- Tiempo Descanso (Verde) -->
               <div class="timer-stepper-box">
-                <label for="tabataRestSec" style="font-size:0.78rem; font-weight:800; color:#f87171;">🔴 DESCANSO</label>
+                <label for="tabataRestSec" style="font-size:0.78rem; font-weight:800; color:#22c55e;">🟢 DESCANSO</label>
                 <div class="stepper-row">
                   <button type="button" class="stepper-btn" id="btnDecRest" title="Restar 5 segundos">-5s</button>
-                  <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" />
+                  <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" style="color:#22c55e;" />
                   <button type="button" class="stepper-btn" id="btnIncRest" title="Sumar 5 segundos">+5s</button>
                 </div>
               </div>
@@ -394,6 +394,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=17"></script>
+  <script type="module" src="/static/js/alumnos.js?v=18"></script>
 </body>
 </html>

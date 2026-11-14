@@ -607,15 +607,38 @@ textarea.input {
 }
 
 .status-work {
-  color: #22c55e !important;
+  color: #38bdf8 !important; /* Tiempo de Trabajo en AZUL */
 }
 
 .status-rest {
-  color: #f43f5e !important;
+  color: #22c55e !important; /* Tiempo de Descanso en VERDE */
 }
 
 .status-prep {
+  color: #f59e0b !important;
+}
+
+/* Dígitos del cronómetro durante TRABAJO (Azul) y DESCANSO (Verde) */
+.phase-work .tm-min,
+.phase-work .tm-sec,
+.phase-work .tm-sep {
   color: #38bdf8 !important;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.5) !important;
+}
+.phase-work .tm-cs,
+.phase-work .tm-dot {
+  color: #bae6fd !important;
+}
+
+.phase-rest .tm-min,
+.phase-rest .tm-sec,
+.phase-rest .tm-sep {
+  color: #22c55e !important;
+  text-shadow: 0 0 16px rgba(34, 197, 94, 0.5) !important;
+}
+.phase-rest .tm-cs,
+.phase-rest .tm-dot {
+  color: #bbf7d0 !important;
 }
 
 /* Columnar exercise table: Rondas | Repes | Ejercicio */
