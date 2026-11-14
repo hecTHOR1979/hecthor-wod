@@ -159,11 +159,11 @@ $('studentMcSelect')?.addEventListener('change', (e) => {
 });
 
 async function submitStudentLogin() {
-  const email = $('loginEmail').value.trim().toLowerCase();
+  const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
   $('loginError').textContent = '';
   if (!email || !password) {
-    $('loginError').textContent = 'Introduce tu correo y contraseña.';
+    $('loginError').textContent = 'Introduce tu correo (o usuario de Coach) y contraseña.';
     return;
   }
   try {
@@ -173,6 +173,9 @@ async function submitStudentLogin() {
       body: JSON.stringify({ email, password }),
     });
     setAuthToken(res.token, 'student');
+    if (res.student?.role === 'coach') {
+      setAuthToken(res.token, 'coach');
+    }
     $('loginPassword').value = '';
     const urlCode = new URLSearchParams(location.search).get('code') || '';
     openStudentDashboard(res.student, res.microcycles, urlCode);
@@ -1386,15 +1389,22 @@ async function restoreStudentSession() {
   const savedName = localStorage.getItem('crossfit_student_name');
   if (savedName) $('logName').value = savedName;
 
-  const tok = getAuthToken('student');
+  const stuTok = getAuthToken('student');
+  const coachTok = getAuthToken('coach');
+  const tok = stuTok || coachTok;
   if (!tok) return;
   try {
-    const res = await api('/api/student/me');
+    const res = await api('/api/student/me', { token: tok });
     const urlCode = new URLSearchParams(location.search).get('code') || '';
-    const stu = res.actor?.role === 'student' ? res.actor : { full_name: 'Entrenador' };
+    const stu = res.actor?.role === 'student'
+      ? res.actor
+      : { full_name: `Coach (${res.actor?.username || 'Entrenador'})`, role: 'coach' };
+    if (!stuTok && coachTok) {
+      setAuthToken(coachTok, 'student');
+    }
     openStudentDashboard(stu, res.microcycles, urlCode);
   } catch {
-    clearAuthToken('student');
+    if (stuTok) clearAuthToken('student');
   }
 }
 

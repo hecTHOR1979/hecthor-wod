@@ -75,10 +75,7 @@ def get_coach_username() -> str:
     return (os.environ.get("COACH_USERNAME") or _get_setting("coach_username") or "coach").strip().lower()
 
 
-def verify_coach_credentials(username: str, password: str) -> bool:
-    expected_user = get_coach_username()
-    if username and username.strip().lower() != expected_user:
-        return False
+def verify_coach_password(password: str) -> bool:
     env_pw = os.environ.get("COACH_PASSWORD")
     if env_pw:
         return hmac.compare_digest(password.encode("utf-8"), env_pw.encode("utf-8"))
@@ -86,6 +83,13 @@ def verify_coach_credentials(username: str, password: str) -> bool:
     if not stored_hash:
         return False
     return verify_password(password, stored_hash)
+
+
+def verify_coach_credentials(username: str, password: str) -> bool:
+    expected_user = get_coach_username()
+    if username and username.strip().lower() != expected_user:
+        return False
+    return verify_coach_password(password)
 
 
 def set_coach_credentials(username: str, password: str) -> None:

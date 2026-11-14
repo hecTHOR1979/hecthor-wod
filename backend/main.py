@@ -24,7 +24,7 @@ from .models import (
 from .auth import (
     hash_password, verify_password,
     is_coach_configured, get_coach_username,
-    verify_coach_credentials, set_coach_credentials, get_coach_token_version,
+    verify_coach_credentials, verify_coach_password, set_coach_credentials, get_coach_token_version,
     create_token, get_current_actor, require_coach, require_student_or_coach,
 )
 from .wod_generator import generate_custom_wod
@@ -604,6 +604,27 @@ def student_login(req: StudentLoginRequest):
     conn.close()
 
     if not row or not verify_password(pw, row["password_hash"]):
+        # Check if the coach is logging in from the student view
+        raw_user = (req.email or "").strip()
+        is_coach = False
+        if is_coach_configured():
+            if verify_coach_password(pw):
+                is_coach = True
+            elif verify_coach_credentials(raw_user, pw) or verify_coach_credentials(email, pw):
+                is_coach = True
+        if is_coach:
+            token = create_token({"role": "coach", "ver": get_coach_token_version()})
+            microcycles = _get_student_microcycles(None)
+            return {
+                "token": token,
+                "student": {
+                    "id": 0,
+                    "full_name": f"Coach ({get_coach_username()})",
+                    "email": email or get_coach_username(),
+                    "role": "coach",
+                },
+                "microcycles": microcycles,
+            }
         raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos.")
     if row["status"] == "pending":
         raise HTTPException(status_code=403, detail="Tu alta está pendiente de aprobación por tu entrenador.")
