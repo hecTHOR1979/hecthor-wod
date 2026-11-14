@@ -655,60 +655,177 @@ function renderCurrentDay(resetTimer = true) {
     }, 1500);
   });
 
-  // Populate Warmup clean rows: Badges on left + Exercise name + Video symbol button on right
+  // Populate Warmup clean rows: Badges on left + Exercise name + Video symbol button on right (Supports superseries)
   const wuWrap = $('stuWarmupList');
   if (wuWrap) {
     wu.forEach((item) => {
-      const row = document.createElement('div');
-      row.className = 'ex-clean-line';
-      row.innerHTML = `
-        <div class="ex-clean-left">
-          <div class="ex-clean-badges">
-            ${item.sets ? `<span class="badge badge-celeste-matte">${esc(item.sets)}</span>` : ''}
-            ${item.reps ? `<span class="badge badge-accent">${esc(item.reps)}</span>` : ''}
-          </div>
-          <div class="ex-clean-title">
-            <strong>${esc(item.name)}</strong>
-            ${item.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(item.notes)}</div>` : ''}
-          </div>
-        </div>
-        ${item.video_url ? `
-          <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
-            🎬 <span class="video-btn-text">Vídeo</span>
-          </button>
-        ` : ''}
-      `;
-      wuWrap.appendChild(row);
-    });
-  }
-
-  // Populate Parts clean rows: Badges on left + Exercise name + Video symbol button on right
-  parts.forEach((p, idx) => {
-    const pWrap = container.querySelector(`.stu-part-ex[data-part-idx="${idx}"]`);
-    if (pWrap) {
-      (p.exercises || []).forEach((ex) => {
+      const hasSubs = Array.isArray(item.sub_exercises) && item.sub_exercises.length > 0;
+      if (!hasSubs) {
         const row = document.createElement('div');
         row.className = 'ex-clean-line';
         row.innerHTML = `
           <div class="ex-clean-left">
             <div class="ex-clean-badges">
-              ${ex.sets ? `<span class="badge badge-celeste-matte">${esc(ex.sets)}</span>` : ''}
-              ${ex.reps ? `<span class="badge badge-accent">${esc(ex.reps)}</span>` : ''}
-              ${ex.load ? `<span class="badge" style="background:rgba(255,255,255,0.08); color:#f8fafc;">${esc(ex.load)}</span>` : ''}
-              ${ex.rest ? `<span class="badge" style="background:rgba(255,255,255,0.05); color:#94a3b8;">⏱ ${esc(ex.rest)}</span>` : ''}
+              ${item.sets ? `<span class="badge badge-celeste-matte">${esc(item.sets)}</span>` : ''}
+              ${item.reps ? `<span class="badge badge-accent">${esc(item.reps)}</span>` : ''}
             </div>
             <div class="ex-clean-title">
-              <strong>${esc(ex.name)}</strong>
-              ${ex.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(ex.notes)}</div>` : ''}
+              <strong>${esc(item.name)}</strong>
+              ${item.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(item.notes)}</div>` : ''}
             </div>
           </div>
-          ${ex.video_url ? `
-            <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
+          ${item.video_url ? `
+            <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
               🎬 <span class="video-btn-text">Vídeo</span>
             </button>
           ` : ''}
         `;
-        pWrap.appendChild(row);
+        wuWrap.appendChild(row);
+      } else {
+        const totalEx = 1 + item.sub_exercises.length;
+        const box = document.createElement('div');
+        box.className = 'ex-superserie-card';
+        box.style.cssText = 'border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:rgba(56,189,248,0.03);';
+        
+        let subHtml = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">⚡ SUPERSERIE (${totalEx} ejercicios)${item.sets ? ' · ' + esc(item.sets) : ''}</span>
+          </div>
+          <div class="ex-clean-line" style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
+            <div class="ex-clean-left">
+              <div class="ex-clean-badges">
+                <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">1</span>
+                ${item.reps ? `<span class="badge badge-accent">${esc(item.reps)}</span>` : ''}
+              </div>
+              <div class="ex-clean-title">
+                <strong>${esc(item.name)}</strong>
+                ${item.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(item.notes)}</div>` : ''}
+              </div>
+            </div>
+            ${item.video_url ? `
+              <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
+                🎬 <span class="video-btn-text">Vídeo</span>
+              </button>
+            ` : ''}
+          </div>
+        `;
+
+        item.sub_exercises.forEach((sub, sIdx) => {
+          const isLast = sIdx === item.sub_exercises.length - 1;
+          subHtml += `
+            <div class="ex-clean-line" style="${!isLast ? 'margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);' : ''}">
+              <div class="ex-clean-left">
+                <div class="ex-clean-badges">
+                  <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">${sIdx + 2}</span>
+                  ${sub.reps ? `<span class="badge badge-accent">${esc(sub.reps)}</span>` : ''}
+                </div>
+                <div class="ex-clean-title">
+                  <strong>${esc(sub.name)}</strong>
+                  ${sub.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(sub.notes)}</div>` : ''}
+                </div>
+              </div>
+              ${sub.video_url ? `
+                <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                  🎬 <span class="video-btn-text">Vídeo</span>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        box.innerHTML = subHtml;
+        wuWrap.appendChild(box);
+      }
+    });
+  }
+
+  // Populate Parts clean rows: Badges on left + Exercise name + Video symbol button on right (Supports superseries)
+  parts.forEach((p, idx) => {
+    const pWrap = container.querySelector(`.stu-part-ex[data-part-idx="${idx}"]`);
+    if (pWrap) {
+      (p.exercises || []).forEach((ex) => {
+        const hasSubs = Array.isArray(ex.sub_exercises) && ex.sub_exercises.length > 0;
+        if (!hasSubs) {
+          const row = document.createElement('div');
+          row.className = 'ex-clean-line';
+          row.innerHTML = `
+            <div class="ex-clean-left">
+              <div class="ex-clean-badges">
+                ${ex.sets ? `<span class="badge badge-celeste-matte">${esc(ex.sets)}</span>` : ''}
+                ${ex.reps ? `<span class="badge badge-accent">${esc(ex.reps)}</span>` : ''}
+                ${ex.load ? `<span class="badge" style="background:rgba(255,255,255,0.08); color:#f8fafc;">${esc(ex.load)}</span>` : ''}
+                ${ex.rest ? `<span class="badge" style="background:rgba(255,255,255,0.05); color:#94a3b8;">⏱ ${esc(ex.rest)}</span>` : ''}
+              </div>
+              <div class="ex-clean-title">
+                <strong>${esc(ex.name)}</strong>
+                ${ex.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(ex.notes)}</div>` : ''}
+              </div>
+            </div>
+            ${ex.video_url ? `
+              <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
+                🎬 <span class="video-btn-text">Vídeo</span>
+              </button>
+            ` : ''}
+          `;
+          pWrap.appendChild(row);
+        } else {
+          const totalEx = 1 + ex.sub_exercises.length;
+          const box = document.createElement('div');
+          box.className = 'ex-superserie-card';
+          box.style.cssText = 'border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:rgba(56,189,248,0.03);';
+          
+          let subHtml = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">⚡ SUPERSERIE (${totalEx} ejercicios)${ex.sets ? ' · ' + esc(ex.sets) + ' series' : ''}</span>
+              ${ex.rest ? `<span class="badge" style="background:rgba(255,255,255,0.05); color:#94a3b8;">⏱ ${esc(ex.rest)}</span>` : ''}
+            </div>
+            <div class="ex-clean-line" style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
+              <div class="ex-clean-left">
+                <div class="ex-clean-badges">
+                  <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">1</span>
+                  ${ex.reps ? `<span class="badge badge-accent">${esc(ex.reps)}</span>` : ''}
+                  ${ex.load ? `<span class="badge" style="background:rgba(255,255,255,0.08); color:#f8fafc;">${esc(ex.load)}</span>` : ''}
+                </div>
+                <div class="ex-clean-title">
+                  <strong>${esc(ex.name)}</strong>
+                  ${ex.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(ex.notes)}</div>` : ''}
+                </div>
+              </div>
+              ${ex.video_url ? `
+                <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
+                  🎬 <span class="video-btn-text">Vídeo</span>
+                </button>
+              ` : ''}
+            </div>
+          `;
+
+          ex.sub_exercises.forEach((sub, sIdx) => {
+            const isLast = sIdx === ex.sub_exercises.length - 1;
+            subHtml += `
+              <div class="ex-clean-line" style="${!isLast ? 'margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);' : ''}">
+                <div class="ex-clean-left">
+                  <div class="ex-clean-badges">
+                    <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800;">${sIdx + 2}</span>
+                    ${sub.reps ? `<span class="badge badge-accent">${esc(sub.reps)}</span>` : ''}
+                    ${sub.load ? `<span class="badge" style="background:rgba(255,255,255,0.08); color:#f8fafc;">${esc(sub.load)}</span>` : ''}
+                  </div>
+                  <div class="ex-clean-title">
+                    <strong>${esc(sub.name)}</strong>
+                    ${sub.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(sub.notes)}</div>` : ''}
+                  </div>
+                </div>
+                ${sub.video_url ? `
+                  <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                    🎬 <span class="video-btn-text">Vídeo</span>
+                  </button>
+                ` : ''}
+              </div>
+            `;
+          });
+
+          box.innerHTML = subHtml;
+          pWrap.appendChild(box);
+        }
       });
     }
   });

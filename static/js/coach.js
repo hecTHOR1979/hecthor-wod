@@ -304,9 +304,9 @@ function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
     let updated = false;
     if (match.video_url && (!itemOrEx.video_url || itemOrEx.video_url.trim() === '')) {
       itemOrEx.video_url = match.video_url;
-      const vInp = rowEl.querySelector(`[data-wu-field="${fieldName}"], [data-ex-f="${fieldName}"]`);
+      const vInp = rowEl.querySelector(`[data-wu-field="${fieldName}"], [data-ex-f="${fieldName}"], [data-sub-wu-f="${fieldName}"], [data-sub-part-f="${fieldName}"]`);
       if (vInp) vInp.value = match.video_url;
-      const playBtn = rowEl.querySelector('[data-play], [data-play-ex]');
+      const playBtn = rowEl.querySelector('[data-play], [data-play-ex], [data-play-sub-wu], [data-play-sub-part]');
       if (playBtn) {
         playBtn.className = 'btn btn-sm btn-primary';
         playBtn.title = 'Ver vídeo explicativo';
@@ -315,7 +315,7 @@ function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
     }
     if ((match.notes || match.coaching_cues) && (!itemOrEx.notes || itemOrEx.notes.trim() === '')) {
       itemOrEx.notes = match.notes || match.coaching_cues || '';
-      const nInp = rowEl.querySelector('[data-wu-field="notes"], [data-ex-f="notes"]');
+      const nInp = rowEl.querySelector('[data-wu-field="notes"], [data-ex-f="notes"], [data-sub-wu-f="notes"], [data-sub-part-f="notes"]');
       if (nInp) nInp.value = itemOrEx.notes;
       updated = true;
     }
@@ -577,17 +577,55 @@ function renderWarmupList() {
   const list = $('warmupList');
   const items = state.currentDay.warmup_exercises || [];
   if (items.length === 0) {
-    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en Warm Up. Pulsa "+ Añadir línea" o "📚 Biblioteca".</p>';
+    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en Warm Up. Pulsa "+ Añadir ejercicio" o "📚 Biblioteca".</p>';
     return;
   }
   list.innerHTML = '';
   items.forEach((item, idx) => {
+    if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
+    const hasSubs = item.sub_exercises.length > 0;
     const row = document.createElement('div');
     row.className = 'ex-coach-line';
+    if (hasSubs) {
+      row.style.borderLeft = '3px solid #38bdf8';
+      row.style.background = 'rgba(56,189,248,0.03)';
+      row.style.paddingLeft = '10px';
+    }
+
+    let subHtml = '';
+    item.sub_exercises.forEach((sub, subIdx) => {
+      subHtml += `
+        <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+            <span class="badge badge-celeste-matte" style="font-size:0.75rem; padding:3px 6px;">⚡ + Ejercicio ${subIdx + 2}</span>
+            <div style="width:85px;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="Repes / T" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 12 / 30s)" />
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wu-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre ejercicio superserie..." value="${esc(sub.name || '')}" autocomplete="off" />
+            </div>
+            <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo explicativo..." value="${esc(sub.video_url || '')}" />
+              <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wu="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+            </div>
+            <div class="row-wrap" style="gap:4px;">
+              <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este (crear superserie de 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
+              <button class="btn btn-sm btn-outline" type="button" data-search-sub-wu="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+              <button class="btn btn-danger btn-sm" type="button" data-del-sub-wu="${subIdx}" title="Quitar este ejercicio de la superserie" style="padding:6px 8px;">✕</button>
+            </div>
+          </div>
+          <div>
+            <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sub-wu-f="notes" data-sub-idx="${subIdx}" placeholder="Notas de este ejercicio..." value="${esc(sub.notes || '')}" />
+          </div>
+        </div>
+      `;
+    });
+
     row.innerHTML = `
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+        ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
         <div style="width:70px;">
-          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas (ej: 3 rondas)" />
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas de la serie o superserie (ej: 3 rondas)" />
         </div>
         <div style="width:85px;">
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
@@ -602,6 +640,9 @@ function renderWarmupList() {
           </button>
         </div>
         <div class="row-wrap" style="gap:4px;">
+          <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir ejercicio dentro de este (crear Superserie de 2 o 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
+            +
+          </button>
           <button class="btn btn-sm btn-outline" type="button" data-search-lib-wu="${idx}" title="Buscar este ejercicio en la biblioteca" style="padding:6px 8px;">🔍</button>
           <button class="btn btn-sm btn-outline" type="button" data-save-lib-wu title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
           <button class="btn btn-danger btn-sm" type="button" data-del-wu="${idx}" title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
@@ -610,15 +651,36 @@ function renderWarmupList() {
       <div style="margin-top:4px;">
         <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.1);" data-wu-field="notes" placeholder="Notas técnicas opcionales..." value="${esc(item.notes || '')}" />
       </div>
+      ${subHtml}
     `;
+
+    // Add sub-exercise to create superserie
+    row.querySelectorAll(`[data-add-sub-wu="${idx}"]`).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!Array.isArray(state.currentDay.warmup_exercises[idx].sub_exercises)) {
+          state.currentDay.warmup_exercises[idx].sub_exercises = [];
+        }
+        state.currentDay.warmup_exercises[idx].sub_exercises.push({
+          name: '',
+          reps: '',
+          video_url: '',
+          notes: '',
+        });
+        renderWarmupList();
+        triggerAutoSave(true);
+      });
+    });
+
     row.querySelector('[data-del-wu]').addEventListener('click', () => {
       state.currentDay.warmup_exercises.splice(idx, 1);
       renderWarmupList();
       triggerAutoSave(true);
     });
+
     row.querySelector(`[data-search-lib-wu="${idx}"]`)?.addEventListener('click', () => {
       openExercisePicker({ type: 'warmup_replace', idx }, false, item.name);
     });
+
     const playBtn = row.querySelector('[data-play]');
     if (playBtn) {
       playBtn.addEventListener('click', () => {
@@ -630,6 +692,7 @@ function renderWarmupList() {
         }
       });
     }
+
     row.querySelector('[data-save-lib-wu]')?.addEventListener('click', async () => {
       const cur = state.currentDay.warmup_exercises[idx];
       const isG = (cur.name || '').includes('(GROUND)') ? 1 : 0;
@@ -642,6 +705,7 @@ function renderWarmupList() {
       });
       if (ok) renderWarmupList();
     });
+
     row.querySelectorAll('[data-wu-field]').forEach((inp) => {
       const handleWuInput = (isImmediate) => {
         state.currentDay.warmup_exercises[idx][inp.dataset.wuField] = inp.value;
@@ -658,6 +722,52 @@ function renderWarmupList() {
         }
       });
     });
+
+    // Sub-exercises event binding
+    item.sub_exercises.forEach((sub, subIdx) => {
+      row.querySelector(`[data-del-sub-wu="${subIdx}"]`)?.addEventListener('click', () => {
+        state.currentDay.warmup_exercises[idx].sub_exercises.splice(subIdx, 1);
+        renderWarmupList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-search-sub-wu="${subIdx}"]`)?.addEventListener('click', () => {
+        openExercisePicker({ type: 'warmup_sub_replace', idx, subIdx }, false, sub.name);
+      });
+
+      row.querySelector(`[data-play-sub-wu="${subIdx}"]`)?.addEventListener('click', () => {
+        const curSub = state.currentDay.warmup_exercises[idx].sub_exercises[subIdx];
+        if (curSub?.video_url) {
+          openVideoModal(curSub.name, curSub.video_url);
+        } else {
+          openExercisePicker({ type: 'warmup_sub_replace', idx, subIdx }, false, curSub.name);
+        }
+      });
+
+      row.querySelectorAll(`[data-sub-wu-f][data-sub-idx="${subIdx}"]`).forEach((inp) => {
+        const handleSubInput = (isImmediate) => {
+          state.currentDay.warmup_exercises[idx].sub_exercises[subIdx][inp.dataset.subWuF] = inp.value;
+          if (inp.dataset.subWuF === 'name') {
+            const subRowEl = inp.closest('.sub-ex-coach-row');
+            if (subRowEl) {
+              tryAutoLinkExercise(state.currentDay.warmup_exercises[idx].sub_exercises[subIdx], subRowEl, 'video_url');
+            }
+          }
+          triggerAutoSave(isImmediate);
+        };
+        inp.addEventListener('input', () => handleSubInput(false));
+        inp.addEventListener('change', () => handleSubInput(true));
+        inp.addEventListener('blur', () => {
+          if (inp.dataset.subWuF === 'name') {
+            const subRowEl = inp.closest('.sub-ex-coach-row');
+            if (subRowEl) {
+              tryAutoLinkExercise(state.currentDay.warmup_exercises[idx].sub_exercises[subIdx], subRowEl, 'video_url');
+            }
+          }
+        });
+      });
+    });
+
     list.appendChild(row);
   });
 }
@@ -859,12 +969,53 @@ function renderPartsList() {
     } else {
       exWrap.innerHTML = '';
       partExercises.forEach((ex, eIdx) => {
+        if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
+        const hasSubs = ex.sub_exercises.length > 0;
         const exRow = document.createElement('div');
         exRow.className = 'ex-coach-line';
+        if (hasSubs) {
+          exRow.style.borderLeft = '3px solid #38bdf8';
+          exRow.style.background = 'rgba(56,189,248,0.03)';
+          exRow.style.paddingLeft = '10px';
+        }
+
+        let subHtml = '';
+        ex.sub_exercises.forEach((sub, subIdx) => {
+          subHtml += `
+            <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+                <span class="badge badge-celeste-matte" style="font-size:0.75rem; padding:3px 6px;">⚡ + Ejercicio ${subIdx + 2}</span>
+                <div style="width:70px;">
+                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="Repes" value="${esc(sub.reps || '')}" title="Repeticiones" />
+                </div>
+                <div style="width:80px;">
+                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="load" data-sub-idx="${subIdx}" placeholder="Carga/%" value="${esc(sub.load || '')}" title="Carga o %RM" />
+                </div>
+                <div style="flex:1; min-width:130px;">
+                  <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre ejercicio superserie..." value="${esc(sub.name || '')}" autocomplete="off" />
+                </div>
+                <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
+                  <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo..." value="${esc(sub.video_url || '')}" />
+                  <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-part="${subIdx}" title="Ver vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+                </div>
+                <div class="row-wrap" style="gap:4px;">
+                  <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio más a la superserie" style="padding:6px 9px; font-weight:800; color:#38bdf8; font-size:1rem;">+</button>
+                  <button class="btn btn-sm btn-outline" type="button" data-search-sub-part="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+                  <button class="btn btn-danger btn-sm" type="button" data-del-sub-part="${subIdx}" title="Eliminar de la superserie" style="padding:6px 8px;">✕</button>
+                </div>
+              </div>
+              <div>
+                <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sub-part-f="notes" data-sub-idx="${subIdx}" placeholder="Notas de este ejercicio..." value="${esc(sub.notes || '')}" />
+              </div>
+            </div>
+          `;
+        });
+
         exRow.innerHTML = `
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+            ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
             <div style="width:60px;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series (ej: 5)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series de la superserie (ej: 4)" />
             </div>
             <div style="width:70px;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="Repes" value="${esc(ex.reps || '')}" title="Repeticiones (ej: 5 o 8-10)" />
@@ -885,6 +1036,9 @@ function renderPartsList() {
               </button>
             </div>
             <div class="row-wrap" style="gap:4px;">
+              <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir ejercicio dentro de este (crear Superserie de 2 o 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
+                +
+              </button>
               <button class="btn btn-sm btn-outline" type="button" data-search-lib-part="${eIdx}" title="Buscar en la biblioteca de ejercicios" style="padding:6px 8px;">🔍</button>
               <button class="btn btn-sm btn-outline" type="button" data-save-lib title="Guardar en biblioteca" style="padding:6px 8px;">💾</button>
               <button class="btn btn-danger btn-sm" type="button" data-del-ex title="Eliminar ejercicio" style="padding:6px 8px;">✕</button>
@@ -893,7 +1047,27 @@ function renderPartsList() {
           <div style="margin-top:4px;">
             <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.1);" data-ex-f="notes" placeholder="Notas técnicas opcionales..." value="${esc(ex.notes || '')}" />
           </div>
+          ${subHtml}
         `;
+
+        // Add sub-exercise to superserie in part
+        exRow.querySelectorAll(`[data-add-sub-part="${eIdx}"]`).forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (!Array.isArray(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises)) {
+              state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises = [];
+            }
+            state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.push({
+              name: '',
+              reps: '',
+              load: '',
+              video_url: '',
+              notes: '',
+            });
+            renderPartsList();
+            triggerAutoSave(true);
+          });
+        });
+
         exRow.querySelector('[data-del-ex]').addEventListener('click', () => {
           state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
           renderPartsList();
@@ -939,6 +1113,49 @@ function renderPartsList() {
             }
           });
         });
+
+        // Sub-exercises in parts
+        ex.sub_exercises.forEach((sub, subIdx) => {
+          exRow.querySelector(`[data-del-sub-part="${subIdx}"]`)?.addEventListener('click', () => {
+            state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.splice(subIdx, 1);
+            renderPartsList();
+            triggerAutoSave(true);
+          });
+          exRow.querySelector(`[data-search-sub-part="${subIdx}"]`)?.addEventListener('click', () => {
+            openExercisePicker({ type: 'part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx }, false, sub.name);
+          });
+          exRow.querySelector(`[data-play-sub-part="${subIdx}"]`)?.addEventListener('click', () => {
+            const curSub = state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[subIdx];
+            if (curSub?.video_url) {
+              openVideoModal(curSub.name, curSub.video_url);
+            } else {
+              openExercisePicker({ type: 'part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx }, false, curSub.name);
+            }
+          });
+          exRow.querySelectorAll(`[data-sub-part-f][data-sub-idx="${subIdx}"]`).forEach((inp) => {
+            const handleSubInput = (isImmediate) => {
+              state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[subIdx][inp.dataset.subPartF] = inp.value;
+              if (inp.dataset.subPartF === 'name') {
+                const subRowEl = inp.closest('.sub-ex-coach-row');
+                if (subRowEl) {
+                  tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[subIdx], subRowEl, 'video_url');
+                }
+              }
+              triggerAutoSave(isImmediate);
+            };
+            inp.addEventListener('input', () => handleSubInput(false));
+            inp.addEventListener('change', () => handleSubInput(true));
+            inp.addEventListener('blur', () => {
+              if (inp.dataset.subPartF === 'name') {
+                const subRowEl = inp.closest('.sub-ex-coach-row');
+                if (subRowEl) {
+                  tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[subIdx], subRowEl, 'video_url');
+                }
+              }
+            });
+          });
+        });
+
         exWrap.appendChild(exRow);
       });
     }
@@ -1022,20 +1239,29 @@ $('btnAddWodMovementManual').addEventListener('click', () => {
 });
 
 $('btnAddWarmupLine')?.addEventListener('click', () => {
-  if (!state.currentDay) return;
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
   if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
   state.currentDay.warmup_exercises.push({
     name: '',
-    sets: '',
-    reps: '',
+    sets: '3 rondas',
+    reps: '10',
     notes: '',
     video_url: '',
+    sub_exercises: [],
   });
   renderWarmupList();
   triggerAutoSave(true);
 });
-$('btnAddWarmupGround')?.addEventListener('click', () => openExercisePicker({ type: 'warmup' }, true));
-$('btnAddWarmupAny')?.addEventListener('click', () => openExercisePicker({ type: 'warmup' }, false));
+$('btnAddWarmupAny')?.addEventListener('click', async () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  await openExercisePicker({ type: 'warmup' }, false);
+});
 $('btnAddPart')?.addEventListener('click', () => {
   if (!state.currentDay) return;
   const idx = (state.currentDay.parts || []).length;
@@ -1071,6 +1297,22 @@ function pickExerciseIntoTarget(ex) {
       }
       renderWarmupList();
       triggerAutoSave(true);
+      showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'warmup_sub_replace') {
+    const parent = (state.currentDay.warmup_exercises || [])[state.pickerTarget.idx];
+    if (parent && Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+      const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWarmupList();
+      triggerAutoSave(true);
+      showToast(`✓ Superserie enlazada: "${ex.name}"`);
     }
     return;
   }
@@ -1085,6 +1327,25 @@ function pickExerciseIntoTarget(ex) {
       }
       renderPartsList();
       triggerAutoSave(true);
+      showToast(`✓ Ejercicio de bloque enlazado: "${ex.name}"`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'part_sub_replace') {
+    const part = (state.currentDay.parts || [])[state.pickerTarget.partIdx];
+    if (part && Array.isArray(part.exercises) && part.exercises[state.pickerTarget.exIdx]) {
+      const parent = part.exercises[state.pickerTarget.exIdx];
+      if (Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+        const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+        cur.name = ex.name;
+        cur.video_url = ex.video_url || '';
+        if (!cur.notes && (ex.coaching_cues || ex.description)) {
+          cur.notes = ex.coaching_cues || ex.description;
+        }
+        renderPartsList();
+        triggerAutoSave(true);
+        showToast(`✓ Superserie de bloque enlazada: "${ex.name}"`);
+      }
     }
     return;
   }
@@ -1092,13 +1353,15 @@ function pickExerciseIntoTarget(ex) {
     if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
     state.currentDay.warmup_exercises.push({
       name: ex.name,
-      sets: '2-3 rondas',
-      reps: '8-10 reps / lado',
+      sets: '3 rondas',
+      reps: '10',
       notes: ex.coaching_cues || ex.description || '',
       video_url: ex.video_url || '',
+      sub_exercises: [],
     });
     renderWarmupList();
     triggerAutoSave(true);
+    showToast(`✓ "${ex.name}" añadido al Warm Up`);
   } else if (state.pickerTarget.type === 'wod') {
     if (!state.currentDay.wod) state.currentDay.wod = {};
     if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = [];
@@ -1109,6 +1372,7 @@ function pickExerciseIntoTarget(ex) {
     });
     renderWodMovementsList();
     triggerAutoSave(true);
+    showToast(`✓ Movimiento añadido al WOD: "${ex.name}"`);
   } else if (state.pickerTarget.type === 'part') {
     const part = state.currentDay.parts[state.pickerTarget.partIdx];
     if (part) {
@@ -1121,21 +1385,30 @@ function pickExerciseIntoTarget(ex) {
         rest: '90 seg',
         notes: ex.coaching_cues || ex.description || '',
         video_url: ex.video_url || '',
+        sub_exercises: [],
       });
       renderPartsList();
       triggerAutoSave(true);
+      showToast(`✓ Ejercicio añadido al Bloque: "${ex.name}"`);
     }
   }
 }
 
-function openExercisePicker(target, groundOnly, searchInitial = '') {
+async function openExercisePicker(target, groundOnly = false, searchInitial = '') {
   state.pickerTarget = target;
   state.pickerGroundOnly = groundOnly;
-  $('pickerTitle').textContent = groundOnly
-    ? 'Ejercicios GROUND'
-    : 'Seleccionar Ejercicio';
-  $('pickerGroundToggle').classList.toggle('selected', groundOnly);
-  $('pickerSearch').value = searchInitial || '';
+  if (!Array.isArray(state.exercises) || state.exercises.length === 0) {
+    try {
+      state.exercises = await api('/api/exercises');
+      populateExercisesDatalist();
+    } catch (_) {}
+  }
+  const title = $('pickerTitle');
+  if (title) title.textContent = '📚 Biblioteca de Ejercicios';
+  const groundToggle = $('pickerGroundToggle');
+  if (groundToggle) groundToggle.classList.add('hidden');
+  const searchInp = $('pickerSearch');
+  if (searchInp) searchInp.value = searchInitial || '';
   renderPickerList();
   openModal('pickerModal');
 }
@@ -1150,12 +1423,12 @@ $('btnPickerAddNewEx')?.addEventListener('click', () => {
   }
 });
 
-$('pickerGroundToggle').addEventListener('click', () => {
+$('pickerGroundToggle')?.addEventListener('click', () => {
   state.pickerGroundOnly = !state.pickerGroundOnly;
   $('pickerGroundToggle').classList.toggle('selected', state.pickerGroundOnly);
   renderPickerList();
 });
-$('pickerSearch').addEventListener('input', renderPickerList);
+$('pickerSearch')?.addEventListener('input', renderPickerList);
 
 function renderPickerList() {
   const q = $('pickerSearch').value.trim().toLowerCase();

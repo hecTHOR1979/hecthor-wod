@@ -116,11 +116,11 @@
           </div>
         </div>
 
-        <!-- 1. WARM UP & GROUND -->
+        <!-- 1. WARM UP -->
         <div class="item-box item-box-celeste">
           <div class="section-header">
             <div class="row-wrap">
-              <span class="badge badge-celeste-matte">WARM UP · <span id="warmupTypeHeaderBadge">Movilidad GROUND</span></span>
+              <span class="badge badge-celeste-matte">WARM UP · <span id="warmupTypeHeaderBadge">Calentamiento General</span></span>
             </div>
           </div>
           <div class="grid-2" style="margin-bottom:12px;">
@@ -137,17 +137,17 @@
             </div>
             <div class="field" style="margin-bottom:0;">
               <label for="warmupNotes">Indicaciones generales de calentamiento</label>
-              <input id="warmupNotes" class="input" placeholder="Ej: 10' de movilidad GROUND + activación..." />
+              <input id="warmupNotes" class="input" placeholder="Ej: Movilidad general + activación..." />
             </div>
           </div>
 
-          <!-- ESPACIO DE EJERCICIOS DEL CALENTAMIENTO (FORMATO LÍNEAS) -->
+          <!-- ESPACIO DE EJERCICIOS DEL CALENTAMIENTO (FORMATO LÍNEAS / SUPERSERIES) -->
           <div style="margin-top:10px; margin-bottom:12px;">
             <div class="row-between" style="margin-bottom:8px; align-items:center;">
               <span style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📋 Ejercicios del Calentamiento</span>
               <div class="row-wrap" style="gap:6px;">
-                <button class="btn btn-primary btn-sm" id="btnAddWarmupLine" type="button">+ Añadir línea</button>
-                <button class="btn btn-sm btn-outline" id="btnAddWarmupAny" type="button">📚 Biblioteca</button>
+                <button class="btn btn-primary btn-sm" id="btnAddWarmupLine" type="button">+ Añadir ejercicio</button>
+                <button class="btn btn-sm btn-outline" id="btnAddWarmupAny" type="button" title="Abrir catálogo de ejercicios">📚 Biblioteca</button>
               </div>
             </div>
             <div id="warmupList"></div>
@@ -656,7 +656,7 @@
   <div id="pickerModal" class="modal-backdrop">
     <div class="modal">
       <div class="section-header">
-        <h3 class="section-title" id="pickerTitle">Seleccionar Ejercicio</h3>
+        <h3 class="section-title" id="pickerTitle">📚 Biblioteca de Ejercicios</h3>
         <div class="row-wrap">
           <button class="btn btn-sm btn-primary" id="btnPickerAddNewEx">+ Crear nuevo</button>
           <button class="btn btn-sm" data-close="pickerModal">✕</button>
@@ -664,7 +664,6 @@
       </div>
       <div class="row-wrap" style="margin-bottom:10px;">
         <input id="pickerSearch" class="input" style="flex:1;" placeholder="Buscar ejercicio o movimiento..." />
-        <label class="chip" id="pickerGroundToggle">Solo GROUND</label>
       </div>
       <div id="pickerList" style="max-height:55vh; overflow-y:auto;"></div>
     </div>
@@ -792,6 +791,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=26"></script>
+  <script type="module" src="/static/js/coach.js?v=27"></script>
 </body>
 </html>
