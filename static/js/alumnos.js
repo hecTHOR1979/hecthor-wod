@@ -342,7 +342,7 @@ function buildExerciseNameHtml(name, videoUrl) {
   return `<strong>${esc(name)}</strong>`;
 }
 
-function buildSectionTimerSpec(label, type, minutes, extraText = '') {
+function buildSectionTimerSpec(label, type, minutes, extraText = '', partOpts = {}) {
   const rawType = (type || 'AMRAP').toUpperCase();
   const fullText = `${rawType} ${label || ''} ${extraText || ''}`.toUpperCase();
   let mode = 'AMRAP';
@@ -351,24 +351,30 @@ function buildSectionTimerSpec(label, type, minutes, extraText = '') {
   else if (rawType.includes('TIME') || rawType.includes('CHIPPER')) mode = 'FOR TIME';
   else if (rawType.includes('CRONO') || rawType.includes('FUERZA') || rawType.includes('LIBRE')) mode = 'CRONO';
 
-  let workSec = 20;
-  let restSec = 10;
-  let tabataRounds = 8;
-  let intervalSec = 60;
+  let workSec = partOpts?.tabata_work !== undefined && partOpts?.tabata_work !== '' ? Number(partOpts.tabata_work) : 20;
+  let restSec = partOpts?.tabata_rest !== undefined && partOpts?.tabata_rest !== '' ? Number(partOpts.tabata_rest) : 10;
+  let tabataRounds = partOpts?.tabata_rounds !== undefined && partOpts?.tabata_rounds !== '' ? Number(partOpts.tabata_rounds) : 8;
+  let intervalSec = partOpts?.emom_interval !== undefined && partOpts?.emom_interval !== '' ? Number(partOpts.emom_interval) : 60;
 
   if (mode === 'TABATA') {
-    const wrMatch = fullText.match(/(\d+)\s*(?:s|seg)?\s*[/x]\s*(\d+)\s*(?:s|seg)?/i);
-    if (wrMatch) {
-      workSec = Math.max(5, parseInt(wrMatch[1], 10));
-      restSec = Math.max(0, parseInt(wrMatch[2], 10));
+    if (partOpts?.tabata_work === undefined) {
+      const wrMatch = fullText.match(/(\d+)\s*(?:s|seg)?\s*[/x]\s*(\d+)\s*(?:s|seg)?/i);
+      if (wrMatch) {
+        workSec = Math.max(5, parseInt(wrMatch[1], 10));
+        restSec = Math.max(0, parseInt(wrMatch[2], 10));
+      }
     }
-    const rMatch = fullText.match(/(\d+)\s*(?:rondas|rounds|r\b|intervalos)/i);
-    if (rMatch) {
-      tabataRounds = Math.max(1, Math.min(50, parseInt(rMatch[1], 10)));
+    if (partOpts?.tabata_rounds === undefined) {
+      const rMatch = fullText.match(/(\d+)\s*(?:rondas|rounds|r\b|intervalos)/i);
+      if (rMatch) {
+        tabataRounds = Math.max(1, Math.min(50, parseInt(rMatch[1], 10)));
+      }
     }
   } else if (mode === 'EMOM') {
-    const everyMatch = fullText.match(/(?:cada|every)\s*(\d+)\s*(?:min|minutos|m\b)/i);
-    if (everyMatch) intervalSec = Math.max(1, parseInt(everyMatch[1], 10)) * 60;
+    if (partOpts?.emom_interval === undefined) {
+      const everyMatch = fullText.match(/(?:cada|every)\s*(\d+)\s*(?:min|minutos|m\b)/i);
+      if (everyMatch) intervalSec = Math.max(1, parseInt(everyMatch[1], 10)) * 60;
+    }
   }
 
   return {
@@ -603,7 +609,9 @@ function renderCurrentDay(resetTimer = true) {
         const spec = buildSectionTimerSpec(
           `${p.part_label || `Bloque ${idx + 1}`}: ${p.title || p.type || ''}`,
           blockTimerMode,
-          p.timer_minutes || 12
+          p.timer_minutes || 12,
+          p.description || '',
+          p
         );
         activateTimerSpec(spec, true);
       });
@@ -776,7 +784,10 @@ function parseWodSpec(wod) {
   const rawType = (wod?.type || '').toUpperCase();
   const capStr = `${wod?.time_cap || ''} ${wod?.description || ''} ${wod?.title || ''}`;
   const minMatch = capStr.match(/(\d+)\s*(?:min|minutos|'|m\b)/i);
-  const minutes = minMatch ? Math.max(1, Math.min(90, parseInt(minMatch[1], 10))) : 12;
+  let minutes = minMatch ? Math.max(1, Math.min(90, parseInt(minMatch[1], 10))) : 12;
+  if (wod?.minutes && !isNaN(Number(wod.minutes))) {
+    minutes = Math.max(1, Math.min(90, Number(wod.minutes)));
+  }
 
   let mode = 'AMRAP';
   if (rawType.includes('EMOM')) mode = 'EMOM';
@@ -787,29 +798,40 @@ function parseWodSpec(wod) {
   else if (capStr.toUpperCase().includes('TABATA')) mode = 'TABATA';
   else if (capStr.toUpperCase().includes('FOR TIME')) mode = 'FOR TIME';
 
-  let intervalSec = 60;
-  let workSec = 20;
-  let restSec = 10;
-  let tabataRounds = 8;
+  let workSec = wod?.tabata_work !== undefined && wod?.tabata_work !== '' ? Number(wod.tabata_work) : 20;
+  let restSec = wod?.tabata_rest !== undefined && wod?.tabata_rest !== '' ? Number(wod.tabata_rest) : 10;
+  let tabataRounds = wod?.tabata_rounds !== undefined && wod?.tabata_rounds !== '' ? Number(wod.tabata_rounds) : 8;
+  let intervalSec = wod?.emom_interval !== undefined && wod?.emom_interval !== '' ? Number(wod.emom_interval) : 60;
+  const emomRounds = wod?.emom_rounds !== undefined && wod?.emom_rounds !== '' ? Number(wod.emom_rounds) : 10;
 
   if (mode === 'TABATA') {
-    const wrMatch = capStr.match(/(\d+)\s*(?:s|seg)?\s*[/x]\s*(\d+)\s*(?:s|seg)?/i);
-    if (wrMatch) {
-      workSec = Math.max(5, parseInt(wrMatch[1], 10));
-      restSec = Math.max(0, parseInt(wrMatch[2], 10));
+    if (wod?.tabata_work === undefined) {
+      const wrMatch = capStr.match(/(\d+)\s*(?:s|seg)?\s*[/x]\s*(\d+)\s*(?:s|seg)?/i);
+      if (wrMatch) {
+        workSec = Math.max(5, parseInt(wrMatch[1], 10));
+        restSec = Math.max(0, parseInt(wrMatch[2], 10));
+      }
     }
-    const rMatch = capStr.match(/(\d+)\s*(?:rondas|rounds|r\b|intervalos)/i);
-    if (rMatch) {
-      tabataRounds = Math.max(1, Math.min(50, parseInt(rMatch[1], 10)));
+    if (wod?.tabata_rounds === undefined) {
+      const rMatch = capStr.match(/(\d+)\s*(?:rondas|rounds|r\b|intervalos)/i);
+      if (rMatch) {
+        tabataRounds = Math.max(1, Math.min(50, parseInt(rMatch[1], 10)));
+      }
     }
+    minutes = Math.ceil(((workSec + restSec) * tabataRounds) / 60);
   } else if (mode === 'EMOM') {
-    const everyMatch = capStr.match(/(?:cada|every)\s*(\d+)\s*(?:min|minutos|m\b)/i);
-    if (everyMatch) intervalSec = Math.max(1, parseInt(everyMatch[1], 10)) * 60;
+    if (wod?.emom_interval === undefined) {
+      const everyMatch = capStr.match(/(?:cada|every)\s*(\d+)\s*(?:min|minutos|m\b)/i);
+      if (everyMatch) intervalSec = Math.max(1, parseInt(everyMatch[1], 10)) * 60;
+    }
+    if (wod?.emom_rounds !== undefined) {
+      minutes = Math.round((intervalSec * emomRounds) / 60);
+    }
   }
 
   return {
     mode,
-    minutes: mode === 'TABATA' ? Math.ceil(((workSec + restSec) * tabataRounds) / 60) : minutes,
+    minutes,
     intervalSec,
     workSec,
     restSec,
@@ -959,6 +981,28 @@ function resetTimerState() {
     timerState.displayMs = (timerState.workSec || 20) * 1000;
   } else {
     timerState.displayMs = 0;
+  }
+
+  const wodSub = $('timerWodSub');
+  if (wodSub) {
+    if (timerState.mode === 'TABATA') {
+      const cycleSec = (timerState.workSec || 20) + (timerState.restSec !== undefined ? timerState.restSec : 10);
+      const totalSec = cycleSec * (timerState.tabataRounds || 8);
+      const totalM = Math.floor(totalSec / 60);
+      const totalS = totalSec % 60;
+      const tStr = totalS > 0 ? `${totalM}m ${totalS}s` : `${totalM} min`;
+      wodSub.textContent = `⚡ ${timerState.tabataRounds || 8} rondas · ${timerState.workSec || 20}s Trabajo (Azul) / ${timerState.restSec !== undefined ? timerState.restSec : 10}s Descanso (Verde) · Total: ${tStr}`;
+    } else if (timerState.mode === 'EMOM') {
+      const intSec = timerState.intervalSec || 60;
+      const r = Math.max(1, Math.round(((timerState.totalMinutes || 10) * 60) / intSec));
+      wodSub.textContent = `⚡ Cada ${intSec}s · ${r} rondas (${timerState.totalMinutes} min en total)`;
+    } else if (timerState.mode === 'AMRAP') {
+      wodSub.textContent = `⚡ ${timerState.totalMinutes} min de trabajo continuado (AMRAP)`;
+    } else if (timerState.mode === 'FOR TIME') {
+      wodSub.textContent = `⚡ Time Cap: ${timerState.totalMinutes} min`;
+    } else {
+      wodSub.textContent = `⚡ Cronómetro listo`;
+    }
   }
   renderTimerUI();
 }
@@ -1329,103 +1373,10 @@ function setTabataConfig(work, rest, rounds) {
   resetTimerState();
 }
 
-// Tabata steppers
-$('btnDecWork')?.addEventListener('click', () => {
-  const current = Number($('tabataWorkSec')?.value) || timerState.workSec || 20;
-  setTabataConfig(Math.max(5, current - 5), undefined, undefined);
-});
-$('btnIncWork')?.addEventListener('click', () => {
-  const current = Number($('tabataWorkSec')?.value) || timerState.workSec || 20;
-  setTabataConfig(current + 5, undefined, undefined);
-});
-$('btnDecRest')?.addEventListener('click', () => {
-  const current = Number($('tabataRestSec')?.value) || (timerState.restSec !== undefined ? timerState.restSec : 10);
-  setTabataConfig(undefined, Math.max(0, current - 5), undefined);
-});
-$('btnIncRest')?.addEventListener('click', () => {
-  const current = Number($('tabataRestSec')?.value) || (timerState.restSec !== undefined ? timerState.restSec : 10);
-  setTabataConfig(undefined, current + 5, undefined);
-});
-$('btnDecRounds')?.addEventListener('click', () => {
-  const current = Number($('tabataRounds')?.value) || timerState.tabataRounds || 8;
-  setTabataConfig(undefined, undefined, Math.max(1, current - 1));
-});
-$('btnIncRounds')?.addEventListener('click', () => {
-  const current = Number($('tabataRounds')?.value) || timerState.tabataRounds || 8;
-  setTabataConfig(undefined, undefined, Math.min(50, current + 1));
-});
-
-// Quick Tabata presets (chips)
-document.querySelectorAll('.tabata-quick-chip').forEach((chip) => {
-  chip.addEventListener('click', () => {
-    const w = Number(chip.dataset.work) || 20;
-    const r = Number(chip.dataset.rest) !== undefined ? Number(chip.dataset.rest) : 10;
-    const rounds = Number(chip.dataset.rounds) || 8;
-    setTabataConfig(w, r, rounds);
-  });
-});
-
-// Tabata manual inputs (change and input)
-$('tabataWorkSec')?.addEventListener('change', (e) => {
-  const val = Number(e.target.value);
-  if (!isNaN(val) && val >= 5) setTabataConfig(val, undefined, undefined);
-});
-$('tabataRestSec')?.addEventListener('change', (e) => {
-  const val = Number(e.target.value);
-  if (!isNaN(val) && val >= 0) setTabataConfig(undefined, val, undefined);
-});
-$('tabataRounds')?.addEventListener('change', (e) => {
-  const val = Number(e.target.value);
-  if (!isNaN(val) && val >= 1) setTabataConfig(undefined, undefined, val);
-});
-
-// EMOM manual inputs
-$('emomIntervalSec')?.addEventListener('change', (e) => {
-  timerState.intervalSec = Number(e.target.value) || 60;
-  const rounds = Number($('emomRounds')?.value) || 10;
-  timerState.totalMinutes = Math.round((timerState.intervalSec * rounds) / 60);
-  updateEmomSummary();
-  resetTimerState();
-});
-$('emomRounds')?.addEventListener('input', (e) => {
-  const rounds = Math.max(1, Number(e.target.value) || 10);
-  timerState.totalMinutes = Math.round(((timerState.intervalSec || 60) * rounds) / 60);
-  updateEmomSummary();
-  resetTimerState();
-});
-
-// AMRAP manual inputs
-$('amrapMinutes')?.addEventListener('input', (e) => {
-  timerState.totalMinutes = Math.max(1, Math.min(90, Number(e.target.value) || 12));
-  resetTimerState();
-});
-document.querySelectorAll('[data-set-amrap]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const mins = Number(btn.dataset.setAmrap) || 12;
-    if ($('amrapMinutes')) $('amrapMinutes').value = mins;
-    timerState.totalMinutes = mins;
-    resetTimerState();
-  });
-});
-
-// FOR TIME manual inputs
-$('forTimeCap')?.addEventListener('input', (e) => {
-  timerState.totalMinutes = Math.max(1, Math.min(90, Number(e.target.value) || 15));
-  resetTimerState();
-});
-document.querySelectorAll('[data-set-cap]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const mins = Number(btn.dataset.setCap) || 15;
-    if ($('forTimeCap')) $('forTimeCap').value = mins;
-    timerState.totalMinutes = mins;
-    resetTimerState();
-  });
-});
-
-$('timerModeSelect').addEventListener('change', (e) => {
+$('timerModeSelect')?.addEventListener('change', (e) => {
   setTimerMode(e.target.value);
 });
-$('timerMinutes').addEventListener('change', (e) => {
+$('timerMinutes')?.addEventListener('change', (e) => {
   timerState.totalMinutes = Math.max(1, Math.min(90, Number(e.target.value) || 12));
   resetTimerState();
 });

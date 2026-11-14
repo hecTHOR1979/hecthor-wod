@@ -437,11 +437,20 @@ function openDayEditor(dayId) {
   $('wodTitle').value = wod.title || '';
   $('wodType').value = wod.type || 'AMRAP';
   $('wodTimeCap').value = wod.time_cap || '';
+  delete $('wodTimeCap').dataset.manualEdited;
   $('wodTarget').value = wod.target_score || '';
   $('wodDescription').value = wod.description || '';
   $('wodRx').value = wod.rx_weights || '';
   $('wodScaled').value = wod.scaled_weights || '';
   $('wodStrategy').value = wod.strategy || '';
+
+  if ($('wodTabataWork')) $('wodTabataWork').value = wod.tabata_work || 20;
+  if ($('wodTabataRest')) $('wodTabataRest').value = wod.tabata_rest !== undefined ? wod.tabata_rest : 10;
+  if ($('wodTabataRounds')) $('wodTabataRounds').value = wod.tabata_rounds || 8;
+  if ($('wodEmomInterval')) $('wodEmomInterval').value = wod.emom_interval || 60;
+  if ($('wodEmomRounds')) $('wodEmomRounds').value = wod.emom_rounds || 10;
+  if ($('wodMinutes')) $('wodMinutes').value = wod.minutes || 12;
+  updateWodTimerUI();
 
   renderWarmupList();
   renderPartsList();
@@ -572,6 +581,9 @@ function renderPartsList() {
     const box = document.createElement('div');
     box.className = 'item-box item-box-celeste';
     const blockLabel = `BLOQUE ${pIdx + 1}`;
+    const curTimer = (part.timer_type || 'SIN CRONO').toUpperCase();
+    const normalizedTimer = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(curTimer) ? curTimer : (curTimer === 'EMON' ? 'EMOM' : 'SIN CRONO');
+
     box.innerHTML = `
       <div class="row-between" style="margin-bottom:8px;">
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
@@ -593,17 +605,43 @@ function renderPartsList() {
           <label>Formato de crono del bloque (solo si aplica)</label>
           <select class="input" data-part-field="timer_type">
             ${['SIN CRONO', 'AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => {
-              const cur = (part.timer_type || 'SIN CRONO').toUpperCase();
-              const normalized = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(cur) ? cur : (cur === 'EMON' ? 'EMOM' : 'SIN CRONO');
-              return `<option value="${opt}" ${normalized === opt ? 'selected' : ''}>${opt === 'SIN CRONO' ? 'Sin crono (Fuerza / Técnica)' : opt}</option>`;
+              return `<option value="${opt}" ${normalizedTimer === opt ? 'selected' : ''}>${opt === 'SIN CRONO' ? 'Sin crono (Fuerza / Técnica)' : opt}</option>`;
             }).join('')}
           </select>
         </div>
         <div class="field" style="margin-bottom:0;">
-          <label>Tiempo de trabajo del bloque (min)</label>
+          <label>Tiempo de trabajo / Cap (min)</label>
           <input class="input" type="number" min="1" max="60" data-part-field="timer_minutes" value="${esc(part.timer_minutes || 12)}" />
         </div>
       </div>
+      ${normalizedTimer === 'TABATA' ? `
+        <div class="grid-3" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
+          <div class="field" style="margin-bottom:0;">
+            <label style="color:#0284c7; font-weight:700;">🔵 Trabajo (segundos)</label>
+            <input class="input" type="number" min="5" max="300" step="5" data-part-field="tabata_work" value="${esc(part.tabata_work !== undefined ? part.tabata_work : 20)}" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label style="color:#10b981; font-weight:700;">🟢 Descanso (segundos)</label>
+            <input class="input" type="number" min="0" max="300" step="5" data-part-field="tabata_rest" value="${esc(part.tabata_rest !== undefined ? part.tabata_rest : 10)}" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
+            <input class="input" type="number" min="1" max="50" data-part-field="tabata_rounds" value="${esc(part.tabata_rounds !== undefined ? part.tabata_rounds : 8)}" />
+          </div>
+        </div>
+      ` : ''}
+      ${normalizedTimer === 'EMOM' ? `
+        <div class="grid-2" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-top:8px;">
+          <div class="field" style="margin-bottom:0;">
+            <label style="color:#0284c7; font-weight:700;">Intervalo (segundos)</label>
+            <input class="input" type="number" min="10" max="300" step="10" data-part-field="emom_interval" value="${esc(part.emom_interval !== undefined ? part.emom_interval : 60)}" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
+            <input class="input" type="number" min="1" max="60" data-part-field="emom_rounds" value="${esc(part.emom_rounds !== undefined ? part.emom_rounds : 10)}" />
+          </div>
+        </div>
+      ` : ''}
       <textarea class="input" style="margin-top:8px;" data-part-field="description" placeholder="Esquema de series, %RM, descansos...">${esc(part.description || '')}</textarea>
       <div data-part-ex-list="${pIdx}" style="margin-top:8px;"></div>
     `;
@@ -616,9 +654,39 @@ function renderPartsList() {
       openExercisePicker({ type: 'part', partIdx: pIdx }, false);
     });
     box.querySelectorAll('[data-part-field]').forEach((inp) => {
-      inp.addEventListener('input', () => {
-        state.currentDay.parts[pIdx][inp.dataset.partField] = inp.value;
-      });
+      const handler = () => {
+        const field = inp.dataset.partField;
+        const val = inp.value;
+        state.currentDay.parts[pIdx][field] = val;
+        if (field === 'timer_type') {
+          if (val === 'TABATA') {
+            if (part.tabata_work === undefined) part.tabata_work = 20;
+            if (part.tabata_rest === undefined) part.tabata_rest = 10;
+            if (part.tabata_rounds === undefined) part.tabata_rounds = 8;
+            part.timer_minutes = Math.ceil(((Number(part.tabata_work) + Number(part.tabata_rest)) * Number(part.tabata_rounds)) / 60);
+          } else if (val === 'EMOM') {
+            if (part.emom_interval === undefined) part.emom_interval = 60;
+            if (part.emom_rounds === undefined) part.emom_rounds = 10;
+            part.timer_minutes = Math.round((Number(part.emom_interval) * Number(part.emom_rounds)) / 60);
+          }
+          renderPartsList();
+        } else if (field === 'tabata_work' || field === 'tabata_rest' || field === 'tabata_rounds') {
+          const w = Number(part.tabata_work !== undefined ? part.tabata_work : 20);
+          const r = Number(part.tabata_rest !== undefined ? part.tabata_rest : 10);
+          const rounds = Number(part.tabata_rounds !== undefined ? part.tabata_rounds : 8);
+          part.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+          const minInp = box.querySelector('[data-part-field="timer_minutes"]');
+          if (minInp) minInp.value = part.timer_minutes;
+        } else if (field === 'emom_interval' || field === 'emom_rounds') {
+          const intSec = Number(part.emom_interval !== undefined ? part.emom_interval : 60);
+          const rounds = Number(part.emom_rounds !== undefined ? part.emom_rounds : 10);
+          part.timer_minutes = Math.round((intSec * rounds) / 60);
+          const minInp = box.querySelector('[data-part-field="timer_minutes"]');
+          if (minInp) minInp.value = part.timer_minutes;
+        }
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
 
     const exWrap = box.querySelector(`[data-part-ex-list="${pIdx}"]`);
@@ -985,6 +1053,134 @@ $('newWodTypeInput')?.addEventListener('keydown', (e) => {
   }
 });
 
+// ================= COACH WOD TIMER CONTROLS =================
+function updateWodTimerUI() {
+  const rawType = ($('wodType')?.value || '').toUpperCase();
+  const isTabata = rawType.includes('TABATA');
+  const isEmom = rawType.includes('EMOM');
+  const isCap = rawType.includes('AMRAP') || rawType.includes('FOR TIME') || rawType.includes('TIME') || rawType.includes('CHIPPER') || rawType.includes('ENDURANCE');
+
+  $('wodCfgTabata')?.classList.toggle('hidden', !isTabata);
+  $('wodCfgEmom')?.classList.toggle('hidden', !isEmom);
+  $('wodCfgCap')?.classList.toggle('hidden', !isCap);
+
+  const sumEl = $('wodTimerSummary');
+  if (isTabata) {
+    const work = Number($('wodTabataWork')?.value) || 20;
+    const rest = $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10;
+    const rounds = Number($('wodTabataRounds')?.value) || 8;
+    const totalSec = (work + rest) * rounds;
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const tStr = s > 0 ? `${m}m ${s}s` : `${m} min`;
+    if (sumEl) sumEl.innerHTML = `⚡ <strong>${rounds} rondas</strong>: <span style="color:#38bdf8; font-weight:800;">${work}s Trabajo (Azul)</span> / <span style="color:#22c55e; font-weight:800;">${rest}s Descanso (Verde)</span> (Total: ${tStr})`;
+    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+      $('wodTimeCap').value = `${rounds} rondas · ${work}s/${rest}s (${tStr})`;
+    }
+  } else if (isEmom) {
+    const intSec = Number($('wodEmomInterval')?.value) || 60;
+    const rounds = Number($('wodEmomRounds')?.value) || 10;
+    const totalM = Math.round((intSec * rounds) / 60);
+    if (sumEl) sumEl.innerHTML = `⚡ <strong>EMOM</strong>: Cada ${intSec}s durante ${rounds} intervalos (Total: ${totalM} min)`;
+    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+      $('wodTimeCap').value = `EMOM ${rounds}' (cada ${intSec}s)`;
+    }
+  } else if (isCap) {
+    const mins = Number($('wodMinutes')?.value) || 12;
+    if (sumEl) sumEl.innerHTML = `⚡ Duración / Time Cap: <strong>${mins} minutos</strong>`;
+    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+      $('wodTimeCap').value = `${mins} Minutos`;
+    }
+  } else {
+    if (sumEl) sumEl.textContent = 'Configura el formato de entrenamiento';
+  }
+}
+
+function initCoachWodTimerControls() {
+  $('wodType')?.addEventListener('input', () => {
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('wodType')?.addEventListener('change', () => {
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('wodTimeCap')?.addEventListener('input', () => {
+    $('wodTimeCap').dataset.manualEdited = 'true';
+  });
+
+  // Tabata coach steppers
+  $('btnCoachDecWork')?.addEventListener('click', () => {
+    const cur = Number($('wodTabataWork')?.value) || 20;
+    if ($('wodTabataWork')) $('wodTabataWork').value = Math.max(5, cur - 5);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncWork')?.addEventListener('click', () => {
+    const cur = Number($('wodTabataWork')?.value) || 20;
+    if ($('wodTabataWork')) $('wodTabataWork').value = cur + 5;
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachDecRest')?.addEventListener('click', () => {
+    const cur = $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10;
+    if ($('wodTabataRest')) $('wodTabataRest').value = Math.max(0, cur - 5);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncRest')?.addEventListener('click', () => {
+    const cur = $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10;
+    if ($('wodTabataRest')) $('wodTabataRest').value = cur + 5;
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachDecRounds')?.addEventListener('click', () => {
+    const cur = Number($('wodTabataRounds')?.value) || 8;
+    if ($('wodTabataRounds')) $('wodTabataRounds').value = Math.max(1, cur - 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncRounds')?.addEventListener('click', () => {
+    const cur = Number($('wodTabataRounds')?.value) || 8;
+    if ($('wodTabataRounds')) $('wodTabataRounds').value = Math.min(50, cur + 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+
+  // Presets
+  document.querySelectorAll('.coach-tabata-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if ($('wodTabataWork')) $('wodTabataWork').value = btn.dataset.work;
+      if ($('wodTabataRest')) $('wodTabataRest').value = btn.dataset.rest;
+      if ($('wodTabataRounds')) $('wodTabataRounds').value = btn.dataset.rounds;
+      delete $('wodTimeCap').dataset.manualEdited;
+      updateWodTimerUI();
+    });
+  });
+
+  // Direct inputs
+  ['wodTabataWork', 'wodTabataRest', 'wodTabataRounds', 'wodEmomInterval', 'wodEmomRounds', 'wodMinutes'].forEach((id) => {
+    $(id)?.addEventListener('input', () => {
+      delete $('wodTimeCap').dataset.manualEdited;
+      updateWodTimerUI();
+    });
+    $(id)?.addEventListener('change', () => {
+      delete $('wodTimeCap').dataset.manualEdited;
+      updateWodTimerUI();
+    });
+  });
+
+  document.querySelectorAll('[data-set-coach-mins]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mins = Number(btn.dataset.setCoachMins) || 12;
+      if ($('wodMinutes')) $('wodMinutes').value = mins;
+      delete $('wodTimeCap').dataset.manualEdited;
+      updateWodTimerUI();
+    });
+  });
+}
+initCoachWodTimerControls();
+
 function loadCustomWodGoals() {
   try {
     const saved = JSON.parse(localStorage.getItem('hecthor_custom_wod_goals') || '[]');
@@ -1110,6 +1306,12 @@ async function saveCurrentDay() {
       strategy: $('wodStrategy').value.trim(),
       equipment: Array.from(state.selectedEquipment),
       movements: state.currentDay.wod?.movements || [],
+      tabata_work: Number($('wodTabataWork')?.value) || 20,
+      tabata_rest: $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10,
+      tabata_rounds: Number($('wodTabataRounds')?.value) || 8,
+      emom_interval: Number($('wodEmomInterval')?.value) || 60,
+      emom_rounds: Number($('wodEmomRounds')?.value) || 10,
+      minutes: Number($('wodMinutes')?.value) || 12,
     },
     coaching_tips: $('dayCoachingTips').value.trim(),
   };

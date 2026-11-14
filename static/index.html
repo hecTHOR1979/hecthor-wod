@@ -257,6 +257,85 @@
               <input id="wodTarget" class="input" placeholder="Ej: 4-5 rondas o < 12 min" />
             </div>
           </div>
+
+          <!-- CONFIGURACIÓN ESPECÍFICA DEL CRONO DEL WOD (SOLO COACH) -->
+          <div id="wodTimerConfigCard" class="card" style="background:rgba(15,23,42,0.45); border:1px solid var(--border); padding:12px; margin-bottom:14px;">
+            <div class="row-between" style="margin-bottom:8px;">
+              <span class="badge badge-accent">⏱ CONFIGURACIÓN DEL CRONO DEL WOD (COACH)</span>
+              <span id="wodTimerSummary" style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">Configuración activa</span>
+            </div>
+
+            <!-- TABATA COACH CONFIG -->
+            <div id="wodCfgTabata" class="hidden">
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline coach-tabata-preset" type="button" data-work="20" data-rest="10" data-rounds="8">20s / 10s × 8 (Clásico)</button>
+                <button class="btn btn-sm btn-outline coach-tabata-preset" type="button" data-work="30" data-rest="15" data-rounds="8">30s / 15s × 8</button>
+                <button class="btn btn-sm btn-outline coach-tabata-preset" type="button" data-work="40" data-rest="20" data-rounds="6">40s / 20s × 6</button>
+                <button class="btn btn-sm btn-outline coach-tabata-preset" type="button" data-work="45" data-rest="15" data-rounds="8">45s / 15s × 8</button>
+              </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                <div class="timer-stepper-box">
+                  <label for="wodTabataWork" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔵 TIEMPO DE TRABAJO</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWork" title="Restar 5s">-5s</button>
+                    <input id="wodTabataWork" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" style="color:#38bdf8;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWork" title="Sumar 5s">+5s</button>
+                  </div>
+                </div>
+                <div class="timer-stepper-box">
+                  <label for="wodTabataRest" style="font-size:0.78rem; font-weight:800; color:#22c55e;">🟢 TIEMPO DE DESCANSO</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecRest" title="Restar 5s">-5s</button>
+                    <input id="wodTabataRest" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" style="color:#22c55e;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncRest" title="Sumar 5s">+5s</button>
+                  </div>
+                </div>
+                <div class="timer-stepper-box">
+                  <label for="wodTabataRounds" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔢 NÚMERO DE RONDAS</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecRounds" title="Restar 1 ronda">-1</button>
+                    <input id="wodTabataRounds" type="number" min="1" max="50" value="8" class="input stepper-input" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncRounds" title="Sumar 1 ronda">+1</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- EMOM COACH CONFIG -->
+            <div id="wodCfgEmom" class="hidden">
+              <div class="grid-2">
+                <div class="field" style="margin-bottom:0;">
+                  <label for="wodEmomInterval">⏱ Intervalo por ronda</label>
+                  <select id="wodEmomInterval" class="input">
+                    <option value="60">Cada 1 min (60s)</option>
+                    <option value="90">Cada 1:30 min (90s)</option>
+                    <option value="120">Cada 2 min (120s)</option>
+                    <option value="180">Cada 3 min (180s)</option>
+                  </select>
+                </div>
+                <div class="field" style="margin-bottom:0;">
+                  <label for="wodEmomRounds">🔢 Número de intervalos / Rondas</label>
+                  <input id="wodEmomRounds" type="number" min="1" max="60" value="10" class="input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- AMRAP / FOR TIME COACH CONFIG -->
+            <div id="wodCfgCap" class="hidden">
+              <div class="field" style="margin-bottom:0;">
+                <label for="wodMinutes">⏱ Minutos de duración / Time Cap</label>
+                <div class="row-wrap">
+                  <input id="wodMinutes" type="number" min="1" max="90" value="12" class="input" style="flex:1;" />
+                  <button class="btn btn-sm" type="button" data-set-coach-mins="7">7'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-mins="10">10'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-mins="12">12'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-mins="15">15'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-mins="20">20'</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="field">
             <label for="wodDescription">Descripción del WOD</label>
             <textarea id="wodDescription" class="input" placeholder="Movimientos, repeticiones y esquema..."></textarea>

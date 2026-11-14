@@ -112,11 +112,13 @@
       <div id="dayContent"></div>
 
       <!-- WOD-SPECIFIC SMART TIMER CARD -->
+      <!-- WOD-SPECIFIC SMART TIMER CARD (PROGRAMADO POR EL COACH) -->
       <div class="card card-block-celeste" id="timerCard">
         <div class="section-header">
           <div>
             <span class="badge badge-celeste-matte" id="timerWodBadge">⏱ CRONO PREPARADO</span>
             <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro Crossfit</h2>
+            <div id="timerWodSub" style="font-size:0.92rem; font-weight:700; color:var(--text-muted); margin-top:4px;"></div>
           </div>
           <div class="row-wrap" style="gap:8px;">
             <button class="btn btn-sm btn-outline" id="btnLaunchCronoPro" title="Abrir app oficial Crono CrossFit Pro con pantalla LED Gym">⚡ Crono Pro Oficial ↗</button>
@@ -124,130 +126,62 @@
           </div>
         </div>
 
-        <!-- Presets rápidos -->
-        <div class="timer-presets-row" title="Presets rápidos de CrossFit">
-          <button class="timer-preset-chip" type="button" data-preset="tabata">⚡ Tabata (20s/10s × 8)</button>
-          <button class="timer-preset-chip" type="button" data-preset="emom10">⏱ EMOM 10'</button>
-          <button class="timer-preset-chip" type="button" data-preset="amrap12">⏱ AMRAP 12'</button>
-          <button class="timer-preset-chip" type="button" data-preset="amrap15">⏱ AMRAP 15'</button>
-          <button class="timer-preset-chip" type="button" data-preset="fortime15">🏁 For Time 15' Cap</button>
-        </div>
-
-        <!-- Selector de formato tipo pill -->
-        <div class="timer-mode-pills" id="timerModePills">
-          <button class="timer-mode-pill active" type="button" data-mode="AMRAP">AMRAP</button>
-          <button class="timer-mode-pill" type="button" data-mode="EMOM">EMOM</button>
-          <button class="timer-mode-pill" type="button" data-mode="TABATA">TABATA</button>
-          <button class="timer-mode-pill" type="button" data-mode="FOR TIME">FOR TIME</button>
-          <button class="timer-mode-pill" type="button" data-mode="CRONO">LIBRE</button>
-        </div>
-
-        <!-- Configuración específica de cada modo -->
-        <div class="timer-cfg-card" id="timerConfigBox">
-          <!-- TABATA CONFIG -->
-          <div id="cfgTabata" class="hidden">
-            <!-- Presets rápidos de Tabata -->
-            <div class="row-wrap" style="gap:6px; margin-bottom:12px; align-items:center;">
-              <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes:</span>
-              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="20" data-rest="10" data-rounds="8">20s / 10s × 8</button>
-              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="30" data-rest="15" data-rounds="8">30s / 15s × 8</button>
-              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="40" data-rest="20" data-rounds="6">40s / 20s × 6</button>
-              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="45" data-rest="15" data-rounds="8">45s / 15s × 8</button>
-            </div>
-
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
-              <!-- Tiempo Trabajo (Azul) -->
-              <div class="timer-stepper-box">
-                <label for="tabataWorkSec" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔵 TRABAJO</label>
-                <div class="stepper-row">
-                  <button type="button" class="stepper-btn" id="btnDecWork" title="Restar 5 segundos">-5s</button>
-                  <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" style="color:#38bdf8;" />
-                  <button type="button" class="stepper-btn" id="btnIncWork" title="Sumar 5 segundos">+5s</button>
-                </div>
-              </div>
-
-              <!-- Tiempo Descanso (Verde) -->
-              <div class="timer-stepper-box">
-                <label for="tabataRestSec" style="font-size:0.78rem; font-weight:800; color:#22c55e;">🟢 DESCANSO</label>
-                <div class="stepper-row">
-                  <button type="button" class="stepper-btn" id="btnDecRest" title="Restar 5 segundos">-5s</button>
-                  <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" style="color:#22c55e;" />
-                  <button type="button" class="stepper-btn" id="btnIncRest" title="Sumar 5 segundos">+5s</button>
-                </div>
-              </div>
-
-              <!-- Rondas -->
-              <div class="timer-stepper-box">
-                <label for="tabataRounds" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔢 RONDAS</label>
-                <div class="stepper-row">
-                  <button type="button" class="stepper-btn" id="btnDecRounds" title="Restar 1 ronda">-1</button>
-                  <input id="tabataRounds" type="number" min="1" max="50" value="8" class="input stepper-input" />
-                  <button type="button" class="stepper-btn" id="btnIncRounds" title="Sumar 1 ronda">+1</button>
-                </div>
-              </div>
-            </div>
-
-            <div id="tabataSummaryText" class="timer-cfg-summary" style="margin-top:10px;">⚡ 8 rondas de 20s Trabajo / 10s Descanso (Total: 4 min)</div>
-          </div>
-
-          <!-- EMOM CONFIG -->
-          <div id="cfgEmom" class="hidden">
-            <div class="grid-2">
-              <div class="field" style="margin-bottom:0;">
-                <label for="emomIntervalSec">⏱ Intervalo por Ronda</label>
-                <select id="emomIntervalSec" class="input">
-                  <option value="60">Cada 1 min (60s)</option>
-                  <option value="90">Cada 1:30 min (90s)</option>
-                  <option value="120">Cada 2 min (120s)</option>
-                  <option value="180">Cada 3 min (180s)</option>
-                </select>
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label for="emomRounds">🔢 Número de Intervalos / Minutos</label>
-                <input id="emomRounds" type="number" min="1" max="60" value="10" class="input" />
-              </div>
-            </div>
-            <div id="emomSummaryText" class="timer-cfg-summary">⚡ Cada 60s durante 10 intervalos (Total: 10 min)</div>
-          </div>
-
-          <!-- AMRAP CONFIG -->
-          <div id="cfgAmrap">
-            <div class="field" style="margin-bottom:0;">
-              <label for="amrapMinutes">⏱ Duración del AMRAP (minutos)</label>
-              <div class="row-wrap">
-                <input id="amrapMinutes" type="number" min="1" max="90" value="12" class="input" style="flex:1;" />
-                <button class="btn btn-sm" type="button" data-set-amrap="7">7'</button>
-                <button class="btn btn-sm" type="button" data-set-amrap="10">10'</button>
-                <button class="btn btn-sm" type="button" data-set-amrap="12">12'</button>
-                <button class="btn btn-sm" type="button" data-set-amrap="15">15'</button>
-                <button class="btn btn-sm" type="button" data-set-amrap="20">20'</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOR TIME CONFIG -->
-          <div id="cfgForTime" class="hidden">
-            <div class="field" style="margin-bottom:0;">
-              <label for="forTimeCap">⏱ Time Cap / Límite de tiempo (minutos)</label>
-              <div class="row-wrap">
-                <input id="forTimeCap" type="number" min="1" max="90" value="15" class="input" style="flex:1;" />
-                <button class="btn btn-sm" type="button" data-set-cap="10">10'</button>
-                <button class="btn btn-sm" type="button" data-set-cap="15">15'</button>
-                <button class="btn btn-sm" type="button" data-set-cap="20">20'</button>
-                <button class="btn btn-sm" type="button" data-set-cap="30">30'</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- CRONO LIBRE CONFIG -->
-          <div id="cfgCrono" class="hidden">
-            <p class="muted" style="margin:0;">Cronómetro hacia adelante sin límite para series de fuerza, descansos o técnica.</p>
-          </div>
-        </div>
-
         <!-- Hidden legacy inputs for compatibility -->
         <select id="timerModeSelect" class="hidden">
           <option value="AMRAP">AMRAP</option>
+          <option value="EMOM">EMOM</option>
+          <option value="TABATA">TABATA</option>
+          <option value="FOR TIME">FOR TIME</option>
+          <option value="CRONO">CRONO</option>
+        </select>
+        <input id="timerMinutes" type="hidden" value="12" />
+        <input id="tabataWorkSec" type="hidden" value="20" />
+        <input id="tabataRestSec" type="hidden" value="10" />
+        <input id="tabataRounds" type="hidden" value="8" />
+        <input id="emomIntervalSec" type="hidden" value="60" />
+        <input id="emomRounds" type="hidden" value="10" />
+        <input id="amrapMinutes" type="hidden" value="12" />
+        <input id="forTimeCap" type="hidden" value="15" />
+
+        <div id="timerStatusLine" style="text-align:center; font-weight:900; font-size:1.15rem; min-height:26px; letter-spacing:0.5px;"></div>
+        <div style="text-align:center;">
+          <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
+            <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
+          </div>
+        </div>
+        <div id="timerSubInfo" class="muted" style="text-align:center; margin-bottom:10px;">
+          Toca el reloj o "Pantalla Completa" para ampliar el cronómetro.
+        </div>
+
+        <div class="row-wrap" style="justify-content:center; margin-bottom:12px;">
+          <button class="btn btn-primary" id="btnTimerStart">▶ Iniciar</button>
+          <button class="btn" id="btnTimerPause">⏸ Pausar</button>
+          <button class="btn btn-orange" id="btnTimerAddRound">+1 Ronda (0)</button>
+          <button class="btn btn-ground hidden" id="btnTimerFinish">🏁 ¡Terminado!</button>
+          <button class="btn btn-danger btn-sm" id="btnTimerReset">↺ Reiniciar</button>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:8px;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="timerPrecountSelect">Cuenta regresiva inicial</label>
+            <select id="timerPrecountSelect" class="input">
+              <option value="10">10 segundos</option>
+              <option value="5">5 segundos</option>
+              <option value="3">3 segundos</option>
+              <option value="0">Sin cuenta regresiva (inmediato)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="timerSoundSelect">Sonido del crono</label>
+            <select id="timerSoundSelect" class="input">
+              <option value="pitido">Pitido Gimnasio (Clásico)</option>
+              <option value="bocina">Bocina / Claxon</option>
+              <option value="gong">Gong Marcial</option>
+              <option value="silencio">Sin sonido (Silencio)</option>
+            </select>
+          </div>
+        </div>
+      </div>
           <option value="EMOM">EMOM</option>
           <option value="TABATA">TABATA</option>
           <option value="FOR TIME">FOR TIME</option>
