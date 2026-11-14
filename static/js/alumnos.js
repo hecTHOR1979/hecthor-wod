@@ -1323,21 +1323,86 @@ document.querySelectorAll('.timer-preset-chip').forEach((chip) => {
   });
 });
 
-// Tabata manual inputs
-$('tabataWorkSec')?.addEventListener('input', (e) => {
-  timerState.workSec = Math.max(5, Number(e.target.value) || 20);
-  updateTabataSummary();
-  resetTimerState();
+// Crono Crossfit Pro Modal controls
+$('btnLaunchCronoPro')?.addEventListener('click', () => {
+  const modal = $('cronoProModal');
+  const iframe = $('cronoProIframe');
+  if (modal && iframe) {
+    iframe.src = '/crono/';
+    modal.classList.add('open');
+  }
 });
-$('tabataRestSec')?.addEventListener('input', (e) => {
-  timerState.restSec = Math.max(0, Number(e.target.value) || 10);
-  updateTabataSummary();
-  resetTimerState();
+$('btnCloseCronoPro')?.addEventListener('click', () => {
+  const modal = $('cronoProModal');
+  const iframe = $('cronoProIframe');
+  if (modal && iframe) {
+    modal.classList.remove('open');
+    iframe.src = 'about:blank';
+  }
 });
-$('tabataRounds')?.addEventListener('input', (e) => {
-  timerState.tabataRounds = Math.max(1, Math.min(50, Number(e.target.value) || 8));
+
+// Tabata helper to set and refresh config
+function setTabataConfig(work, rest, rounds) {
+  stopTimer();
+  if (work !== undefined) timerState.workSec = Math.max(5, Math.min(300, work));
+  if (rest !== undefined) timerState.restSec = Math.max(0, Math.min(300, rest));
+  if (rounds !== undefined) timerState.tabataRounds = Math.max(1, Math.min(50, rounds));
+  timerState.totalMinutes = Math.ceil(((timerState.workSec + timerState.restSec) * timerState.tabataRounds) / 60);
+  if ($('tabataWorkSec')) $('tabataWorkSec').value = timerState.workSec;
+  if ($('tabataRestSec')) $('tabataRestSec').value = timerState.restSec;
+  if ($('tabataRounds')) $('tabataRounds').value = timerState.tabataRounds;
   updateTabataSummary();
   resetTimerState();
+}
+
+// Tabata steppers
+$('btnDecWork')?.addEventListener('click', () => {
+  const current = Number($('tabataWorkSec')?.value) || timerState.workSec || 20;
+  setTabataConfig(Math.max(5, current - 5), undefined, undefined);
+});
+$('btnIncWork')?.addEventListener('click', () => {
+  const current = Number($('tabataWorkSec')?.value) || timerState.workSec || 20;
+  setTabataConfig(current + 5, undefined, undefined);
+});
+$('btnDecRest')?.addEventListener('click', () => {
+  const current = Number($('tabataRestSec')?.value) || (timerState.restSec !== undefined ? timerState.restSec : 10);
+  setTabataConfig(undefined, Math.max(0, current - 5), undefined);
+});
+$('btnIncRest')?.addEventListener('click', () => {
+  const current = Number($('tabataRestSec')?.value) || (timerState.restSec !== undefined ? timerState.restSec : 10);
+  setTabataConfig(undefined, current + 5, undefined);
+});
+$('btnDecRounds')?.addEventListener('click', () => {
+  const current = Number($('tabataRounds')?.value) || timerState.tabataRounds || 8;
+  setTabataConfig(undefined, undefined, Math.max(1, current - 1));
+});
+$('btnIncRounds')?.addEventListener('click', () => {
+  const current = Number($('tabataRounds')?.value) || timerState.tabataRounds || 8;
+  setTabataConfig(undefined, undefined, Math.min(50, current + 1));
+});
+
+// Quick Tabata presets (chips)
+document.querySelectorAll('.tabata-quick-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const w = Number(chip.dataset.work) || 20;
+    const r = Number(chip.dataset.rest) !== undefined ? Number(chip.dataset.rest) : 10;
+    const rounds = Number(chip.dataset.rounds) || 8;
+    setTabataConfig(w, r, rounds);
+  });
+});
+
+// Tabata manual inputs (change and input)
+$('tabataWorkSec')?.addEventListener('change', (e) => {
+  const val = Number(e.target.value);
+  if (!isNaN(val) && val >= 5) setTabataConfig(val, undefined, undefined);
+});
+$('tabataRestSec')?.addEventListener('change', (e) => {
+  const val = Number(e.target.value);
+  if (!isNaN(val) && val >= 0) setTabataConfig(undefined, val, undefined);
+});
+$('tabataRounds')?.addEventListener('change', (e) => {
+  const val = Number(e.target.value);
+  if (!isNaN(val) && val >= 1) setTabataConfig(undefined, undefined, val);
 });
 
 // EMOM manual inputs
@@ -1409,3 +1474,5 @@ async function restoreStudentSession() {
 }
 
 restoreStudentSession();
+syncTimerInputsFromState();
+renderTimerUI();

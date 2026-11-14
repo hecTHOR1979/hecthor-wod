@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#06070a"/>
+  <!-- Top stopwatch crown -->
+  <rect x="224" y="42" width="64" height="34" rx="10" fill="#d8e1f0"/>
+  <rect x="242" y="72" width="28" height="28" fill="#8b95a8"/>
+  <!-- Side stopwatch pusher (top-right) -->
+  <g transform="rotate(42 256 274)">
+    <rect x="238" y="44" width="36" height="32" rx="8" fill="#ff2828"/>
+    <rect x="246" y="72" width="20" height="22" fill="#8b95a8"/>
+  </g>
+  <!-- Side stopwatch pusher (top-left) -->
+  <g transform="rotate(-42 256 274)">
+    <rect x="238" y="44" width="36" height="32" rx="8" fill="#129eff"/>
+    <rect x="246" y="72" width="20" height="22" fill="#8b95a8"/>
+  </g>
+  <!-- Outer bezel -->
+  <circle cx="256" cy="274" r="184" fill="#12161f" stroke="#2c3547" stroke-width="18"/>
+  <!-- Inner dial -->
+  <circle cx="256" cy="274" r="158" fill="#050608"/>
+  <!-- Tick marks -->
+  <circle cx="256" cy="136" r="6" fill="#ffffff"/>
+  <circle cx="394" cy="274" r="6" fill="#129eff"/>
+  <circle cx="256" cy="412" r="6" fill="#ffffff"/>
+  <circle cx="118" cy="274" r="6" fill="#ff2828"/>
+  <!-- Red arc (left/top) & Blue arc (right) -->
+  <path d="M 134 274 A 122 122 0 0 1 256 152" fill="none" stroke="#ff2828" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 256 152 A 122 122 0 0 1 378 274" fill="none" stroke="#129eff" stroke-width="14" stroke-linecap="round"/>
+  <!-- Digital center MM:SS -->
+  <rect x="166" y="236" width="80" height="68" rx="10" fill="#180a0c" stroke="#ff2828" stroke-width="4"/>
+  <rect x="266" y="236" width="80" height="68" rx="10" fill="#09131f" stroke="#129eff" stroke-width="4"/>
+  <!-- Stylized 08 in red -->
+  <rect x="184" y="250" width="44" height="40" rx="6" fill="none" stroke="#ff2828" stroke-width="8"/>
+  <!-- Stylized 00 in blue -->
+  <rect x="284" y="250" width="44" height="40" rx="6" fill="none" stroke="#129eff" stroke-width="8"/>
+  <!-- White hundredths bar below -->
+  <rect x="220" y="322" width="72" height="14" rx="7" fill="#ffffff"/>
+  <!-- Stopwatch hand -->
+  <line x1="256" y1="274" x2="328" y2="196" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="256" cy="274" r="14" fill="#ffffff"/>
+</svg>

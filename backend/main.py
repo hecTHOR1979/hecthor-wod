@@ -790,6 +790,16 @@ def serve_coach_index():
 def serve_student_index():
     return FileResponse(os.path.join(STATIC_DIR, "alumnos.html"))
 
+CRONO_DIR = os.path.join(STATIC_DIR, "crono")
+
+@app.get("/crono")
+@app.get("/crono/")
+def serve_crono_index():
+    return FileResponse(os.path.join(CRONO_DIR, "index.html"))
+
+if os.path.exists(CRONO_DIR):
+    app.mount("/crono", StaticFiles(directory=CRONO_DIR, html=True), name="crono")
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ================= MICROCYCLER POR CÓDIGO =================

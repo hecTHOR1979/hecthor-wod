@@ -118,7 +118,10 @@
             <span class="badge badge-celeste-matte" id="timerWodBadge">⏱ CRONO PREPARADO</span>
             <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro Crossfit</h2>
           </div>
-          <button class="btn btn-sm" id="btnOpenFsClock">⛶ Pantalla Completa</button>
+          <div class="row-wrap" style="gap:8px;">
+            <button class="btn btn-sm btn-outline" id="btnLaunchCronoPro" title="Abrir app oficial Crono CrossFit Pro con pantalla LED Gym">⚡ Crono Pro Oficial ↗</button>
+            <button class="btn btn-sm" id="btnOpenFsClock">⛶ Pantalla Completa</button>
+          </div>
         </div>
 
         <!-- Presets rápidos -->
@@ -143,21 +146,48 @@
         <div class="timer-cfg-card" id="timerConfigBox">
           <!-- TABATA CONFIG -->
           <div id="cfgTabata" class="hidden">
-            <div class="grid-2">
-              <div class="field" style="margin-bottom:0;">
-                <label for="tabataWorkSec">🟢 Tiempo de Trabajo (segundos)</label>
-                <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input" />
+            <!-- Presets rápidos de Tabata -->
+            <div class="row-wrap" style="gap:6px; margin-bottom:12px; align-items:center;">
+              <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes:</span>
+              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="20" data-rest="10" data-rounds="8">20s / 10s × 8</button>
+              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="30" data-rest="15" data-rounds="8">30s / 15s × 8</button>
+              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="40" data-rest="20" data-rounds="6">40s / 20s × 6</button>
+              <button class="btn btn-sm btn-outline tabata-quick-chip" type="button" data-work="45" data-rest="15" data-rounds="8">45s / 15s × 8</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+              <!-- Tiempo Trabajo -->
+              <div class="timer-stepper-box">
+                <label for="tabataWorkSec" style="font-size:0.78rem; font-weight:800; color:#4ade80;">🟢 TRABAJO</label>
+                <div class="stepper-row">
+                  <button type="button" class="stepper-btn" id="btnDecWork" title="Restar 5 segundos">-5s</button>
+                  <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" />
+                  <button type="button" class="stepper-btn" id="btnIncWork" title="Sumar 5 segundos">+5s</button>
+                </div>
               </div>
-              <div class="field" style="margin-bottom:0;">
-                <label for="tabataRestSec">🔴 Tiempo de Descanso (segundos)</label>
-                <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input" />
+
+              <!-- Tiempo Descanso -->
+              <div class="timer-stepper-box">
+                <label for="tabataRestSec" style="font-size:0.78rem; font-weight:800; color:#f87171;">🔴 DESCANSO</label>
+                <div class="stepper-row">
+                  <button type="button" class="stepper-btn" id="btnDecRest" title="Restar 5 segundos">-5s</button>
+                  <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" />
+                  <button type="button" class="stepper-btn" id="btnIncRest" title="Sumar 5 segundos">+5s</button>
+                </div>
               </div>
-              <div class="field" style="margin-bottom:0;">
-                <label for="tabataRounds">🔢 Número de Rondas</label>
-                <input id="tabataRounds" type="number" min="1" max="50" value="8" class="input" />
+
+              <!-- Rondas -->
+              <div class="timer-stepper-box">
+                <label for="tabataRounds" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔢 RONDAS</label>
+                <div class="stepper-row">
+                  <button type="button" class="stepper-btn" id="btnDecRounds" title="Restar 1 ronda">-1</button>
+                  <input id="tabataRounds" type="number" min="1" max="50" value="8" class="input stepper-input" />
+                  <button type="button" class="stepper-btn" id="btnIncRounds" title="Sumar 1 ronda">+1</button>
+                </div>
               </div>
             </div>
-            <div id="tabataSummaryText" class="timer-cfg-summary">⚡ 8 rondas de 20s Trabajo / 10s Descanso (Total: 4 min)</div>
+
+            <div id="tabataSummaryText" class="timer-cfg-summary" style="margin-top:10px;">⚡ 8 rondas de 20s Trabajo / 10s Descanso (Total: 4 min)</div>
           </div>
 
           <!-- EMOM CONFIG -->
@@ -347,7 +377,22 @@
     </div>
   </div>
 
+  <!-- MODAL: CRONO CROSSFIT PRO (PROYECTO OFICIAL INCORPORADO) -->
+  <div id="cronoProModal" class="crono-pro-modal">
+    <div class="crono-pro-header">
+      <div class="row-wrap" style="gap:10px;">
+        <span class="badge badge-accent">⏱ CRONO OFICIAL</span>
+        <strong>Crono CrossFit Pro · Pantalla LED Gym</strong>
+      </div>
+      <div class="row-wrap" style="gap:8px;">
+        <a class="btn btn-sm btn-outline" href="/crono" target="_blank" rel="noopener" style="font-size:0.8rem; padding:4px 8px;">↗ Nueva ventana</a>
+        <button class="btn btn-sm" id="btnCloseCronoPro" style="font-size:0.85rem; padding:4px 10px;">✕ Salir</button>
+      </div>
+    </div>
+    <iframe id="cronoProIframe" class="crono-pro-iframe" src="about:blank" title="Crono CrossFit Pro" allow="autoplay; fullscreen"></iframe>
+  </div>
+
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=15"></script>
+  <script type="module" src="/static/js/alumnos.js?v=16"></script>
 </body>
 </html>

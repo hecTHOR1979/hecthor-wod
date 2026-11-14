@@ -1,0 +1,33 @@
+{
+  "name": "CRONO WOD — Cronómetro CrossFit",
+  "short_name": "CRONO WOD",
+  "description": "Cronómetro de entreno CrossFit a pantalla completa con dígitos LED: EMOM, AMRAP, FOR TIME (Progresiva y Regresiva) y TABATA.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#06070a",
+  "theme_color": "#06070a",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
