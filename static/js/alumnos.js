@@ -330,11 +330,12 @@ function renderDayTabs() {
 
 function getTimedBlockMode(raw) {
   const t = (raw || '').toUpperCase().trim();
-  if (!t || t.includes('SIN CRONO')) return null;
-  if (t.includes('AMRAP')) return 'AMRAP';
-  if (t.includes('EMOM') || t.includes('EMON')) return 'EMOM';
+  if (!t || t.includes('SIN CRONO') || t === 'SIN' || t === 'FUERZA' || t === 'LIBRE') return null;
   if (t.includes('TABATA')) return 'TABATA';
-  if (t.includes('FOR TIME')) return 'FOR TIME';
+  if (t.includes('EMOM') || t.includes('EMON')) return 'EMOM';
+  if (t.includes('AMRAP')) return 'AMRAP';
+  if (t.includes('FOR TIME') || t.includes('CHIPPER') || t.includes('RFT')) return 'FOR TIME';
+  if (t.includes('CRONO')) return 'CRONO';
   return null;
 }
 
@@ -345,51 +346,173 @@ function buildExerciseNameHtml(name, videoUrl) {
   return `<strong>${esc(name)}</strong>`;
 }
 
-function buildSectionTimerSpec(label, type, minutes, extraText = '', partOpts = {}) {
-  const rawType = (type || 'AMRAP').toUpperCase();
-  const fullText = `${rawType} ${label || ''} ${extraText || ''}`.toUpperCase();
-  let mode = 'AMRAP';
-  if (rawType.includes('EMOM')) mode = 'EMOM';
-  else if (rawType.includes('TABATA')) mode = 'TABATA';
-  else if (rawType.includes('TIME') || rawType.includes('CHIPPER')) mode = 'FOR TIME';
-  else if (rawType.includes('CRONO') || rawType.includes('FUERZA') || rawType.includes('LIBRE')) mode = 'CRONO';
+let currentDaySpecs = {};
 
-  let workSec = partOpts?.tabata_work !== undefined && partOpts?.tabata_work !== '' ? Number(partOpts.tabata_work) : 20;
-  let restSec = partOpts?.tabata_rest !== undefined && partOpts?.tabata_rest !== '' ? Number(partOpts.tabata_rest) : 10;
-  let tabataRounds = partOpts?.tabata_rounds !== undefined && partOpts?.tabata_rounds !== '' ? Number(partOpts.tabata_rounds) : 8;
-  let intervalSec = partOpts?.emom_interval !== undefined && partOpts?.emom_interval !== '' ? Number(partOpts.emom_interval) : 60;
+function getWarmupTimerSpec(day) {
+  const wt = day.warmup_timer || {};
+  const rawType = (wt.type || day.warmup_type || '').toUpperCase();
+  const mode = getTimedBlockMode(rawType);
+  if (!mode || rawType.includes('SIN CRONO')) return null;
+
+  let workSec = wt.tabata_work !== undefined && wt.tabata_work !== '' ? Number(wt.tabata_work) : 20;
+  let restSec = wt.tabata_rest !== undefined && wt.tabata_rest !== '' ? Number(wt.tabata_rest) : 10;
+  let tabataRounds = wt.tabata_rounds !== undefined && wt.tabata_rounds !== '' ? Number(wt.tabata_rounds) : 8;
+  let intervalSec = wt.emom_interval !== undefined && wt.emom_interval !== '' ? Number(wt.emom_interval) : 60;
+  const emomRounds = wt.emom_rounds !== undefined && wt.emom_rounds !== '' ? Number(wt.emom_rounds) : 8;
+  let minutes = Number(wt.minutes) || 8;
 
   if (mode === 'TABATA') {
-    if (partOpts?.tabata_work === undefined) {
-      const wrMatch = fullText.match(/(\d+)\s*(?:s|seg)?\s*[/x]\s*(\d+)\s*(?:s|seg)?/i);
-      if (wrMatch) {
-        workSec = Math.max(5, parseInt(wrMatch[1], 10));
-        restSec = Math.max(0, parseInt(wrMatch[2], 10));
-      }
-    }
-    if (partOpts?.tabata_rounds === undefined) {
-      const rMatch = fullText.match(/(\d+)\s*(?:rondas|rounds|r\b|intervalos)/i);
-      if (rMatch) {
-        tabataRounds = Math.max(1, Math.min(50, parseInt(rMatch[1], 10)));
-      }
-    }
+    minutes = Math.ceil(((workSec + restSec) * tabataRounds) / 60);
   } else if (mode === 'EMOM') {
-    if (partOpts?.emom_interval === undefined) {
-      const everyMatch = fullText.match(/(?:cada|every)\s*(\d+)\s*(?:min|minutos|m\b)/i);
-      if (everyMatch) intervalSec = Math.max(1, parseInt(everyMatch[1], 10)) * 60;
-    }
+    minutes = Math.round((intervalSec * emomRounds) / 60);
   }
 
   return {
+    id: 'wu',
+    sectionTitle: `WARM UP · ${day.warmup_type || 'Calentamiento'}`,
     mode,
-    minutes: mode === 'TABATA' ? Math.ceil(((workSec + restSec) * tabataRounds) / 60) : Math.max(1, Number(minutes) || 8),
-    intervalSec,
+    minutes,
     workSec,
     restSec,
     tabataRounds,
-    wodTitle: label,
-    rawType: type || mode,
+    intervalSec,
+    emomRounds,
   };
+}
+
+function getPartTimerSpec(part, idx) {
+  const rawType = (part.timer_type !== undefined && part.timer_type !== '' ? part.timer_type : part.type || '').toUpperCase();
+  const mode = getTimedBlockMode(rawType);
+  if (!mode || rawType.includes('SIN CRONO')) return null;
+
+  let workSec = part.tabata_work !== undefined && part.tabata_work !== '' ? Number(part.tabata_work) : 20;
+  let restSec = part.tabata_rest !== undefined && part.tabata_rest !== '' ? Number(part.tabata_rest) : 10;
+  let tabataRounds = part.tabata_rounds !== undefined && part.tabata_rounds !== '' ? Number(part.tabata_rounds) : 8;
+  let intervalSec = part.emom_interval !== undefined && part.emom_interval !== '' ? Number(part.emom_interval) : 60;
+  const emomRounds = part.emom_rounds !== undefined && part.emom_rounds !== '' ? Number(part.emom_rounds) : 10;
+  let minutes = Number(part.timer_minutes) || 12;
+
+  if (mode === 'TABATA') {
+    minutes = Math.ceil(((workSec + restSec) * tabataRounds) / 60);
+  } else if (mode === 'EMOM') {
+    minutes = Math.round((intervalSec * emomRounds) / 60);
+  }
+
+  const blockLabel = `BLOQUE ${idx + 1}`;
+  return {
+    id: `part-${idx}`,
+    sectionTitle: `${blockLabel}: ${part.title || part.type || ''}`,
+    mode,
+    minutes,
+    workSec,
+    restSec,
+    tabataRounds,
+    intervalSec,
+    emomRounds,
+  };
+}
+
+function getWodTimerSpec(wod) {
+  const rawType = (wod?.type || '').toUpperCase();
+  if (!rawType || rawType.includes('SIN CRONO') || rawType === 'SIN') return null;
+  const mode = getTimedBlockMode(rawType) || 'AMRAP';
+
+  let workSec = wod?.tabata_work !== undefined && wod?.tabata_work !== '' ? Number(wod.tabata_work) : 20;
+  let restSec = wod?.tabata_rest !== undefined && wod?.tabata_rest !== '' ? Number(wod.tabata_rest) : 10;
+  let tabataRounds = wod?.tabata_rounds !== undefined && wod?.tabata_rounds !== '' ? Number(wod.tabata_rounds) : 8;
+  let intervalSec = wod?.emom_interval !== undefined && wod?.emom_interval !== '' ? Number(wod.emom_interval) : 60;
+  const emomRounds = wod?.emom_rounds !== undefined && wod?.emom_rounds !== '' ? Number(wod.emom_rounds) : 10;
+
+  const capStr = `${wod?.time_cap || ''} ${wod?.description || ''} ${wod?.title || ''}`;
+  const minMatch = capStr.match(/(\d+)\s*(?:min|minutos|'|m\b)/i);
+  let minutes = minMatch ? Math.max(1, Math.min(90, parseInt(minMatch[1], 10))) : 12;
+  if (wod?.minutes && !isNaN(Number(wod.minutes))) {
+    minutes = Math.max(1, Math.min(90, Number(wod.minutes)));
+  }
+
+  if (mode === 'TABATA') {
+    minutes = Math.ceil(((workSec + restSec) * tabataRounds) / 60);
+  } else if (mode === 'EMOM') {
+    minutes = Math.round((intervalSec * emomRounds) / 60);
+  }
+
+  return {
+    id: 'wod',
+    sectionTitle: `WOD FINAL · ${wod?.title || 'WOD'}`,
+    mode,
+    minutes,
+    workSec,
+    restSec,
+    tabataRounds,
+    intervalSec,
+    emomRounds,
+  };
+}
+
+function formatSpecSummary(spec) {
+  if (!spec) return '';
+  if (spec.mode === 'TABATA') {
+    const cycleSec = (spec.workSec || 20) + (spec.restSec !== undefined ? spec.restSec : 10);
+    const totalSec = cycleSec * (spec.tabataRounds || 8);
+    const totalM = Math.floor(totalSec / 60);
+    const totalS = totalSec % 60;
+    const tStr = totalS > 0 ? `${totalM}m ${totalS}s` : `${totalM} min`;
+    return `⚡ ${spec.tabataRounds || 8} rondas · ${spec.workSec || 20}s Trabajo (Azul) / ${spec.restSec !== undefined ? spec.restSec : 10}s Descanso (Verde) · Total: ${tStr}`;
+  } else if (spec.mode === 'EMOM') {
+    const intSec = spec.intervalSec || 60;
+    const r = spec.emomRounds || Math.max(1, Math.round(((spec.minutes || 10) * 60) / intSec));
+    return `⚡ Cada ${intSec}s · ${r} rondas (${spec.minutes} min en total)`;
+  } else if (spec.mode === 'AMRAP') {
+    return `⚡ ${spec.minutes} min de trabajo continuado (AMRAP)`;
+  } else if (spec.mode === 'FOR TIME') {
+    return `⚡ Time Cap: ${spec.minutes} min`;
+  }
+  return `⚡ Cronómetro listo (${spec.minutes} min)`;
+}
+
+function renderCronoWodHtml(spec, canFinish = false) {
+  if (!spec) return '';
+  const id = spec.id;
+  const initialMs = spec.mode === 'AMRAP'
+    ? (spec.minutes || 12) * 60 * 1000
+    : (spec.mode === 'EMOM'
+      ? (spec.intervalSec || 60) * 1000
+      : (spec.mode === 'TABATA'
+        ? (spec.workSec || 20) * 1000
+        : 0));
+
+  return `
+    <div class="crono-wod-box" data-crono-box="${id}" style="margin-top:14px; background:#080b10; border:1px solid rgba(2,132,199,0.35); border-radius:10px; padding:14px 16px;">
+      <div class="row-between" style="align-items:flex-start; margin-bottom:8px; gap:8px;">
+        <div>
+          <span class="badge badge-celeste-matte">⏱ CRONO OFICIAL · ${esc(spec.mode)}</span>
+          <div data-crono-sub="${id}" style="font-size:0.88rem; font-weight:700; color:#38bdf8; margin-top:4px;">
+            ${esc(formatSpecSummary(spec))}
+          </div>
+        </div>
+        <div class="row-wrap" style="gap:6px;">
+          <button class="btn btn-sm btn-outline" data-crono-action="pro" data-crono-id="${id}" title="Abrir app oficial Crono CrossFit Pro en grande">⚡ Crono Pro ↗</button>
+          <button class="btn btn-sm" data-crono-action="fullscreen" data-crono-id="${id}">⛶ Pantalla Completa</button>
+        </div>
+      </div>
+
+      <div class="crono-status-line" data-crono-status="${id}" style="text-align:center; font-weight:900; font-size:1.15rem; min-height:26px; letter-spacing:0.5px; margin-bottom:4px;"></div>
+
+      <div style="text-align:center; margin-bottom:10px;">
+        <div class="timer-display" data-crono-display="${id}" title="Toca para ampliar en pantalla completa" style="cursor:pointer; margin:8px auto;">
+          ${renderColoredDigitsHtml(initialMs)}
+        </div>
+      </div>
+
+      <div class="row-wrap" style="justify-content:center; gap:8px;">
+        <button class="btn btn-primary" data-crono-action="start" data-crono-id="${id}">▶ Iniciar</button>
+        <button class="btn" data-crono-action="pause" data-crono-id="${id}">⏸ Pausar</button>
+        <button class="btn btn-orange" data-crono-action="round" data-crono-id="${id}">+1 Ronda (<span data-crono-rounds="${id}">0</span>)</button>
+        ${canFinish ? `<button class="btn btn-ground hidden" data-crono-action="finish" data-crono-id="${id}">🏁 ¡Terminado!</button>` : ''}
+        <button class="btn btn-danger btn-sm" data-crono-action="reset" data-crono-id="${id}">↺ Reiniciar</button>
+      </div>
+    </div>
+  `;
 }
 
 function renderCurrentDay(resetTimer = true) {
@@ -401,8 +524,28 @@ function renderCurrentDay(resetTimer = true) {
   }
 
   const warmupType = day.warmup_type || 'Movilidad GROUND';
-  const warmupTimer = day.warmup_timer || { type: 'AMRAP', minutes: 8 };
   const wu = day.warmup_exercises || [];
+  currentDaySpecs = {};
+
+  const wuSpec = getWarmupTimerSpec(day);
+  if (wuSpec) currentDaySpecs['wu'] = wuSpec;
+
+  const parts = day.parts || [];
+  parts.forEach((p, idx) => {
+    const pSpec = getPartTimerSpec(p, idx);
+    if (pSpec) currentDaySpecs[`part-${idx}`] = pSpec;
+  });
+
+  const wod = day.wod || {};
+  const wodSpec = getWodTimerSpec(wod);
+  if (wodSpec) currentDaySpecs['wod'] = wodSpec;
+
+  if (resetTimer || !timerState.activeId || !currentDaySpecs[timerState.activeId]) {
+    const firstSpecKey = wuSpec?.id || (parts.length > 0 && currentDaySpecs['part-0']?.id) || wodSpec?.id || null;
+    if (firstSpecKey && currentDaySpecs[firstSpecKey]) {
+      loadSpecIntoTimer(currentDaySpecs[firstSpecKey]);
+    }
+  }
 
   let html = `
     <div class="print-header-brand">
@@ -429,16 +572,12 @@ function renderCurrentDay(resetTimer = true) {
         </button>
       </div>
     </div>
-  `;
 
-  // 1. WARM UP CARD (Columnar: Rondas | Repes | Ejercicio + Warm Up Timer at bottom)
-  const rawWuTimerType = (warmupTimer.type || 'AMRAP').toUpperCase();
-  const wuTimerMode = getTimedBlockMode(rawWuTimerType) || (rawWuTimerType.includes('CRONO') && !rawWuTimerType.includes('SIN CRONO') ? 'CRONO' : null);
-  html += `
+    <!-- 1. WARM UP CARD -->
     <div class="card card-block-celeste">
       <div class="section-header">
         <span class="badge badge-celeste-matte">WARM UP · ${esc(warmupType)}</span>
-        ${wuTimerMode ? `<span class="badge badge-celeste-matte">${esc(wuTimerMode)} · ${esc(warmupTimer.minutes || 8)} min</span>` : ''}
+        ${wuSpec ? `<span class="badge badge-celeste-matte">${esc(wuSpec.mode)} · ${esc(wuSpec.minutes)} min</span>` : ''}
       </div>
       ${day.warmup_notes ? `<p class="muted" style="margin-top:0;">${esc(day.warmup_notes)}</p>` : ''}
       ${wu.length === 0 ? '<p class="muted">Sin movimientos listados.</p>' : `
@@ -451,61 +590,39 @@ function renderCurrentDay(resetTimer = true) {
           <div id="stuWarmupList"></div>
         </div>
       `}
-      ${wuTimerMode ? `
-        <div class="section-timer-bar no-print" id="btnWarmupTimerBar" title="Pulsa para iniciar o ampliar en pantalla completa">
-          <div>
-            <span class="badge badge-celeste-matte">⏱ CRONO WARM UP · ${esc(wuTimerMode)}</span>
-            <div class="muted" style="margin-top:4px;">Tiempo designado: <strong>${esc(warmupTimer.minutes || 8)} min</strong> · Toca para abrir crono</div>
-          </div>
-          <div class="section-timer-readout" id="wuTimerPreview">${renderColoredDigitsHtml((Number(warmupTimer.minutes) || 8) * 60000)}</div>
-        </div>
-      ` : ''}
+      ${wuSpec ? renderCronoWodHtml(wuSpec, false) : ''}
     </div>
-  `;
 
-  // 2. DAILY BLOCKS (Columnar: Rondas | Repes | Ejercicio + Block Timer ONLY if AMRAP/EMOM/TABATA/FOR TIME)
-  const parts = day.parts || [];
-  parts.forEach((p, idx) => {
-    const blockTimerMode = getTimedBlockMode(p.timer_type !== undefined && p.timer_type !== '' ? p.timer_type : p.type);
-    const bMins = p.timer_minutes || 12;
-    const blockLabel = `BLOQUE ${idx + 1}`;
-    html += `
-      <div class="card card-block-celeste">
-        <div class="section-header">
-          <div>
-            <span class="badge badge-celeste-matte">${esc(blockLabel)}${p.type ? ' · ' + esc(p.type) : ''}</span>
-            <h3 class="section-title" style="margin-top:6px;">${esc(p.title || `Trabajo ${blockLabel}`)}</h3>
-          </div>
-          ${blockTimerMode ? `<span class="badge badge-celeste-matte">${esc(blockTimerMode)} · ${esc(bMins)} min</span>` : ''}
-        </div>
-        ${p.description ? `<p class="muted" style="margin-top:0;">${esc(p.description)}</p>` : ''}
-        ${(p.exercises || []).length > 0 ? `
-          <div class="ex-table">
-            <div class="ex-table-head">
-              <div>Rondas</div>
-              <div>Repes</div>
-              <div>Ejercicio</div>
-            </div>
-            <div class="stu-part-ex" data-part-idx="${idx}"></div>
-          </div>
-        ` : ''}
-        ${blockTimerMode ? `
-          <div class="section-timer-bar no-print" data-block-timer="${idx}" title="Pulsa para iniciar o ampliar en pantalla completa">
+    <!-- 2. DAILY BLOCKS -->
+    ${parts.map((p, idx) => {
+      const pSpec = currentDaySpecs[`part-${idx}`];
+      const blockLabel = `BLOQUE ${idx + 1}`;
+      return `
+        <div class="card card-block-celeste">
+          <div class="section-header">
             <div>
-              <span class="badge badge-celeste-matte">⏱ CRONO ${esc(blockLabel)} · ${esc(blockTimerMode)}</span>
-              <div class="muted" style="margin-top:4px;">${esc(p.type || 'Entreno')} · ${esc(bMins)} min · Toca para pantalla completa</div>
+              <span class="badge badge-celeste-matte">${esc(blockLabel)}${p.type ? ' · ' + esc(p.type) : ''}</span>
+              <h3 class="section-title" style="margin-top:6px;">${esc(p.title || `Trabajo ${blockLabel}`)}</h3>
             </div>
-            <div class="section-timer-readout">${renderColoredDigitsHtml((Number(bMins) || 12) * 60000)}</div>
+            ${pSpec ? `<span class="badge badge-celeste-matte">${esc(pSpec.mode)} · ${esc(pSpec.minutes)} min</span>` : ''}
           </div>
-        ` : ''}
-      </div>
-    `;
-  });
+          ${p.description ? `<p class="muted" style="margin-top:0;">${esc(p.description)}</p>` : ''}
+          ${(p.exercises || []).length > 0 ? `
+            <div class="ex-table">
+              <div class="ex-table-head">
+                <div>Rondas</div>
+                <div>Repes</div>
+                <div>Ejercicio</div>
+              </div>
+              <div class="stu-part-ex" data-part-idx="${idx}"></div>
+            </div>
+          ` : ''}
+          ${pSpec ? renderCronoWodHtml(pSpec, false) : ''}
+        </div>
+      `;
+    }).join('')}
 
-  // 3. WOD FINAL
-  const wod = day.wod || {};
-  const wodMovements = wod.movements || [];
-  html += `
+    <!-- 3. WOD FINAL -->
     <div class="card card-block-celeste">
       <div class="section-header">
         <span class="badge badge-celeste-matte">WOD FINAL · ${esc(wod.type || 'WOD')}</span>
@@ -517,12 +634,13 @@ function renderCurrentDay(resetTimer = true) {
       ${wod.scaled_weights ? `<p style="margin:6px 0;" class="muted"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</p>` : ''}
       ${wod.target_score ? `<p style="margin:6px 0;" class="muted"><strong>Objetivo:</strong> ${esc(wod.target_score)}</p>` : ''}
       ${wod.strategy ? `<p style="margin:6px 0;" class="muted"><strong>Estrategia:</strong> ${esc(wod.strategy)}</p>` : ''}
-      ${wodMovements.length > 0 ? `
+      ${(wod.movements || []).length > 0 ? `
         <div class="wod-videos-box no-print">
           <div class="muted" style="font-size:0.8rem; font-weight:800; text-transform:uppercase;">🎬 Vídeos de movimientos del WOD</div>
           <div id="stuWodMovements"></div>
         </div>
       ` : ''}
+      ${wodSpec ? renderCronoWodHtml(wodSpec, true) : ''}
     </div>
   `;
 
@@ -563,19 +681,55 @@ function renderCurrentDay(resetTimer = true) {
     });
   }
 
-  // Warmup timer click
-  if (wuTimerMode) {
-    $('btnWarmupTimerBar')?.addEventListener('click', () => {
-      const spec = buildSectionTimerSpec(
-        `WARM UP · ${warmupType}`,
-        wuTimerMode,
-        warmupTimer.minutes || 8
-      );
-      activateTimerSpec(spec, true);
+  // Attach Crono WOD action handlers
+  container.querySelectorAll('[data-crono-action="start"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      startTimerForSection(btn.dataset.cronoId);
     });
-  }
+  });
+  container.querySelectorAll('[data-crono-action="pause"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pauseTimer();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="round"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addRoundForSection(btn.dataset.cronoId);
+    });
+  });
+  container.querySelectorAll('[data-crono-action="finish"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      finishTimer();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="reset"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      resetTimerForSection(btn.dataset.cronoId);
+    });
+  });
+  container.querySelectorAll('[data-crono-action="fullscreen"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (currentDaySpecs[btn.dataset.cronoId]) {
+        loadSpecIntoTimer(currentDaySpecs[btn.dataset.cronoId]);
+      }
+      openFsClock();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="pro"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      openCronoProModal(currentDaySpecs[btn.dataset.cronoId]);
+    });
+  });
+  container.querySelectorAll('[data-crono-display]').forEach((el) => {
+    el.addEventListener('click', () => {
+      if (currentDaySpecs[el.dataset.cronoDisplay]) {
+        loadSpecIntoTimer(currentDaySpecs[el.dataset.cronoDisplay]);
+      }
+      openFsClock();
+    });
+  });
 
-  // Populate Parts columnar rows + Block timers (only when timed mode)
+  // Populate Parts columnar rows
   parts.forEach((p, idx) => {
     const pWrap = container.querySelector(`.stu-part-ex[data-part-idx="${idx}"]`);
     if (pWrap) {
@@ -605,20 +759,6 @@ function renderCurrentDay(resetTimer = true) {
         pWrap.appendChild(row);
       });
     }
-
-    const blockTimerMode = getTimedBlockMode(p.timer_type !== undefined && p.timer_type !== '' ? p.timer_type : p.type);
-    if (blockTimerMode) {
-      container.querySelector(`[data-block-timer="${idx}"]`)?.addEventListener('click', () => {
-        const spec = buildSectionTimerSpec(
-          `${p.part_label || `Bloque ${idx + 1}`}: ${p.title || p.type || ''}`,
-          blockTimerMode,
-          p.timer_minutes || 12,
-          p.description || '',
-          p
-        );
-        activateTimerSpec(spec, true);
-      });
-    }
   });
 
   // Populate WOD movements videos
@@ -641,9 +781,6 @@ function renderCurrentDay(resetTimer = true) {
     });
   }
 
-  if (resetTimer) {
-    configureTimerForWod(wod);
-  }
   loadDayLeaderboard();
 }
 
@@ -843,127 +980,68 @@ function parseWodSpec(wod) {
   };
 }
 
-function configureTimerForWod(wod) {
-  const spec = parseWodSpec(wod);
-  activateTimerSpec(spec, false);
-}
-
-function updateTabataSummary() {
-  const sumEl = $('tabataSummaryText');
-  if (!sumEl) return;
-  const cycleSec = (timerState.workSec || 20) + (timerState.restSec !== undefined ? timerState.restSec : 10);
-  const totalSec = cycleSec * (timerState.tabataRounds || 8);
-  const totalM = Math.floor(totalSec / 60);
-  const totalS = totalSec % 60;
-  const timeStr = totalS > 0 ? `${totalM}m ${totalS}s` : `${totalM} min`;
-  sumEl.textContent = `⚡ ${timerState.tabataRounds || 8} rondas de ${timerState.workSec || 20}s Trabajo / ${timerState.restSec !== undefined ? timerState.restSec : 10}s Descanso (Total: ${timeStr})`;
-}
-
-function updateEmomSummary() {
-  const sumEl = $('emomSummaryText');
-  if (!sumEl) return;
-  const rounds = Number($('emomRounds')?.value) || 10;
-  const intSec = timerState.intervalSec || 60;
-  const totalSec = intSec * rounds;
-  const totalM = Math.round(totalSec / 60);
-  sumEl.textContent = `⚡ Cada ${intSec}s durante ${rounds} intervalos (Total: ${totalM} min)`;
-}
-
-function syncTimerInputsFromState() {
-  document.querySelectorAll('.timer-mode-pill').forEach((pill) => {
-    pill.classList.toggle('active', pill.dataset.mode === timerState.mode);
-  });
-
-  $('cfgTabata')?.classList.toggle('hidden', timerState.mode !== 'TABATA');
-  $('cfgEmom')?.classList.toggle('hidden', timerState.mode !== 'EMOM');
-  $('cfgAmrap')?.classList.toggle('hidden', timerState.mode !== 'AMRAP');
-  $('cfgForTime')?.classList.toggle('hidden', timerState.mode !== 'FOR TIME');
-  $('cfgCrono')?.classList.toggle('hidden', timerState.mode !== 'CRONO');
-
-  if ($('tabataWorkSec')) $('tabataWorkSec').value = timerState.workSec || 20;
-  if ($('tabataRestSec')) $('tabataRestSec').value = timerState.restSec !== undefined ? timerState.restSec : 10;
-  if ($('tabataRounds')) $('tabataRounds').value = timerState.tabataRounds || 8;
-  updateTabataSummary();
-
-  if ($('emomIntervalSec')) $('emomIntervalSec').value = String(timerState.intervalSec || 60);
-  if ($('emomRounds')) {
-    const intSec = timerState.intervalSec || 60;
-    $('emomRounds').value = Math.max(1, Math.round(((timerState.totalMinutes || 10) * 60) / intSec));
-  }
-  updateEmomSummary();
-
-  if ($('amrapMinutes')) $('amrapMinutes').value = timerState.totalMinutes || 12;
-  if ($('forTimeCap')) $('forTimeCap').value = timerState.totalMinutes || 15;
-  if ($('timerModeSelect')) $('timerModeSelect').value = timerState.mode;
-  if ($('timerMinutes')) $('timerMinutes').value = timerState.totalMinutes || 12;
-}
-
-function setTimerMode(mode) {
+function loadSpecIntoTimer(spec) {
+  if (!spec) return;
   stopTimer();
-  timerState.mode = mode;
-  if (mode === 'TABATA') {
-    timerState.workSec = Number($('tabataWorkSec')?.value) || 20;
-    timerState.restSec = Number($('tabataRestSec')?.value) || 10;
-    timerState.tabataRounds = Number($('tabataRounds')?.value) || 8;
-    timerState.totalMinutes = Math.ceil(((timerState.workSec + timerState.restSec) * timerState.tabataRounds) / 60);
-  } else if (mode === 'EMOM') {
-    timerState.intervalSec = Number($('emomIntervalSec')?.value) || 60;
-    const rounds = Number($('emomRounds')?.value) || 10;
-    timerState.totalMinutes = Math.round((timerState.intervalSec * rounds) / 60);
-  } else if (mode === 'AMRAP') {
-    timerState.totalMinutes = Number($('amrapMinutes')?.value) || 12;
-  } else if (mode === 'FOR TIME') {
-    timerState.totalMinutes = Number($('forTimeCap')?.value) || 15;
-  }
-  syncTimerInputsFromState();
-  resetTimerState();
-}
-
-function applyTimerPreset(presetKey) {
-  stopTimer();
-  if (presetKey === 'tabata') {
-    timerState.mode = 'TABATA';
-    timerState.workSec = 20;
-    timerState.restSec = 10;
-    timerState.tabataRounds = 8;
-    timerState.totalMinutes = 4;
-    timerState.wodTitle = 'Tabata Clásico';
-  } else if (presetKey === 'emom10') {
-    timerState.mode = 'EMOM';
-    timerState.intervalSec = 60;
-    timerState.totalMinutes = 10;
-    timerState.wodTitle = 'EMOM 10 Minutos';
-  } else if (presetKey === 'amrap12') {
-    timerState.mode = 'AMRAP';
-    timerState.totalMinutes = 12;
-    timerState.wodTitle = 'AMRAP 12 Minutos';
-  } else if (presetKey === 'amrap15') {
-    timerState.mode = 'AMRAP';
-    timerState.totalMinutes = 15;
-    timerState.wodTitle = 'AMRAP 15 Minutos';
-  } else if (presetKey === 'fortime15') {
-    timerState.mode = 'FOR TIME';
-    timerState.totalMinutes = 15;
-    timerState.wodTitle = 'For Time (Cap 15\')';
-  }
-  syncTimerInputsFromState();
-  resetTimerState();
-}
-
-function activateTimerSpec(spec, openFullscreen = false) {
-  stopTimer();
+  timerState.activeId = spec.id;
   timerState.mode = spec.mode || 'AMRAP';
   timerState.totalMinutes = spec.minutes || 12;
   timerState.intervalSec = spec.intervalSec || 60;
-  if (spec.workSec !== undefined) timerState.workSec = spec.workSec;
-  if (spec.restSec !== undefined) timerState.restSec = spec.restSec;
-  if (spec.tabataRounds !== undefined) timerState.tabataRounds = spec.tabataRounds;
-  timerState.wodTitle = spec.wodTitle || 'Cronómetro';
-
-  syncTimerInputsFromState();
+  timerState.emomRounds = spec.emomRounds || 10;
+  timerState.tabataRounds = spec.tabataRounds || 8;
+  timerState.workSec = spec.workSec !== undefined ? spec.workSec : 20;
+  timerState.restSec = spec.restSec !== undefined ? spec.restSec : 10;
+  timerState.wodTitle = spec.sectionTitle || 'Cronómetro';
   resetTimerState();
-  if (openFullscreen) {
-    openFsClock(false);
+}
+
+function startTimerForSection(id) {
+  const spec = currentDaySpecs[id];
+  if (!spec) return;
+  if (timerState.activeId !== id) {
+    loadSpecIntoTimer(spec);
+  }
+  startTimer();
+}
+
+function pauseTimer() {
+  stopTimer();
+  renderTimerUI();
+}
+
+function resetTimerForSection(id) {
+  const spec = currentDaySpecs[id];
+  if (spec) {
+    loadSpecIntoTimer(spec);
+  } else {
+    resetTimerState();
+  }
+}
+
+function addRoundForSection(id) {
+  if (timerState.activeId !== id && currentDaySpecs[id]) {
+    loadSpecIntoTimer(currentDaySpecs[id]);
+  }
+  addRound(1);
+}
+
+function openCronoProModal(spec) {
+  const modal = $('cronoProModal');
+  const iframe = $('cronoProIframe');
+  if (modal && iframe) {
+    let url = '/crono/';
+    if (spec) {
+      const p = new URLSearchParams();
+      if (spec.mode) p.set('mode', spec.mode);
+      if (spec.workSec !== undefined) p.set('work', spec.workSec);
+      if (spec.restSec !== undefined) p.set('rest', spec.restSec);
+      if (spec.tabataRounds !== undefined) p.set('rounds', spec.tabataRounds);
+      if (spec.minutes !== undefined) p.set('time', spec.minutes);
+      if (spec.intervalSec !== undefined) p.set('interval', spec.intervalSec);
+      url += `?${p.toString()}`;
+    }
+    iframe.src = url;
+    modal.classList.add('open');
   }
 }
 
@@ -986,27 +1064,6 @@ function resetTimerState() {
     timerState.displayMs = 0;
   }
 
-  const wodSub = $('timerWodSub');
-  if (wodSub) {
-    if (timerState.mode === 'TABATA') {
-      const cycleSec = (timerState.workSec || 20) + (timerState.restSec !== undefined ? timerState.restSec : 10);
-      const totalSec = cycleSec * (timerState.tabataRounds || 8);
-      const totalM = Math.floor(totalSec / 60);
-      const totalS = totalSec % 60;
-      const tStr = totalS > 0 ? `${totalM}m ${totalS}s` : `${totalM} min`;
-      wodSub.textContent = `⚡ ${timerState.tabataRounds || 8} rondas · ${timerState.workSec || 20}s Trabajo (Azul) / ${timerState.restSec !== undefined ? timerState.restSec : 10}s Descanso (Verde) · Total: ${tStr}`;
-    } else if (timerState.mode === 'EMOM') {
-      const intSec = timerState.intervalSec || 60;
-      const r = Math.max(1, Math.round(((timerState.totalMinutes || 10) * 60) / intSec));
-      wodSub.textContent = `⚡ Cada ${intSec}s · ${r} rondas (${timerState.totalMinutes} min en total)`;
-    } else if (timerState.mode === 'AMRAP') {
-      wodSub.textContent = `⚡ ${timerState.totalMinutes} min de trabajo continuado (AMRAP)`;
-    } else if (timerState.mode === 'FOR TIME') {
-      wodSub.textContent = `⚡ Time Cap: ${timerState.totalMinutes} min`;
-    } else {
-      wodSub.textContent = `⚡ Cronómetro listo`;
-    }
-  }
   renderTimerUI();
 }
 
@@ -1022,18 +1079,13 @@ function renderTimerUI() {
     badgeTxt = `⏳ PREPARADOS · ${mode}`;
     intervalTxt = `EMPEZAMOS EN ${secsLeft}...`;
     statusClass = 'status-prep';
-    $('timerDisplay').innerHTML = `<span class="fs-clock-precount" style="font-size:2.8rem;">${secsLeft}</span>`;
-    $('fsClockDigits').innerHTML = `<span class="fs-clock-precount">${secsLeft}</span>`;
+    phaseClass = 'phase-prep';
   } else {
-    const digitsHtml = renderColoredDigitsHtml(timerState.displayMs);
-    $('timerDisplay').innerHTML = digitsHtml;
-    $('fsClockDigits').innerHTML = digitsHtml;
-
     if (mode === 'AMRAP') {
       badgeTxt = '⏱ AMRAP';
       intervalTxt = `Cap: ${timerState.totalMinutes}:00`;
     } else if (mode === 'EMOM') {
-      const totalIntervals = Math.max(1, Math.round(((timerState.totalMinutes || 10) * 60) / (timerState.intervalSec || 60)));
+      const totalIntervals = timerState.emomRounds || Math.max(1, Math.round(((timerState.totalMinutes || 10) * 60) / (timerState.intervalSec || 60)));
       const currentInterval = Math.min(totalIntervals, Math.floor(timerState.elapsedMs / ((timerState.intervalSec || 60) * 1000)) + 1);
       badgeTxt = '⏱ EMOM';
       intervalTxt = `Intervalo ${currentInterval} de ${totalIntervals}`;
@@ -1070,35 +1122,35 @@ function renderTimerUI() {
     }
   }
 
-  $('timerWodBadge').textContent = badgeTxt;
-  $('fsClockBadge').textContent = badgeTxt;
-  $('timerWodTitle').textContent = timerState.wodTitle;
-  $('fsClockTitle').textContent = timerState.wodTitle;
-
-  const stLine = $('timerStatusLine');
-  stLine.className = statusClass || '';
-  stLine.textContent = intervalTxt || (timerState.rounds > 0 ? `Rondas: ${timerState.rounds}` : '');
-
+  // Update Fullscreen overlay
+  const fsBadge = $('fsClockBadge');
+  if (fsBadge) fsBadge.textContent = badgeTxt;
+  const fsTitle = $('fsClockTitle');
+  if (fsTitle) fsTitle.textContent = timerState.wodTitle;
   const fsSt = $('fsClockStatus');
-  fsSt.className = statusClass || '';
-  fsSt.textContent = intervalTxt || '';
-
-  const tmDisp = $('timerDisplay');
-  if (tmDisp) {
-    tmDisp.classList.remove('phase-work', 'phase-rest', 'phase-prep');
-    if (phaseClass) tmDisp.classList.add(phaseClass);
+  if (fsSt) {
+    fsSt.className = statusClass || '';
+    fsSt.textContent = intervalTxt || '';
   }
 
   const fsDigits = $('fsClockDigits');
   if (fsDigits) {
+    if (timerState.preCounting) {
+      const secsLeft = Math.ceil(timerState.preCountMs / 1000);
+      fsDigits.innerHTML = `<span class="fs-clock-precount">${secsLeft}</span>`;
+    } else {
+      fsDigits.innerHTML = renderColoredDigitsHtml(timerState.displayMs);
+    }
     fsDigits.classList.remove('phase-work', 'phase-rest', 'phase-prep');
     if (phaseClass) fsDigits.classList.add(phaseClass);
   }
 
-  $('btnTimerAddRound').textContent = `+1 Ronda (${timerState.rounds})`;
-  $('fsRoundsDisplay').textContent = mode === 'TABATA'
-    ? `Ronda ${Math.min(timerState.tabataRounds || 8, Math.floor(timerState.elapsedMs / ((((timerState.workSec || 20) + (timerState.restSec !== undefined ? timerState.restSec : 10))) * 1000)) + 1)} de ${timerState.tabataRounds || 8}`
-    : `Rondas: ${timerState.rounds}`;
+  const fsRounds = $('fsRoundsDisplay');
+  if (fsRounds) {
+    fsRounds.textContent = mode === 'TABATA'
+      ? `Ronda ${Math.min(timerState.tabataRounds || 8, Math.floor(timerState.elapsedMs / ((((timerState.workSec || 20) + (timerState.restSec !== undefined ? timerState.restSec : 10))) * 1000)) + 1)} de ${timerState.tabataRounds || 8}`
+      : `Rondas: ${timerState.rounds}`;
+  }
 
   const isActive = timerState.running || timerState.preCounting;
   const fsPauseBtn = $('fsBtnTogglePause');
@@ -1107,8 +1159,38 @@ function renderTimerUI() {
     fsPauseBtn.setAttribute('aria-label', isActive ? 'Pausar' : 'Iniciar');
   }
 
-  const showFinish = mode === 'FOR TIME' || mode === 'CRONO';
-  $('btnTimerFinish').classList.toggle('hidden', !showFinish);
+  // Update Active Inline Box
+  if (timerState.activeId) {
+    const aid = timerState.activeId;
+    const dispEl = document.querySelector(`[data-crono-display="${aid}"]`);
+    if (dispEl) {
+      if (timerState.preCounting) {
+        const secsLeft = Math.ceil(timerState.preCountMs / 1000);
+        dispEl.innerHTML = `<span class="fs-clock-precount" style="font-size:2.8rem;">${secsLeft}</span>`;
+      } else {
+        dispEl.innerHTML = renderColoredDigitsHtml(timerState.displayMs);
+      }
+      dispEl.classList.remove('phase-work', 'phase-rest', 'phase-prep');
+      if (phaseClass) dispEl.classList.add(phaseClass);
+    }
+
+    const stEl = document.querySelector(`[data-crono-status="${aid}"]`);
+    if (stEl) {
+      stEl.className = `crono-status-line ${statusClass || ''}`;
+      stEl.textContent = intervalTxt || (timerState.rounds > 0 ? `Rondas: ${timerState.rounds}` : '');
+    }
+
+    const rEl = document.querySelector(`[data-crono-rounds="${aid}"]`);
+    if (rEl) {
+      rEl.textContent = timerState.rounds;
+    }
+
+    const finishBtn = document.querySelector(`[data-crono-action="finish"][data-crono-id="${aid}"]`);
+    if (finishBtn) {
+      const showFinish = mode === 'FOR TIME' || mode === 'CRONO';
+      finishBtn.classList.toggle('hidden', !showFinish);
+    }
+  }
 }
 
 function stopTimer() {
@@ -1156,7 +1238,10 @@ function timerFrame(ts) {
     if (rem <= 0) {
       stopTimer();
       playTone('finish');
-      $('logScore').value = `${timerState.rounds} rondas`;
+      if (timerState.activeId === 'wod') {
+        const logEl = $('logScore');
+        if (logEl) logEl.value = `${timerState.rounds} rondas`;
+      }
       showToast('⏱ ¡AMRAP terminado!');
     }
   } else if (mode === 'EMOM') {
@@ -1216,7 +1301,10 @@ function timerFrame(ts) {
       timerState.displayMs = totalMs;
       stopTimer();
       playTone('finish');
-      $('logScore').value = `Time Cap (${String(timerState.totalMinutes || 15).padStart(2, '0')}:00)`;
+      if (timerState.activeId === 'wod') {
+        const logEl = $('logScore');
+        if (logEl) logEl.value = `Time Cap (${String(timerState.totalMinutes || 15).padStart(2, '0')}:00)`;
+      }
       showToast('⏱ ¡Time Cap alcanzado!');
     }
   }
@@ -1251,7 +1339,8 @@ function finishTimer() {
   const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
   const ss = String(totalSec % 60).padStart(2, '0');
   const t = `${mm}:${ss}`;
-  $('logScore').value = t;
+  const logScoreEl = $('logScore');
+  if (logScoreEl) logScoreEl.value = t;
   renderTimerUI();
   showToast(`🏁 Tiempo registrado: ${t}`);
 }
@@ -1259,7 +1348,10 @@ function finishTimer() {
 function addRound(delta) {
   timerState.rounds = Math.max(0, timerState.rounds + delta);
   if (delta > 0) playTone('tick');
-  $('logScore').value = `${timerState.rounds} rondas`;
+  const logScoreEl = $('logScore');
+  if (logScoreEl && timerState.activeId === 'wod') {
+    logScoreEl.value = `${timerState.rounds} rondas`;
+  }
   renderTimerUI();
 }
 
@@ -1279,7 +1371,6 @@ function closeFsClock() {
   }
 }
 
-// When resizing / rotating, refresh digits rendering smoothly without system alerts
 function handleOrientationCheck() {
   if ($('fsClockOverlay')?.classList.contains('open')) {
     renderTimerUI();
@@ -1295,15 +1386,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Close button on fullscreen clock
 $('btnCloseFsClock')?.addEventListener('click', closeFsClock);
 
-// Tap inline clock or "Ampliar" -> open fullscreen clock
-$('timerDisplay')?.addEventListener('click', openFsClock);
-$('btnOpenFsClock')?.addEventListener('click', openFsClock);
-
-// Fullscreen controls: ONLY "-" (left), "⏸/▶" (center), "+" (right)
-$('fsBtnTogglePause').addEventListener('click', () => {
+$('fsBtnTogglePause')?.addEventListener('click', () => {
   if (timerState.running || timerState.preCounting) {
     stopTimer();
     renderTimerUI();
@@ -1311,48 +1396,9 @@ $('fsBtnTogglePause').addEventListener('click', () => {
     startTimer();
   }
 });
-$('fsBtnAddRound').addEventListener('click', () => addRound(1));
-$('fsBtnSubRound').addEventListener('click', () => addRound(-1));
+$('fsBtnAddRound')?.addEventListener('click', () => addRound(1));
+$('fsBtnSubRound')?.addEventListener('click', () => addRound(-1));
 
-// Inline controls (configured before entering fullscreen)
-$('btnTimerStart').addEventListener('click', startTimer);
-$('btnTimerPause').addEventListener('click', () => { stopTimer(); renderTimerUI(); });
-$('btnTimerReset').addEventListener('click', resetTimerState);
-$('btnTimerFinish').addEventListener('click', finishTimer);
-$('btnTimerAddRound').addEventListener('click', () => addRound(1));
-
-$('timerSoundSelect').addEventListener('change', (e) => {
-  timerState.soundStyle = e.target.value;
-  playTone('tick');
-});
-
-$('timerPrecountSelect').addEventListener('change', (e) => {
-  timerState.preCountSeconds = Number(e.target.value);
-});
-
-// Mode selector pill bar
-document.querySelectorAll('.timer-mode-pill').forEach((pill) => {
-  pill.addEventListener('click', () => {
-    setTimerMode(pill.dataset.mode);
-  });
-});
-
-// Quick presets
-document.querySelectorAll('.timer-preset-chip').forEach((chip) => {
-  chip.addEventListener('click', () => {
-    applyTimerPreset(chip.dataset.preset);
-  });
-});
-
-// Crono Crossfit Pro Modal controls
-$('btnLaunchCronoPro')?.addEventListener('click', () => {
-  const modal = $('cronoProModal');
-  const iframe = $('cronoProIframe');
-  if (modal && iframe) {
-    iframe.src = '/crono/';
-    modal.classList.add('open');
-  }
-});
 $('btnCloseCronoPro')?.addEventListener('click', () => {
   const modal = $('cronoProModal');
   const iframe = $('cronoProIframe');
@@ -1360,28 +1406,6 @@ $('btnCloseCronoPro')?.addEventListener('click', () => {
     modal.classList.remove('open');
     iframe.src = 'about:blank';
   }
-});
-
-// Tabata helper to set and refresh config
-function setTabataConfig(work, rest, rounds) {
-  stopTimer();
-  if (work !== undefined) timerState.workSec = Math.max(5, Math.min(300, work));
-  if (rest !== undefined) timerState.restSec = Math.max(0, Math.min(300, rest));
-  if (rounds !== undefined) timerState.tabataRounds = Math.max(1, Math.min(50, rounds));
-  timerState.totalMinutes = Math.ceil(((timerState.workSec + timerState.restSec) * timerState.tabataRounds) / 60);
-  if ($('tabataWorkSec')) $('tabataWorkSec').value = timerState.workSec;
-  if ($('tabataRestSec')) $('tabataRestSec').value = timerState.restSec;
-  if ($('tabataRounds')) $('tabataRounds').value = timerState.tabataRounds;
-  updateTabataSummary();
-  resetTimerState();
-}
-
-$('timerModeSelect')?.addEventListener('change', (e) => {
-  setTimerMode(e.target.value);
-});
-$('timerMinutes')?.addEventListener('change', (e) => {
-  timerState.totalMinutes = Math.max(1, Math.min(90, Number(e.target.value) || 12));
-  resetTimerState();
 });
 
 // Auto-resume saved student session if valid & approved
@@ -1409,5 +1433,3 @@ async function restoreStudentSession() {
 }
 
 restoreStudentSession();
-syncTimerInputsFromState();
-renderTimerUI();

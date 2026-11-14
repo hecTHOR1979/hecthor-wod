@@ -416,6 +416,12 @@ function openDayEditor(dayId) {
   const wt = day.warmup_timer || { type: 'AMRAP', minutes: 8 };
   $('warmupTimerType').value = wt.type || 'AMRAP';
   $('warmupTimerMinutes').value = wt.minutes || 8;
+  if ($('warmupTabataWork')) $('warmupTabataWork').value = wt.tabata_work !== undefined ? wt.tabata_work : 20;
+  if ($('warmupTabataRest')) $('warmupTabataRest').value = wt.tabata_rest !== undefined ? wt.tabata_rest : 10;
+  if ($('warmupTabataRounds')) $('warmupTabataRounds').value = wt.tabata_rounds !== undefined ? wt.tabata_rounds : 8;
+  if ($('warmupEmomInterval')) $('warmupEmomInterval').value = wt.emom_interval !== undefined ? wt.emom_interval : 60;
+  if ($('warmupEmomRounds')) $('warmupEmomRounds').value = wt.emom_rounds !== undefined ? wt.emom_rounds : 8;
+  updateWarmupTimerUI();
 
   // Copy target dropdown - format strictly as S2/D2
   const copySel = $('copyTargetDay');
@@ -1053,19 +1059,52 @@ $('newWodTypeInput')?.addEventListener('keydown', (e) => {
   }
 });
 
+// ================= COACH WARM UP TIMER CONTROLS =================
+function updateWarmupTimerUI() {
+  const raw = ($('warmupTimerType')?.value || 'AMRAP').toUpperCase();
+  const isSin = raw.includes('SIN CRONO');
+  const isTabata = !isSin && raw.includes('TABATA');
+  const isEmom = !isSin && raw.includes('EMOM');
+
+  $('warmupMinField')?.classList.toggle('hidden', isSin || isTabata);
+  $('warmupCfgTabata')?.classList.toggle('hidden', !isTabata);
+  $('warmupCfgEmom')?.classList.toggle('hidden', !isEmom);
+
+  if (isTabata) {
+    const w = Number($('warmupTabataWork')?.value) || 20;
+    const r = $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10;
+    const rounds = Number($('warmupTabataRounds')?.value) || 8;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.ceil(((w + r) * rounds) / 60);
+  } else if (isEmom) {
+    const intSec = Number($('warmupEmomInterval')?.value) || 60;
+    const rounds = Number($('warmupEmomRounds')?.value) || 8;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.round((intSec * rounds) / 60);
+  }
+}
+
+$('warmupTimerType')?.addEventListener('change', updateWarmupTimerUI);
+['warmupTabataWork', 'warmupTabataRest', 'warmupTabataRounds', 'warmupEmomInterval', 'warmupEmomRounds'].forEach((id) => {
+  $(id)?.addEventListener('input', updateWarmupTimerUI);
+  $(id)?.addEventListener('change', updateWarmupTimerUI);
+});
+
 // ================= COACH WOD TIMER CONTROLS =================
 function updateWodTimerUI() {
   const rawType = ($('wodType')?.value || '').toUpperCase();
-  const isTabata = rawType.includes('TABATA');
-  const isEmom = rawType.includes('EMOM');
-  const isCap = rawType.includes('AMRAP') || rawType.includes('FOR TIME') || rawType.includes('TIME') || rawType.includes('CHIPPER') || rawType.includes('ENDURANCE');
+  const isSin = rawType.includes('SIN CRONO');
+  const isTabata = !isSin && rawType.includes('TABATA');
+  const isEmom = !isSin && rawType.includes('EMOM');
+  const isCap = !isSin && (rawType.includes('AMRAP') || rawType.includes('FOR TIME') || rawType.includes('TIME') || rawType.includes('CHIPPER') || rawType.includes('ENDURANCE'));
 
+  $('wodTimerConfigCard')?.classList.toggle('hidden', isSin);
   $('wodCfgTabata')?.classList.toggle('hidden', !isTabata);
   $('wodCfgEmom')?.classList.toggle('hidden', !isEmom);
   $('wodCfgCap')?.classList.toggle('hidden', !isCap);
 
   const sumEl = $('wodTimerSummary');
-  if (isTabata) {
+  if (isSin) {
+    if (sumEl) sumEl.textContent = 'Sin crono configurado para el WOD';
+  } else if (isTabata) {
     const work = Number($('wodTabataWork')?.value) || 20;
     const rest = $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10;
     const rounds = Number($('wodTabataRounds')?.value) || 8;
@@ -1290,8 +1329,13 @@ async function saveCurrentDay() {
     warmup_type: $('warmupTypeSelect').value || 'Movilidad GROUND',
     warmup_notes: $('warmupNotes').value.trim(),
     warmup_timer: {
-      type: $('warmupTimerType').value || 'AMRAP',
+      type: $('warmupTimerType').value || 'SIN CRONO',
       minutes: Number($('warmupTimerMinutes').value) || 8,
+      tabata_work: Number($('warmupTabataWork')?.value) || 20,
+      tabata_rest: $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10,
+      tabata_rounds: Number($('warmupTabataRounds')?.value) || 8,
+      emom_interval: Number($('warmupEmomInterval')?.value) || 60,
+      emom_rounds: Number($('warmupEmomRounds')?.value) || 8,
     },
     warmup_exercises: state.currentDay.warmup_exercises || [],
     parts: state.currentDay.parts || [],

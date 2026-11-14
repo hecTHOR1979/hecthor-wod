@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hecthor-wod-v20';
+const CACHE_NAME = 'hecthor-wod-v21';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

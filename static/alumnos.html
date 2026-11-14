@@ -111,125 +111,6 @@
 
       <div id="dayContent"></div>
 
-      <!-- WOD-SPECIFIC SMART TIMER CARD -->
-      <!-- WOD-SPECIFIC SMART TIMER CARD (PROGRAMADO POR EL COACH) -->
-      <div class="card card-block-celeste" id="timerCard">
-        <div class="section-header">
-          <div>
-            <span class="badge badge-celeste-matte" id="timerWodBadge">⏱ CRONO PREPARADO</span>
-            <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro Crossfit</h2>
-            <div id="timerWodSub" style="font-size:0.92rem; font-weight:700; color:var(--text-muted); margin-top:4px;"></div>
-          </div>
-          <div class="row-wrap" style="gap:8px;">
-            <button class="btn btn-sm btn-outline" id="btnLaunchCronoPro" title="Abrir app oficial Crono CrossFit Pro con pantalla LED Gym">⚡ Crono Pro Oficial ↗</button>
-            <button class="btn btn-sm" id="btnOpenFsClock">⛶ Pantalla Completa</button>
-          </div>
-        </div>
-
-        <!-- Hidden legacy inputs for compatibility -->
-        <select id="timerModeSelect" class="hidden">
-          <option value="AMRAP">AMRAP</option>
-          <option value="EMOM">EMOM</option>
-          <option value="TABATA">TABATA</option>
-          <option value="FOR TIME">FOR TIME</option>
-          <option value="CRONO">CRONO</option>
-        </select>
-        <input id="timerMinutes" type="hidden" value="12" />
-        <input id="tabataWorkSec" type="hidden" value="20" />
-        <input id="tabataRestSec" type="hidden" value="10" />
-        <input id="tabataRounds" type="hidden" value="8" />
-        <input id="emomIntervalSec" type="hidden" value="60" />
-        <input id="emomRounds" type="hidden" value="10" />
-        <input id="amrapMinutes" type="hidden" value="12" />
-        <input id="forTimeCap" type="hidden" value="15" />
-
-        <div id="timerStatusLine" style="text-align:center; font-weight:900; font-size:1.15rem; min-height:26px; letter-spacing:0.5px;"></div>
-        <div style="text-align:center;">
-          <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
-            <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
-          </div>
-        </div>
-        <div id="timerSubInfo" class="muted" style="text-align:center; margin-bottom:10px;">
-          Toca el reloj o "Pantalla Completa" para ampliar el cronómetro.
-        </div>
-
-        <div class="row-wrap" style="justify-content:center; margin-bottom:12px;">
-          <button class="btn btn-primary" id="btnTimerStart">▶ Iniciar</button>
-          <button class="btn" id="btnTimerPause">⏸ Pausar</button>
-          <button class="btn btn-orange" id="btnTimerAddRound">+1 Ronda (0)</button>
-          <button class="btn btn-ground hidden" id="btnTimerFinish">🏁 ¡Terminado!</button>
-          <button class="btn btn-danger btn-sm" id="btnTimerReset">↺ Reiniciar</button>
-        </div>
-
-        <div class="grid-2" style="margin-bottom:8px;">
-          <div class="field" style="margin-bottom:0;">
-            <label for="timerPrecountSelect">Cuenta regresiva inicial</label>
-            <select id="timerPrecountSelect" class="input">
-              <option value="10">10 segundos</option>
-              <option value="5">5 segundos</option>
-              <option value="3">3 segundos</option>
-              <option value="0">Sin cuenta regresiva (inmediato)</option>
-            </select>
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label for="timerSoundSelect">Sonido del crono</label>
-            <select id="timerSoundSelect" class="input">
-              <option value="pitido">Pitido Gimnasio (Clásico)</option>
-              <option value="bocina">Bocina / Claxon</option>
-              <option value="gong">Gong Marcial</option>
-              <option value="silencio">Sin sonido (Silencio)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-          <option value="EMOM">EMOM</option>
-          <option value="TABATA">TABATA</option>
-          <option value="FOR TIME">FOR TIME</option>
-          <option value="CRONO">CRONO</option>
-        </select>
-        <input id="timerMinutes" type="hidden" value="12" />
-
-        <div id="timerStatusLine" style="text-align:center; font-weight:900; font-size:1.15rem; min-height:26px; letter-spacing:0.5px;"></div>
-        <div style="text-align:center;">
-          <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
-            <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
-          </div>
-        </div>
-        <div id="timerSubInfo" class="muted" style="text-align:center; margin-bottom:10px;">
-          Toca el reloj o "Pantalla Completa" para ampliar el cronómetro.
-        </div>
-
-        <div class="row-wrap" style="justify-content:center; margin-bottom:12px;">
-          <button class="btn btn-primary" id="btnTimerStart">▶ Iniciar</button>
-          <button class="btn" id="btnTimerPause">⏸ Pausar</button>
-          <button class="btn btn-orange" id="btnTimerAddRound">+1 Ronda (0)</button>
-          <button class="btn btn-ground hidden" id="btnTimerFinish">🏁 ¡Terminado!</button>
-          <button class="btn btn-danger btn-sm" id="btnTimerReset">↺ Reiniciar</button>
-        </div>
-
-        <div class="grid-2" style="margin-bottom:8px;">
-          <div class="field" style="margin-bottom:0;">
-            <label for="timerPrecountSelect">Cuenta regresiva inicial</label>
-            <select id="timerPrecountSelect" class="input">
-              <option value="10">10 segundos</option>
-              <option value="5">5 segundos</option>
-              <option value="3" selected>3 segundos</option>
-              <option value="0">Sin cuenta regresiva</option>
-            </select>
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label for="timerSoundSelect">Sonido del crono</label>
-            <select id="timerSoundSelect" class="input">
-              <option value="pitido">Pitido Gimnasio (Clásico)</option>
-              <option value="bocina">Bocina / Claxon</option>
-              <option value="campana">Campana Boxeo</option>
-              <option value="suave">Tono Suave</option>
-              <option value="silencio">Silencio</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <!-- LOG RESULT CARD -->
       <div class="card">
         <h2 class="section-title" style="margin-bottom:10px;">🏆 Registrar mi Resultado</h2>
@@ -328,6 +209,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=18"></script>
+  <script type="module" src="/static/js/alumnos.js?v=21"></script>
 </body>
 </html>

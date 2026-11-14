@@ -147,16 +147,48 @@
             <div class="field" style="margin-bottom:0;">
               <label for="warmupTimerType">Formato de crono del Warm Up</label>
               <select id="warmupTimerType" class="input">
-                <option value="AMRAP">AMRAP</option>
-                <option value="EMOM">EMOM</option>
-                <option value="TABATA">TABATA</option>
-                <option value="FOR TIME">FOR TIME</option>
+                <option value="SIN CRONO">Sin crono (Movilidad / Estiramientos libres)</option>
+                <option value="AMRAP">AMRAP (Cuenta atrás)</option>
+                <option value="EMOM">EMOM (Cada minuto / intervalo)</option>
+                <option value="TABATA">TABATA (Intervalos Trabajo / Descanso)</option>
+                <option value="FOR TIME">FOR TIME (Cronómetro + Cap)</option>
                 <option value="CRONO">CRONO LIBRE</option>
               </select>
             </div>
-            <div class="field" style="margin-bottom:0;">
+            <div class="field" id="warmupMinField" style="margin-bottom:0;">
               <label for="warmupTimerMinutes">Tiempo de trabajo Warm Up (min)</label>
               <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input" />
+            </div>
+          </div>
+
+          <!-- WARM UP TABATA & EMOM CONFIG -->
+          <div id="warmupCfgTabata" class="hidden" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-bottom:10px;">
+            <div class="grid-3">
+              <div class="field" style="margin-bottom:0;">
+                <label style="color:#0284c7; font-weight:700;">🔵 Trabajo (segundos)</label>
+                <input id="warmupTabataWork" class="input" type="number" min="5" max="300" step="5" value="20" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label style="color:#10b981; font-weight:700;">🟢 Descanso (segundos)</label>
+                <input id="warmupTabataRest" class="input" type="number" min="0" max="300" step="5" value="10" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label style="color:var(--text-main); font-weight:700;">Rondas</label>
+                <input id="warmupTabataRounds" class="input" type="number" min="1" max="50" value="8" />
+              </div>
+            </div>
+          </div>
+
+          <div id="warmupCfgEmom" class="hidden" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-bottom:10px;">
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label style="color:#0284c7; font-weight:700;">Intervalo (segundos)</label>
+                <input id="warmupEmomInterval" class="input" type="number" min="10" max="300" step="10" value="60" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
+                <input id="warmupEmomRounds" class="input" type="number" min="1" max="60" value="8" />
+              </div>
             </div>
           </div>
           <div id="warmupList"></div>
@@ -240,6 +272,7 @@
               <label for="wodType">Formato</label>
               <input id="wodType" class="input" list="wodTypeList" placeholder="AMRAP / EMOM / FOR TIME / TABATA / ENDURANCE" />
               <datalist id="wodTypeList">
+                <option value="SIN CRONO"></option>
                 <option value="AMRAP"></option>
                 <option value="EMOM"></option>
                 <option value="FOR TIME"></option>
@@ -652,6 +685,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=16"></script>
+  <script type="module" src="/static/js/coach.js?v=21"></script>
 </body>
 </html>
