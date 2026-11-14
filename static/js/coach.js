@@ -280,18 +280,18 @@ async function loadMicrocycles(selectId = null) {
   const sel = $('microcycleSelect');
   sel.innerHTML = '';
   if (state.microcycles.length === 0) {
-    sel.innerHTML = '<option value="">Sin microciclos (crea uno nuevo)</option>';
+    sel.innerHTML = '<option value="">Sin mesociclos (crea uno nuevo)</option>';
     state.currentMicrocycle = null;
     $('microcycleMeta').innerHTML = '';
     if ($('coachWeekSelect')) $('coachWeekSelect').innerHTML = '';
-    $('daysGrid').innerHTML = '<p class="muted">Pulsa "+ Nuevo Microciclo" para empezar.</p>';
+    $('daysGrid').innerHTML = '<p class="muted">Pulsa "+ Nuevo Mesociclo" para empezar.</p>';
     $('dayEditorCard').classList.add('hidden');
     return;
   }
   state.microcycles.forEach((m) => {
     const opt = document.createElement('option');
     opt.value = m.id;
-    opt.textContent = `${m.name} (${m.weeks_count} sem · ${m.days_per_week} d/sem · Código: ${m.access_code})`;
+    opt.textContent = `${m.name} (${m.weeks_count || 4} sem · ${m.days_per_week || 5} días/sem · Código: ${m.access_code})`;
     sel.appendChild(opt);
   });
   const targetId = selectId || state.microcycles[0].id;
@@ -342,7 +342,7 @@ function renderMicrocycleMeta() {
       mc.start_date = val;
       renderWeekSelect();
       if (state.currentDay) {
-        $('editorDayBadge').textContent = `${formatWeekLabel(mc, state.currentDay.week_number)} · Día ${state.currentDay.day_number}`;
+        $('editorDayBadge').textContent = `MICROCICLO ${state.currentDay.week_number} · Día ${state.currentDay.day_number}`;
       }
       showToast('Fecha de inicio actualizada');
     } catch (err) {
@@ -408,7 +408,7 @@ function openDayEditor(dayId) {
   if (!day) return;
   state.currentDay = JSON.parse(JSON.stringify(day));
   $('dayEditorCard').classList.remove('hidden');
-  $('editorDayBadge').textContent = `${formatWeekLabel(mc, day.week_number)} · Día ${day.day_number}`;
+  $('editorDayBadge').textContent = `MICROCICLO ${day.week_number} · Día ${day.day_number}`;
   $('dayTitle').value = day.title || '';
   $('dayCoachingTips').value = day.coaching_tips || '';
   renderWarmupTypeSelect(day.warmup_type || 'Movilidad GROUND');
@@ -417,14 +417,15 @@ function openDayEditor(dayId) {
   $('warmupTimerType').value = wt.type || 'AMRAP';
   $('warmupTimerMinutes').value = wt.minutes || 8;
 
-  // Copy target dropdown
+  // Copy target dropdown - format strictly as S2/D2
   const copySel = $('copyTargetDay');
   copySel.innerHTML = '';
   mc.days.forEach((other) => {
     if (other.id !== day.id) {
       const opt = document.createElement('option');
       opt.value = other.id;
-      opt.textContent = `S${other.week_number} D${other.day_number} - ${other.title}`;
+      opt.textContent = `S${other.week_number}/D${other.day_number}`;
+      opt.title = `Semana ${other.week_number} - Día ${other.day_number}: ${other.title || 'Sin título'}`;
       copySel.appendChild(opt);
     }
   });
@@ -1247,7 +1248,7 @@ $('btnCreateMicrocycleSubmit').addEventListener('click', async () => {
     $('mcName').value = '';
     $('mcDesc').value = '';
     await loadMicrocycles(res.id);
-    showToast('Microciclo creado');
+    showToast('Mesociclo creado');
   } catch (err) {
     showToast(err.message);
   }
@@ -1255,10 +1256,10 @@ $('btnCreateMicrocycleSubmit').addEventListener('click', async () => {
 
 $('btnDeleteMicrocycle').addEventListener('click', async () => {
   if (!state.currentMicrocycle) return;
-  if (!confirm(`¿Eliminar "${state.currentMicrocycle.name}" y todas sus sesiones?`)) return;
+  if (!confirm(`¿Eliminar el mesociclo "${state.currentMicrocycle.name}" y todas sus semanas y sesiones?`)) return;
   await api(`/api/microcycles/${state.currentMicrocycle.id}`, { method: 'DELETE' });
   await loadMicrocycles();
-  showToast('Microciclo eliminado');
+  showToast('Mesociclo eliminado');
 });
 
 // Library

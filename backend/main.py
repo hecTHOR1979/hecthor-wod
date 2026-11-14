@@ -283,7 +283,7 @@ def create_microcycle(m: MicrocycleCreate, _coach=Depends(require_coach)):
                     INSERT INTO days (microcycle_id, week_number, day_number, title, warmup_notes, warmup_exercises, parts, wod, coaching_tips)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    microcycle_id, w, d, f"Semana {w} - Día {d}",
+                    microcycle_id, w, d, f"Microciclo {w} - Día {d}",
                     "Calentamiento general y movilidad articular GROUND",
                     json.dumps([]), json.dumps([]), json.dumps({
                         "title": f"WOD Día {d}",

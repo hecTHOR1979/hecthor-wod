@@ -160,14 +160,21 @@ export function formatWeekLabel(mc, weekNumber) {
   const baseStr = (mc?.start_date || '').trim() || getDefaultMondayIso(mc?.created_at || '');
   const parts = baseStr.split('-').map(Number);
   if (parts.length !== 3 || parts.some(isNaN)) {
-    return `Semana ${weekNumber}`;
+    return `MICROCICLO ${weekNumber}`;
   }
   const start = new Date(parts[0], parts[1] - 1, parts[2]);
   start.setDate(start.getDate() + (Number(weekNumber) - 1) * 7);
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
 
-  const fmt = (dt) =>
-    `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`;
-  return `Semana ${weekNumber} (${fmt(start)} - ${fmt(end)})`;
+  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const fmt = (dt) => `${dt.getDate()} de ${months[dt.getMonth()]}`;
+  return `MICROCICLO ${weekNumber} (del ${fmt(start)} al ${fmt(end)})`;
+}
+
+export function formatMesocycleOption(mc) {
+  if (!mc) return '';
+  const w = mc.weeks_count || 4;
+  const d = mc.days_per_week || 5;
+  return `${mc.name} (${w} sem · ${d} días/sem)`;
 }

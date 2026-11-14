@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=14" />
+  <link rel="stylesheet" href="/static/css/app.css?v=15" />
 </head>
 <body>
   <header class="topbar">
@@ -87,20 +87,24 @@
       <div class="card">
         <div class="row-between">
           <div>
-            <span class="badge badge-accent" id="mcGoalBadge">Objetivo</span>
-            <h1 id="mcTitle" style="margin:6px 0 4px; font-size:1.3rem;"></h1>
+            <div class="row-wrap" style="gap:6px; margin-bottom:4px;">
+              <span class="badge badge-celeste-matte">MESOCICLO ACTIVO</span>
+              <span class="badge badge-accent" id="mcGoalBadge">Objetivo</span>
+            </div>
+            <h1 id="mcTitle" style="margin:4px 0; font-size:1.3rem;"></h1>
             <p id="mcDesc" class="muted" style="margin:0;"></p>
           </div>
           <div id="studentMcSelectWrap" class="hidden">
-            <select id="studentMcSelect" class="input" style="min-width:190px;"></select>
+            <label for="studentMcSelect" style="display:block; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Cambiar Mesociclo</label>
+            <select id="studentMcSelect" class="input" style="min-width:200px; font-weight:700;"></select>
           </div>
         </div>
       </div>
 
       <div class="card">
         <div style="margin-bottom:12px;">
-          <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Semana</label>
-          <select id="weekSelect" class="input" style="font-size:1.05rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
+          <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Microciclo (Semana)</label>
+          <select id="weekSelect" class="input" style="font-size:1.02rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
         </div>
         <div id="dayTabs" class="week-tabs"></div>
       </div>
@@ -112,12 +116,116 @@
         <div class="section-header">
           <div>
             <span class="badge badge-celeste-matte" id="timerWodBadge">⏱ CRONO PREPARADO</span>
-            <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro del WOD</h2>
+            <h2 class="section-title" id="timerWodTitle" style="margin-top:6px;">Cronómetro Crossfit</h2>
           </div>
-          <button class="btn btn-sm" id="btnOpenFsClock">⛶ Ampliar</button>
+          <button class="btn btn-sm" id="btnOpenFsClock">⛶ Pantalla Completa</button>
         </div>
 
-        <div id="timerStatusLine" style="text-align:center; font-weight:800; font-size:1rem; color:var(--orange); min-height:22px;"></div>
+        <!-- Presets rápidos -->
+        <div class="timer-presets-row" title="Presets rápidos de CrossFit">
+          <button class="timer-preset-chip" type="button" data-preset="tabata">⚡ Tabata (20s/10s × 8)</button>
+          <button class="timer-preset-chip" type="button" data-preset="emom10">⏱ EMOM 10'</button>
+          <button class="timer-preset-chip" type="button" data-preset="amrap12">⏱ AMRAP 12'</button>
+          <button class="timer-preset-chip" type="button" data-preset="amrap15">⏱ AMRAP 15'</button>
+          <button class="timer-preset-chip" type="button" data-preset="fortime15">🏁 For Time 15' Cap</button>
+        </div>
+
+        <!-- Selector de formato tipo pill -->
+        <div class="timer-mode-pills" id="timerModePills">
+          <button class="timer-mode-pill active" type="button" data-mode="AMRAP">AMRAP</button>
+          <button class="timer-mode-pill" type="button" data-mode="EMOM">EMOM</button>
+          <button class="timer-mode-pill" type="button" data-mode="TABATA">TABATA</button>
+          <button class="timer-mode-pill" type="button" data-mode="FOR TIME">FOR TIME</button>
+          <button class="timer-mode-pill" type="button" data-mode="CRONO">LIBRE</button>
+        </div>
+
+        <!-- Configuración específica de cada modo -->
+        <div class="timer-cfg-card" id="timerConfigBox">
+          <!-- TABATA CONFIG -->
+          <div id="cfgTabata" class="hidden">
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="tabataWorkSec">🟢 Tiempo de Trabajo (segundos)</label>
+                <input id="tabataWorkSec" type="number" min="5" max="300" step="5" value="20" class="input" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="tabataRestSec">🔴 Tiempo de Descanso (segundos)</label>
+                <input id="tabataRestSec" type="number" min="0" max="300" step="5" value="10" class="input" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="tabataRounds">🔢 Número de Rondas</label>
+                <input id="tabataRounds" type="number" min="1" max="50" value="8" class="input" />
+              </div>
+            </div>
+            <div id="tabataSummaryText" class="timer-cfg-summary">⚡ 8 rondas de 20s Trabajo / 10s Descanso (Total: 4 min)</div>
+          </div>
+
+          <!-- EMOM CONFIG -->
+          <div id="cfgEmom" class="hidden">
+            <div class="grid-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="emomIntervalSec">⏱ Intervalo por Ronda</label>
+                <select id="emomIntervalSec" class="input">
+                  <option value="60">Cada 1 min (60s)</option>
+                  <option value="90">Cada 1:30 min (90s)</option>
+                  <option value="120">Cada 2 min (120s)</option>
+                  <option value="180">Cada 3 min (180s)</option>
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="emomRounds">🔢 Número de Intervalos / Minutos</label>
+                <input id="emomRounds" type="number" min="1" max="60" value="10" class="input" />
+              </div>
+            </div>
+            <div id="emomSummaryText" class="timer-cfg-summary">⚡ Cada 60s durante 10 intervalos (Total: 10 min)</div>
+          </div>
+
+          <!-- AMRAP CONFIG -->
+          <div id="cfgAmrap">
+            <div class="field" style="margin-bottom:0;">
+              <label for="amrapMinutes">⏱ Duración del AMRAP (minutos)</label>
+              <div class="row-wrap">
+                <input id="amrapMinutes" type="number" min="1" max="90" value="12" class="input" style="flex:1;" />
+                <button class="btn btn-sm" type="button" data-set-amrap="7">7'</button>
+                <button class="btn btn-sm" type="button" data-set-amrap="10">10'</button>
+                <button class="btn btn-sm" type="button" data-set-amrap="12">12'</button>
+                <button class="btn btn-sm" type="button" data-set-amrap="15">15'</button>
+                <button class="btn btn-sm" type="button" data-set-amrap="20">20'</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOR TIME CONFIG -->
+          <div id="cfgForTime" class="hidden">
+            <div class="field" style="margin-bottom:0;">
+              <label for="forTimeCap">⏱ Time Cap / Límite de tiempo (minutos)</label>
+              <div class="row-wrap">
+                <input id="forTimeCap" type="number" min="1" max="90" value="15" class="input" style="flex:1;" />
+                <button class="btn btn-sm" type="button" data-set-cap="10">10'</button>
+                <button class="btn btn-sm" type="button" data-set-cap="15">15'</button>
+                <button class="btn btn-sm" type="button" data-set-cap="20">20'</button>
+                <button class="btn btn-sm" type="button" data-set-cap="30">30'</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CRONO LIBRE CONFIG -->
+          <div id="cfgCrono" class="hidden">
+            <p class="muted" style="margin:0;">Cronómetro hacia adelante sin límite para series de fuerza, descansos o técnica.</p>
+          </div>
+        </div>
+
+        <!-- Hidden legacy inputs for compatibility -->
+        <select id="timerModeSelect" class="hidden">
+          <option value="AMRAP">AMRAP</option>
+          <option value="EMOM">EMOM</option>
+          <option value="TABATA">TABATA</option>
+          <option value="FOR TIME">FOR TIME</option>
+          <option value="CRONO">CRONO</option>
+        </select>
+        <input id="timerMinutes" type="hidden" value="12" />
+
+        <div id="timerStatusLine" style="text-align:center; font-weight:900; font-size:1.15rem; min-height:26px; letter-spacing:0.5px;"></div>
         <div style="text-align:center;">
           <div class="timer-display" id="timerDisplay" title="Pulsa para abrir en pantalla completa">
             <span class="tm-min">12</span><span class="tm-sep">:</span><span class="tm-sec">00</span><span class="tm-dot">.</span><span class="tm-cs">00</span>
@@ -156,26 +264,6 @@
             </select>
           </div>
         </div>
-
-        <details style="margin-top:6px;">
-          <summary class="muted" style="cursor:pointer;">Ajustar manualmente formato o minutos</summary>
-          <div class="grid-2" style="margin-top:10px;">
-            <div class="field" style="margin-bottom:0;">
-              <label for="timerModeSelect">Formato</label>
-              <select id="timerModeSelect" class="input">
-                <option value="AMRAP">AMRAP (Cuenta atrás)</option>
-                <option value="EMOM">EMOM (Cada minuto)</option>
-                <option value="TABATA">TABATA (20s / 10s × 8)</option>
-                <option value="FOR TIME">FOR TIME (Cronómetro + Cap)</option>
-                <option value="CRONO">CRONO LIBRE</option>
-              </select>
-            </div>
-            <div class="field" style="margin-bottom:0;">
-              <label for="timerMinutes">Duración / Time Cap (min)</label>
-              <input id="timerMinutes" type="number" min="1" max="90" value="12" class="input" />
-            </div>
-          </div>
-        </details>
       </div>
 
       <!-- LOG RESULT CARD -->
@@ -260,6 +348,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=14"></script>
+  <script type="module" src="/static/js/alumnos.js?v=15"></script>
 </body>
 </html>
