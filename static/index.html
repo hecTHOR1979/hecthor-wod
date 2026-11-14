@@ -204,34 +204,48 @@
 
             <!-- EMOM WARMUP CONFIG -->
             <div id="warmupCfgEmom" class="hidden">
-              <div class="grid-2">
-                <div class="field" style="margin-bottom:0;">
-                  <label for="warmupEmomInterval">⏱ Intervalo por ronda</label>
-                  <select id="warmupEmomInterval" class="input">
-                    <option value="60">Cada 1 min (60s)</option>
-                    <option value="90">Cada 1:30 min (90s)</option>
-                    <option value="120">Cada 2 min (120s)</option>
-                    <option value="180">Cada 3 min (180s)</option>
-                  </select>
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline coach-warmup-emom-preset" type="button" data-interval="60" data-rounds="8">Cada 60s × 8</button>
+                <button class="btn btn-sm btn-outline coach-warmup-emom-preset" type="button" data-interval="90" data-rounds="6">Cada 90s × 6</button>
+                <button class="btn btn-sm btn-outline coach-warmup-emom-preset" type="button" data-interval="120" data-rounds="5">Cada 2:00 × 5</button>
+              </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                <div class="timer-stepper-box">
+                  <label for="warmupEmomInterval" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">⏱ CADA INTERVALO (SEG)</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWarmupEmomInt" title="Restar 15s">-15s</button>
+                    <input id="warmupEmomInterval" type="number" min="10" max="600" step="15" value="60" class="input stepper-input" style="color:#38bdf8;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWarmupEmomInt" title="Sumar 15s">+15s</button>
+                  </div>
                 </div>
-                <div class="field" style="margin-bottom:0;">
-                  <label for="warmupEmomRounds">🔢 Número de intervalos / Rondas</label>
-                  <input id="warmupEmomRounds" type="number" min="1" max="60" value="8" class="input" />
+                <div class="timer-stepper-box">
+                  <label for="warmupEmomRounds" style="font-size:0.78rem; font-weight:800; color:var(--text-main);">🔢 NÚMERO DE RONDAS</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWarmupEmomRounds" title="Restar 1 ronda">-1</button>
+                    <input id="warmupEmomRounds" type="number" min="1" max="60" value="8" class="input stepper-input" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWarmupEmomRounds" title="Sumar 1 ronda">+1</button>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- AMRAP / FOR TIME WARMUP CONFIG -->
             <div id="warmupCfgCap" class="hidden">
-              <div class="field" style="margin-bottom:0;">
-                <label for="warmupTimerMinutes">⏱ Minutos de duración / Time Cap</label>
-                <div class="row-wrap">
-                  <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input" style="flex:1;" />
-                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="3">3'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="5">5'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="8">8'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="10">10'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="12">12'</button>
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-warmup-mins="3">3'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-warmup-mins="5">5'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-warmup-mins="8">8'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-warmup-mins="10">10'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-warmup-mins="12">12'</button>
+              </div>
+              <div class="timer-stepper-box">
+                <label for="warmupTimerMinutes" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">⏱ DURACIÓN / CAP (MINUTOS)</label>
+                <div class="stepper-row">
+                  <button type="button" class="stepper-btn" id="btnCoachDecWarmupMins" title="Restar 1m">-1m</button>
+                  <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input stepper-input" style="color:#38bdf8;" />
+                  <button type="button" class="stepper-btn" id="btnCoachIncWarmupMins" title="Sumar 1m">+1m</button>
                 </div>
               </div>
             </div>
@@ -385,34 +399,51 @@
 
             <!-- EMOM COACH CONFIG -->
             <div id="wodCfgEmom" class="hidden">
-              <div class="grid-2">
-                <div class="field" style="margin-bottom:0;">
-                  <label for="wodEmomInterval">⏱ Intervalo por ronda</label>
-                  <select id="wodEmomInterval" class="input">
-                    <option value="60">Cada 1 min (60s)</option>
-                    <option value="90">Cada 1:30 min (90s)</option>
-                    <option value="120">Cada 2 min (120s)</option>
-                    <option value="180">Cada 3 min (180s)</option>
-                  </select>
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline coach-emom-preset" type="button" data-interval="60" data-rounds="10">Cada 60s × 10</button>
+                <button class="btn btn-sm btn-outline coach-emom-preset" type="button" data-interval="90" data-rounds="8">Cada 90s × 8</button>
+                <button class="btn btn-sm btn-outline coach-emom-preset" type="button" data-interval="120" data-rounds="6">Cada 2:00 × 6</button>
+                <button class="btn btn-sm btn-outline coach-emom-preset" type="button" data-interval="180" data-rounds="5">Cada 3:00 × 5</button>
+              </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                <div class="timer-stepper-box">
+                  <label for="wodEmomInterval" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">⏱ CADA INTERVALO (SEG)</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecEmomInt" title="Restar 15s">-15s</button>
+                    <input id="wodEmomInterval" type="number" min="10" max="600" step="15" value="60" class="input stepper-input" style="color:#38bdf8;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncEmomInt" title="Sumar 15s">+15s</button>
+                  </div>
                 </div>
-                <div class="field" style="margin-bottom:0;">
-                  <label for="wodEmomRounds">🔢 Número de intervalos / Rondas</label>
-                  <input id="wodEmomRounds" type="number" min="1" max="60" value="10" class="input" />
+                <div class="timer-stepper-box">
+                  <label for="wodEmomRounds" style="font-size:0.78rem; font-weight:800; color:var(--text-main);">🔢 NÚMERO DE RONDAS</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecEmomRounds" title="Restar 1 ronda">-1</button>
+                    <input id="wodEmomRounds" type="number" min="1" max="60" value="10" class="input stepper-input" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncEmomRounds" title="Sumar 1 ronda">+1</button>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- AMRAP / FOR TIME COACH CONFIG -->
             <div id="wodCfgCap" class="hidden">
-              <div class="field" style="margin-bottom:0;">
-                <label for="wodMinutes">⏱ Minutos de duración / Time Cap</label>
-                <div class="row-wrap">
-                  <input id="wodMinutes" type="number" min="1" max="90" value="12" class="input" style="flex:1;" />
-                  <button class="btn btn-sm" type="button" data-set-coach-mins="7">7'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-mins="10">10'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-mins="12">12'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-mins="15">15'</button>
-                  <button class="btn btn-sm" type="button" data-set-coach-mins="20">20'</button>
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="5">5'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="7">7'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="10">10'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="12">12'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="15">15'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="20">20'</button>
+                <button class="btn btn-sm btn-outline" type="button" data-set-coach-mins="30">30'</button>
+              </div>
+              <div class="timer-stepper-box">
+                <label for="wodMinutes" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">⏱ DURACIÓN / TIME CAP (MINUTOS)</label>
+                <div class="stepper-row">
+                  <button type="button" class="stepper-btn" id="btnCoachDecWodMins" title="Restar 1m">-1m</button>
+                  <input id="wodMinutes" type="number" min="1" max="90" value="12" class="input stepper-input" style="color:#38bdf8;" />
+                  <button type="button" class="stepper-btn" id="btnCoachIncWodMins" title="Sumar 1m">+1m</button>
                 </div>
               </div>
             </div>
@@ -748,6 +779,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=22"></script>
+  <script type="module" src="/static/js/coach.js?v=23"></script>
 </body>
 </html>

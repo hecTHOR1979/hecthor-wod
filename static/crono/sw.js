@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crono-wod-v12';
+const CACHE_NAME = 'crono-wod-v13';
 const APP_SHELL = [
   './',
   './index.html',

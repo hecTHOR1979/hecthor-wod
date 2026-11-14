@@ -1188,6 +1188,47 @@ function initCoachWarmupTimerControls() {
     });
   });
 
+  // EMOM steppers and presets for Warm Up
+  $('btnCoachDecWarmupEmomInt')?.addEventListener('click', () => {
+    const cur = Number($('warmupEmomInterval')?.value) || 60;
+    if ($('warmupEmomInterval')) $('warmupEmomInterval').value = Math.max(10, cur - 15);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupEmomInt')?.addEventListener('click', () => {
+    const cur = Number($('warmupEmomInterval')?.value) || 60;
+    if ($('warmupEmomInterval')) $('warmupEmomInterval').value = Math.min(600, cur + 15);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachDecWarmupEmomRounds')?.addEventListener('click', () => {
+    const cur = Number($('warmupEmomRounds')?.value) || 8;
+    if ($('warmupEmomRounds')) $('warmupEmomRounds').value = Math.max(1, cur - 1);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupEmomRounds')?.addEventListener('click', () => {
+    const cur = Number($('warmupEmomRounds')?.value) || 8;
+    if ($('warmupEmomRounds')) $('warmupEmomRounds').value = Math.min(60, cur + 1);
+    updateWarmupTimerUI();
+  });
+  document.querySelectorAll('.coach-warmup-emom-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if ($('warmupEmomInterval')) $('warmupEmomInterval').value = btn.dataset.interval;
+      if ($('warmupEmomRounds')) $('warmupEmomRounds').value = btn.dataset.rounds;
+      updateWarmupTimerUI();
+    });
+  });
+
+  // Mins steppers for Warm Up
+  $('btnCoachDecWarmupMins')?.addEventListener('click', () => {
+    const cur = Number($('warmupTimerMinutes')?.value) || 8;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.max(1, cur - 1);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupMins')?.addEventListener('click', () => {
+    const cur = Number($('warmupTimerMinutes')?.value) || 8;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.min(60, cur + 1);
+    updateWarmupTimerUI();
+  });
+
   // Quick minutes for AMRAP / FOR TIME in Warm Up
   document.querySelectorAll('[data-set-coach-warmup-mins]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1328,6 +1369,54 @@ function initCoachWodTimerControls() {
       delete $('wodTimeCap').dataset.manualEdited;
       updateWodTimerUI();
     });
+  });
+
+  // WOD EMOM steppers and presets
+  $('btnCoachDecEmomInt')?.addEventListener('click', () => {
+    const cur = Number($('wodEmomInterval')?.value) || 60;
+    if ($('wodEmomInterval')) $('wodEmomInterval').value = Math.max(10, cur - 15);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncEmomInt')?.addEventListener('click', () => {
+    const cur = Number($('wodEmomInterval')?.value) || 60;
+    if ($('wodEmomInterval')) $('wodEmomInterval').value = Math.min(600, cur + 15);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachDecEmomRounds')?.addEventListener('click', () => {
+    const cur = Number($('wodEmomRounds')?.value) || 10;
+    if ($('wodEmomRounds')) $('wodEmomRounds').value = Math.max(1, cur - 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncEmomRounds')?.addEventListener('click', () => {
+    const cur = Number($('wodEmomRounds')?.value) || 10;
+    if ($('wodEmomRounds')) $('wodEmomRounds').value = Math.min(60, cur + 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  document.querySelectorAll('.coach-emom-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if ($('wodEmomInterval')) $('wodEmomInterval').value = btn.dataset.interval;
+      if ($('wodEmomRounds')) $('wodEmomRounds').value = btn.dataset.rounds;
+      delete $('wodTimeCap').dataset.manualEdited;
+      updateWodTimerUI();
+    });
+  });
+
+  // WOD Mins steppers
+  $('btnCoachDecWodMins')?.addEventListener('click', () => {
+    const cur = Number($('wodMinutes')?.value) || 12;
+    if ($('wodMinutes')) $('wodMinutes').value = Math.max(1, cur - 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+  });
+  $('btnCoachIncWodMins')?.addEventListener('click', () => {
+    const cur = Number($('wodMinutes')?.value) || 12;
+    if ($('wodMinutes')) $('wodMinutes').value = Math.min(90, cur + 1);
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
   });
 
   // Direct inputs
