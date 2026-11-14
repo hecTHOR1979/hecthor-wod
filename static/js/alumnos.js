@@ -747,6 +747,69 @@ function renderCurrentDay(resetTimer = true) {
     });
   });
 
+  // Attach Crono WOD action handlers (Iniciar, Pausar, Rondas, Reiniciar, Pantalla Completa, Crono Pro)
+  container.querySelectorAll('[data-crono-action="start"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      startTimerForSection(btn.dataset.cronoId);
+    });
+  });
+  container.querySelectorAll('[data-crono-action="pause"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      pauseTimer();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="round"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      addRoundForSection(btn.dataset.cronoId);
+    });
+  });
+  container.querySelectorAll('[data-crono-action="finish"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      finishTimer();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="reset"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetTimerForSection(btn.dataset.cronoId);
+    });
+  });
+  container.querySelectorAll('[data-crono-action="fullscreen"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cid = btn.dataset.cronoId;
+      if (cid && currentDaySpecs[cid]) {
+        loadSpecIntoTimer(currentDaySpecs[cid]);
+      }
+      openFsClock();
+    });
+  });
+  container.querySelectorAll('[data-crono-action="pro"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cid = btn.dataset.cronoId;
+      const spec = cid && currentDaySpecs[cid] ? currentDaySpecs[cid] : null;
+      openCronoProModal(spec);
+    });
+  });
+  container.querySelectorAll('[data-crono-display]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cid = el.dataset.cronoDisplay;
+      if (cid && currentDaySpecs[cid]) {
+        loadSpecIntoTimer(currentDaySpecs[cid]);
+      }
+      openFsClock();
+    });
+  });
+
   // Handle Block Score submissions
   container.querySelectorAll('[data-block-score-btn]').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -1050,6 +1113,8 @@ function openCronoProModal(spec) {
       if (spec.intervalSec !== undefined) p.set('interval', spec.intervalSec);
       url += `?${p.toString()}`;
     }
+    const newTab = modal.querySelector('a[href^="/crono"]');
+    if (newTab) newTab.href = url;
     iframe.src = url;
     modal.classList.add('open');
   }
@@ -1371,6 +1436,11 @@ function openFsClock() {
   if (overlay) {
     overlay.classList.add('open');
   }
+  try {
+    if (!isBrowserFullscreen() && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  } catch {}
   renderTimerUI();
 }
 
