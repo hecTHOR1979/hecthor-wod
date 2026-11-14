@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=24" />
+  <link rel="stylesheet" href="/static/css/app.css?v=28" />
 </head>
 <body>
   <header class="topbar">
@@ -141,7 +141,7 @@
             </div>
           </div>
 
-          <!-- ESPACIO DE EJERCICIOS DEL CALENTAMIENTO (FORMATO LÍNEAS / SUPERSERIES) -->
+          <!-- ESPACIO DE EJERCICIOS DEL CALENTAMIENTO (FORMATO LÍNEAS) -->
           <div style="margin-top:10px; margin-bottom:12px;">
             <div class="row-between" style="margin-bottom:8px; align-items:center;">
               <span style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">📋 Ejercicios del Calentamiento</span>
@@ -358,6 +358,13 @@
               <label for="wodTarget">Objetivo / Marca esperada</label>
               <input id="wodTarget" class="input" placeholder="Ej: 4-5 rondas o < 12 min" />
             </div>
+          </div>
+
+          <div style="margin-top:10px; margin-bottom:12px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:6px; padding:8px 12px;">
+            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:var(--accent); font-size:0.88rem; margin:0;">
+              <input type="checkbox" id="wodHasScore" style="width:18px; height:18px; accent-color:var(--accent);" checked />
+              🏆 Permitir a los alumnos registrar marca / resultado en este WOD
+            </label>
           </div>
 
           <!-- CONFIGURACIÓN ESPECÍFICA DEL CRONO DEL WOD (SOLO COACH) -->
@@ -791,6 +798,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=27"></script>
+  <script type="module" src="/static/js/coach.js?v=28"></script>
 </body>
 </html>

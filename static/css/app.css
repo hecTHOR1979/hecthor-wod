@@ -1159,7 +1159,7 @@ textarea.input {
    Optimized layout for printing complete daily session to PDF or paper
    ========================================================================== */
 @media print {
-  /* Hide all interactive app bars, floating clocks, buttons and controls */
+  /* Hide all interactive app bars, floating clocks, timers, buttons and controls */
   .topbar,
   .bottom-nav,
   #studentBottomNav,
@@ -1183,7 +1183,15 @@ textarea.input {
   #syncBadge,
   #btnLoginCoachJump,
   .video-btn,
-  .wod-videos-box {
+  .btn-video-sym,
+  .wod-videos-box,
+  .crono-wod-box,
+  .crono-pro-modal,
+  .crono-pro-header,
+  .crono-pro-iframe,
+  .block-score-box,
+  #studentLogCard,
+  .card:has(#logName) {
     display: none !important;
   }
 

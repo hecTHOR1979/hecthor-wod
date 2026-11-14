@@ -518,6 +518,7 @@ async function openDayEditor(dayId) {
   if ($('wodEmomInterval')) $('wodEmomInterval').value = wod.emom_interval || 60;
   if ($('wodEmomRounds')) $('wodEmomRounds').value = wod.emom_rounds || 10;
   if ($('wodMinutes')) $('wodMinutes').value = wod.minutes || 12;
+  if ($('wodHasScore')) $('wodHasScore').checked = wod.has_score !== undefined ? Boolean(wod.has_score) : true;
   updateWodTimerUI();
 
   renderWarmupList();
@@ -597,21 +598,21 @@ function renderWarmupList() {
       subHtml += `
         <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-            <span class="badge badge-celeste-matte" style="font-size:0.75rem; padding:3px 6px;">⚡ + Ejercicio ${subIdx + 2}</span>
+            <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">+ ${subIdx + 2}</span>
             <div style="width:85px;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="Repes / T" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 12 / 30s)" />
             </div>
             <div style="flex:1; min-width:140px;">
-              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wu-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre ejercicio superserie..." value="${esc(sub.name || '')}" autocomplete="off" />
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wu-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(sub.name || '')}" autocomplete="off" />
             </div>
             <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
               <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo explicativo..." value="${esc(sub.video_url || '')}" />
               <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wu="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
             </div>
             <div class="row-wrap" style="gap:4px;">
-              <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este (crear superserie de 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
+              <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
               <button class="btn btn-sm btn-outline" type="button" data-search-sub-wu="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
-              <button class="btn btn-danger btn-sm" type="button" data-del-sub-wu="${subIdx}" title="Quitar este ejercicio de la superserie" style="padding:6px 8px;">✕</button>
+              <button class="btn btn-danger btn-sm" type="button" data-del-sub-wu="${subIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
             </div>
           </div>
           <div>
@@ -625,7 +626,7 @@ function renderWarmupList() {
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
         ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
         <div style="width:70px;">
-          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas de la serie o superserie (ej: 3 rondas)" />
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas o Series (ej: 3 rondas)" />
         </div>
         <div style="width:85px;">
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
@@ -640,7 +641,7 @@ function renderWarmupList() {
           </button>
         </div>
         <div class="row-wrap" style="gap:4px;">
-          <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir ejercicio dentro de este (crear Superserie de 2 o 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
+          <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
             +
           </button>
           <button class="btn btn-sm btn-outline" type="button" data-search-lib-wu="${idx}" title="Buscar este ejercicio en la biblioteca" style="padding:6px 8px;">🔍</button>
@@ -984,7 +985,7 @@ function renderPartsList() {
           subHtml += `
             <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
               <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-                <span class="badge badge-celeste-matte" style="font-size:0.75rem; padding:3px 6px;">⚡ + Ejercicio ${subIdx + 2}</span>
+                <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">+ ${subIdx + 2}</span>
                 <div style="width:70px;">
                   <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="Repes" value="${esc(sub.reps || '')}" title="Repeticiones" />
                 </div>
@@ -992,16 +993,16 @@ function renderPartsList() {
                   <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="load" data-sub-idx="${subIdx}" placeholder="Carga/%" value="${esc(sub.load || '')}" title="Carga o %RM" />
                 </div>
                 <div style="flex:1; min-width:130px;">
-                  <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre ejercicio superserie..." value="${esc(sub.name || '')}" autocomplete="off" />
+                  <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(sub.name || '')}" autocomplete="off" />
                 </div>
                 <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
                   <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo..." value="${esc(sub.video_url || '')}" />
                   <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-part="${subIdx}" title="Ver vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
                 </div>
                 <div class="row-wrap" style="gap:4px;">
-                  <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio más a la superserie" style="padding:6px 9px; font-weight:800; color:#38bdf8; font-size:1rem;">+</button>
+                  <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; font-size:1rem;">+</button>
                   <button class="btn btn-sm btn-outline" type="button" data-search-sub-part="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
-                  <button class="btn btn-danger btn-sm" type="button" data-del-sub-part="${subIdx}" title="Eliminar de la superserie" style="padding:6px 8px;">✕</button>
+                  <button class="btn btn-danger btn-sm" type="button" data-del-sub-part="${subIdx}" title="Eliminar este ejercicio" style="padding:6px 8px;">✕</button>
                 </div>
               </div>
               <div>
@@ -1015,7 +1016,7 @@ function renderPartsList() {
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
             ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
             <div style="width:60px;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series de la superserie (ej: 4)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series del bloque (ej: 4)" />
             </div>
             <div style="width:70px;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="Repes" value="${esc(ex.reps || '')}" title="Repeticiones (ej: 5 o 8-10)" />
@@ -1036,7 +1037,7 @@ function renderPartsList() {
               </button>
             </div>
             <div class="row-wrap" style="gap:4px;">
-              <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir ejercicio dentro de este (crear Superserie de 2 o 3 ejercicios)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
+              <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
                 +
               </button>
               <button class="btn btn-sm btn-outline" type="button" data-search-lib-part="${eIdx}" title="Buscar en la biblioteca de ejercicios" style="padding:6px 8px;">🔍</button>
@@ -1276,11 +1277,12 @@ $('btnAddPart')?.addEventListener('click', () => {
   triggerAutoSave(true);
 });
 
-$('btnCoachPrintDay')?.addEventListener('click', () => {
+$('btnCoachPrintDay')?.addEventListener('click', async () => {
   if (!state.currentDay) {
     alert('Selecciona un día en la planificación primero.');
     return;
   }
+  await doAutoSave();
   window.open(`/alumnos#day=${state.currentDay.id}`, '_blank');
 });
 
@@ -1312,7 +1314,7 @@ function pickExerciseIntoTarget(ex) {
       }
       renderWarmupList();
       triggerAutoSave(true);
-      showToast(`✓ Superserie enlazada: "${ex.name}"`);
+      showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
     }
     return;
   }
@@ -1344,7 +1346,7 @@ function pickExerciseIntoTarget(ex) {
         }
         renderPartsList();
         triggerAutoSave(true);
-        showToast(`✓ Superserie de bloque enlazada: "${ex.name}"`);
+      showToast(`✓ Ejercicio de bloque enlazado: "${ex.name}"`);
       }
     }
     return;
@@ -2078,6 +2080,7 @@ function buildCurrentDayPayload() {
       rx_weights: $('wodRx')?.value.trim() || '',
       scaled_weights: $('wodScaled')?.value.trim() || '',
       strategy: $('wodStrategy')?.value.trim() || '',
+      has_score: $('wodHasScore')?.checked !== undefined ? $('wodHasScore').checked : true,
       equipment: Array.from(state.selectedEquipment || []),
       movements: state.currentDay.wod?.movements || [],
       tabata_work: Number($('wodTabataWork')?.value) || 20,
@@ -2140,7 +2143,7 @@ function triggerAutoSave(immediate = false) {
   } else {
     autoSaveTimer = setTimeout(() => {
       doAutoSave();
-    }, 800);
+    }, 350);
   }
 }
 

@@ -482,7 +482,7 @@ function renderCronoWodHtml(spec, canFinish = false) {
         : 0));
 
   return `
-    <div class="crono-wod-box" data-crono-box="${id}" style="margin-top:14px; background:#080b10; border:1px solid rgba(2,132,199,0.35); border-radius:10px; padding:14px 16px;">
+    <div class="crono-wod-box no-print" data-crono-box="${id}" style="margin-top:14px; background:#080b10; border:1px solid rgba(2,132,199,0.35); border-radius:10px; padding:14px 16px;">
       <div class="row-between" style="align-items:flex-start; margin-bottom:8px; gap:8px;">
         <div>
           <span class="badge badge-celeste-matte">⏱ CRONO OFICIAL · ${esc(spec.mode)}</span>
@@ -644,6 +644,13 @@ function renderCurrentDay(resetTimer = true) {
 
   container.innerHTML = html;
 
+  // Control student score logging card visibility according to wod.has_score
+  const logCard = $('studentLogCard');
+  if (logCard) {
+    const wodHasScore = wod && wod.has_score !== false && wod.has_score !== 0 && wod.has_score !== 'false';
+    logCard.style.display = wodHasScore ? 'block' : 'none';
+  }
+
   // Print Day to PDF handler
   $('btnPrintDayPdf')?.addEventListener('click', () => {
     const prevTitle = document.title;
@@ -684,13 +691,15 @@ function renderCurrentDay(resetTimer = true) {
       } else {
         const totalEx = 1 + item.sub_exercises.length;
         const box = document.createElement('div');
-        box.className = 'ex-superserie-card';
+        box.className = 'ex-group-card';
         box.style.cssText = 'border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:rgba(56,189,248,0.03);';
         
         let subHtml = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">⚡ SUPERSERIE (${totalEx} ejercicios)${item.sets ? ' · ' + esc(item.sets) : ''}</span>
-          </div>
+          ${item.sets ? `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">${esc(item.sets)}</span>
+            </div>
+          ` : ''}
           <div class="ex-clean-line" style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
             <div class="ex-clean-left">
               <div class="ex-clean-badges">
@@ -771,12 +780,12 @@ function renderCurrentDay(resetTimer = true) {
         } else {
           const totalEx = 1 + ex.sub_exercises.length;
           const box = document.createElement('div');
-          box.className = 'ex-superserie-card';
+          box.className = 'ex-group-card';
           box.style.cssText = 'border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:10px 12px; margin-bottom:8px; background:rgba(56,189,248,0.03);';
           
           let subHtml = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">⚡ SUPERSERIE (${totalEx} ejercicios)${ex.sets ? ' · ' + esc(ex.sets) + ' series' : ''}</span>
+              ${ex.sets ? `<span class="badge badge-celeste-matte" style="font-size:0.78rem; font-weight:800;">${esc(ex.sets)} series</span>` : '<span></span>'}
               ${ex.rest ? `<span class="badge" style="background:rgba(255,255,255,0.05); color:#94a3b8;">⏱ ${esc(ex.rest)}</span>` : ''}
             </div>
             <div class="ex-clean-line" style="margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(255,255,255,0.08);">
