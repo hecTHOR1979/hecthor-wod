@@ -143,51 +143,96 @@
               <input id="warmupNotes" class="input" placeholder="Ej: 10' de movilidad GROUND + activación..." />
             </div>
           </div>
-          <div class="grid-2" style="margin-bottom:10px;">
-            <div class="field" style="margin-bottom:0;">
-              <label for="warmupTimerType">Formato de crono del Warm Up</label>
-              <select id="warmupTimerType" class="input">
-                <option value="SIN CRONO">Sin crono (Movilidad / Estiramientos libres)</option>
-                <option value="AMRAP">AMRAP (Cuenta atrás)</option>
-                <option value="EMOM">EMOM (Cada minuto / intervalo)</option>
-                <option value="TABATA">TABATA (Intervalos Trabajo / Descanso)</option>
-                <option value="FOR TIME">FOR TIME (Cronómetro + Cap)</option>
-                <option value="CRONO">CRONO LIBRE</option>
-              </select>
-            </div>
-            <div class="field" id="warmupMinField" style="margin-bottom:0;">
-              <label for="warmupTimerMinutes">Tiempo de trabajo Warm Up (min)</label>
-              <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input" />
-            </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="warmupTimerType">Formato de crono del Warm Up</label>
+            <select id="warmupTimerType" class="input">
+              <option value="SIN CRONO">Sin crono (Movilidad / Estiramientos libres)</option>
+              <option value="AMRAP">AMRAP (Cuenta atrás)</option>
+              <option value="EMOM">EMOM (Cada minuto / intervalo)</option>
+              <option value="TABATA">TABATA (Intervalos Trabajo / Descanso)</option>
+              <option value="FOR TIME">FOR TIME (Cronómetro + Cap)</option>
+              <option value="CRONO">CRONO LIBRE</option>
+            </select>
           </div>
 
-          <!-- WARM UP TABATA & EMOM CONFIG -->
-          <div id="warmupCfgTabata" class="hidden" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-bottom:10px;">
-            <div class="grid-3">
-              <div class="field" style="margin-bottom:0;">
-                <label style="color:#0284c7; font-weight:700;">🔵 Trabajo (segundos)</label>
-                <input id="warmupTabataWork" class="input" type="number" min="5" max="300" step="5" value="20" />
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label style="color:#10b981; font-weight:700;">🟢 Descanso (segundos)</label>
-                <input id="warmupTabataRest" class="input" type="number" min="0" max="300" step="5" value="10" />
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label style="color:var(--text-main); font-weight:700;">Rondas</label>
-                <input id="warmupTabataRounds" class="input" type="number" min="1" max="50" value="8" />
+          <!-- WARM UP CRONO CONFIG CARD (COACH) -->
+          <div id="warmupTimerConfigCard" class="card hidden" style="background:rgba(15,23,42,0.45); border:1px solid var(--border); padding:12px; margin-bottom:14px;">
+            <div class="row-between" style="margin-bottom:8px;">
+              <span class="badge badge-accent">⏱ CONFIGURACIÓN DEL CRONO WARM UP (COACH)</span>
+              <div class="row-wrap" style="gap:6px; align-items:center;">
+                <span id="warmupTimerSummary" style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">Configuración activa</span>
+                <button class="btn btn-sm btn-outline" id="btnLaunchWarmupCronoPro" type="button" title="Probar este crono en la app oficial Crono CrossFit Pro">⚡ Crono Oficial ↗</button>
               </div>
             </div>
-          </div>
 
-          <div id="warmupCfgEmom" class="hidden" style="background:rgba(2,132,199,0.06); border:1px solid rgba(2,132,199,0.22); border-radius:6px; padding:8px 10px; margin-bottom:10px;">
-            <div class="grid-2">
-              <div class="field" style="margin-bottom:0;">
-                <label style="color:#0284c7; font-weight:700;">Intervalo (segundos)</label>
-                <input id="warmupEmomInterval" class="input" type="number" min="10" max="300" step="10" value="60" />
+            <!-- TABATA WARMUP CONFIG -->
+            <div id="warmupCfgTabata" class="hidden">
+              <div class="row-wrap" style="gap:6px; margin-bottom:10px; align-items:center;">
+                <span style="font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Preajustes rápidos:</span>
+                <button class="btn btn-sm btn-outline coach-warmup-tabata-preset" type="button" data-work="20" data-rest="10" data-rounds="8">20s / 10s × 8 (Clásico)</button>
+                <button class="btn btn-sm btn-outline coach-warmup-tabata-preset" type="button" data-work="30" data-rest="15" data-rounds="8">30s / 15s × 8</button>
+                <button class="btn btn-sm btn-outline coach-warmup-tabata-preset" type="button" data-work="40" data-rest="20" data-rounds="6">40s / 20s × 6</button>
+                <button class="btn btn-sm btn-outline coach-warmup-tabata-preset" type="button" data-work="45" data-rest="15" data-rounds="8">45s / 15s × 8</button>
               </div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+                <div class="timer-stepper-box">
+                  <label for="warmupTabataWork" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔵 TIEMPO DE TRABAJO</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWarmupWork" title="Restar 5s">-5s</button>
+                    <input id="warmupTabataWork" type="number" min="5" max="300" step="5" value="20" class="input stepper-input" style="color:#38bdf8;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWarmupWork" title="Sumar 5s">+5s</button>
+                  </div>
+                </div>
+                <div class="timer-stepper-box">
+                  <label for="warmupTabataRest" style="font-size:0.78rem; font-weight:800; color:#22c55e;">🟢 TIEMPO DE DESCANSO</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWarmupRest" title="Restar 5s">-5s</button>
+                    <input id="warmupTabataRest" type="number" min="0" max="300" step="5" value="10" class="input stepper-input" style="color:#22c55e;" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWarmupRest" title="Sumar 5s">+5s</button>
+                  </div>
+                </div>
+                <div class="timer-stepper-box">
+                  <label for="warmupTabataRounds" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">🔢 NÚMERO DE RONDAS</label>
+                  <div class="stepper-row">
+                    <button type="button" class="stepper-btn" id="btnCoachDecWarmupRounds" title="Restar 1 ronda">-1</button>
+                    <input id="warmupTabataRounds" type="number" min="1" max="50" value="8" class="input stepper-input" />
+                    <button type="button" class="stepper-btn" id="btnCoachIncWarmupRounds" title="Sumar 1 ronda">+1</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- EMOM WARMUP CONFIG -->
+            <div id="warmupCfgEmom" class="hidden">
+              <div class="grid-2">
+                <div class="field" style="margin-bottom:0;">
+                  <label for="warmupEmomInterval">⏱ Intervalo por ronda</label>
+                  <select id="warmupEmomInterval" class="input">
+                    <option value="60">Cada 1 min (60s)</option>
+                    <option value="90">Cada 1:30 min (90s)</option>
+                    <option value="120">Cada 2 min (120s)</option>
+                    <option value="180">Cada 3 min (180s)</option>
+                  </select>
+                </div>
+                <div class="field" style="margin-bottom:0;">
+                  <label for="warmupEmomRounds">🔢 Número de intervalos / Rondas</label>
+                  <input id="warmupEmomRounds" type="number" min="1" max="60" value="8" class="input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- AMRAP / FOR TIME WARMUP CONFIG -->
+            <div id="warmupCfgCap" class="hidden">
               <div class="field" style="margin-bottom:0;">
-                <label style="color:var(--text-main); font-weight:700;">Rondas (intervalos)</label>
-                <input id="warmupEmomRounds" class="input" type="number" min="1" max="60" value="8" />
+                <label for="warmupTimerMinutes">⏱ Minutos de duración / Time Cap</label>
+                <div class="row-wrap">
+                  <input id="warmupTimerMinutes" type="number" min="1" max="60" value="8" class="input" style="flex:1;" />
+                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="3">3'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="5">5'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="8">8'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="10">10'</button>
+                  <button class="btn btn-sm" type="button" data-set-coach-warmup-mins="12">12'</button>
+                </div>
               </div>
             </div>
           </div>
@@ -295,7 +340,10 @@
           <div id="wodTimerConfigCard" class="card" style="background:rgba(15,23,42,0.45); border:1px solid var(--border); padding:12px; margin-bottom:14px;">
             <div class="row-between" style="margin-bottom:8px;">
               <span class="badge badge-accent">⏱ CONFIGURACIÓN DEL CRONO DEL WOD (COACH)</span>
-              <span id="wodTimerSummary" style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">Configuración activa</span>
+              <div class="row-wrap" style="gap:6px; align-items:center;">
+                <span id="wodTimerSummary" style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">Configuración activa</span>
+                <button class="btn btn-sm btn-outline" id="btnLaunchWodCronoPro" type="button" title="Probar este crono en la app oficial Crono CrossFit Pro">⚡ Crono Oficial ↗</button>
+              </div>
             </div>
 
             <!-- TABATA COACH CONFIG -->
@@ -684,7 +732,22 @@
     </div>
   </div>
 
+  <!-- MODAL: CRONO CROSSFIT PRO (PROYECTO OFICIAL INCORPORADO) -->
+  <div id="cronoProModal" class="crono-pro-modal">
+    <div class="crono-pro-header">
+      <div class="row-wrap" style="gap:10px;">
+        <span class="badge badge-accent">⏱ CRONO OFICIAL</span>
+        <strong>Crono CrossFit Pro · Pantalla LED Gym</strong>
+      </div>
+      <div class="row-wrap" style="gap:8px;">
+        <a class="btn btn-sm btn-outline" id="cronoProNewTabBtn" href="/crono" target="_blank" rel="noopener" style="font-size:0.8rem; padding:4px 8px;">↗ Nueva ventana</a>
+        <button class="btn btn-sm" id="btnCloseCronoPro" style="font-size:0.85rem; padding:4px 10px;">✕ Salir</button>
+      </div>
+    </div>
+    <iframe id="cronoProIframe" class="crono-pro-iframe" src="about:blank" title="Crono CrossFit Pro" allow="autoplay; fullscreen"></iframe>
+  </div>
+
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=21"></script>
+  <script type="module" src="/static/js/coach.js?v=22"></script>
 </body>
 </html>

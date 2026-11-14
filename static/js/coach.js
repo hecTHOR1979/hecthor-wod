@@ -593,7 +593,8 @@ function renderPartsList() {
     box.innerHTML = `
       <div class="row-between" style="margin-bottom:8px;">
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
-        <div class="row-wrap">
+        <div class="row-wrap" style="gap:6px;">
+          ${normalizedTimer !== 'SIN CRONO' ? `<button class="btn btn-sm btn-outline" type="button" data-launch-part-crono="${pIdx}" title="Probar en Crono Oficial">⚡ Crono Oficial ↗</button>` : ''}
           <button class="btn btn-sm" data-add-ex="${pIdx}">+ Ejercicio</button>
           <button class="btn btn-danger btn-sm" data-del-part="${pIdx}">Eliminar bloque</button>
         </div>
@@ -658,6 +659,19 @@ function renderPartsList() {
     });
     box.querySelector('[data-add-ex]').addEventListener('click', () => {
       openExercisePicker({ type: 'part', partIdx: pIdx }, false);
+    });
+    box.querySelector('[data-launch-part-crono]')?.addEventListener('click', () => {
+      const mode = (part.timer_type || 'SIN CRONO').toUpperCase();
+      if (mode === 'SIN CRONO') return showToast('El bloque no tiene formato de crono');
+      const spec = {
+        mode,
+        minutes: Number(part.timer_minutes) || 12,
+        workSec: Number(part.tabata_work !== undefined ? part.tabata_work : 20),
+        restSec: Number(part.tabata_rest !== undefined ? part.tabata_rest : 10),
+        tabataRounds: Number(part.tabata_rounds !== undefined ? part.tabata_rounds : 8),
+        intervalSec: Number(part.emom_interval !== undefined ? part.emom_interval : 60),
+      };
+      openCoachCronoProModal(spec);
     });
     box.querySelectorAll('[data-part-field]').forEach((inp) => {
       const handler = () => {
@@ -1059,34 +1073,153 @@ $('newWodTypeInput')?.addEventListener('keydown', (e) => {
   }
 });
 
+// ================= COACH CRONO PRO MODAL =================
+function openCoachCronoProModal(spec) {
+  const modal = $('cronoProModal');
+  const iframe = $('cronoProIframe');
+  const newTabBtn = $('cronoProNewTabBtn');
+  if (modal && iframe) {
+    let url = '/crono/';
+    if (spec) {
+      const p = new URLSearchParams();
+      if (spec.mode) p.set('mode', spec.mode);
+      if (spec.workSec !== undefined) p.set('work', spec.workSec);
+      if (spec.restSec !== undefined) p.set('rest', spec.restSec);
+      if (spec.tabataRounds !== undefined) p.set('rounds', spec.tabataRounds);
+      if (spec.minutes !== undefined) p.set('time', spec.minutes);
+      if (spec.intervalSec !== undefined) p.set('interval', spec.intervalSec);
+      url += `?${p.toString()}`;
+    }
+    iframe.src = url;
+    if (newTabBtn) newTabBtn.href = url;
+    modal.classList.add('open');
+  }
+}
+
+$('btnCloseCronoPro')?.addEventListener('click', () => {
+  const modal = $('cronoProModal');
+  const iframe = $('cronoProIframe');
+  if (modal && iframe) {
+    modal.classList.remove('open');
+    iframe.src = 'about:blank';
+  }
+});
+
 // ================= COACH WARM UP TIMER CONTROLS =================
 function updateWarmupTimerUI() {
   const raw = ($('warmupTimerType')?.value || 'AMRAP').toUpperCase();
   const isSin = raw.includes('SIN CRONO');
   const isTabata = !isSin && raw.includes('TABATA');
   const isEmom = !isSin && raw.includes('EMOM');
+  const isCap = !isSin && (raw.includes('AMRAP') || raw.includes('FOR TIME') || raw.includes('TIME') || raw.includes('CRONO'));
 
-  $('warmupMinField')?.classList.toggle('hidden', isSin || isTabata);
+  $('warmupTimerConfigCard')?.classList.toggle('hidden', isSin);
   $('warmupCfgTabata')?.classList.toggle('hidden', !isTabata);
   $('warmupCfgEmom')?.classList.toggle('hidden', !isEmom);
+  $('warmupCfgCap')?.classList.toggle('hidden', !isCap);
 
-  if (isTabata) {
+  const sumEl = $('warmupTimerSummary');
+  if (isSin) {
+    if (sumEl) sumEl.textContent = 'Sin crono configurado para el Warm Up';
+  } else if (isTabata) {
     const w = Number($('warmupTabataWork')?.value) || 20;
     const r = $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10;
     const rounds = Number($('warmupTabataRounds')?.value) || 8;
-    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.ceil(((w + r) * rounds) / 60);
+    const totalSec = (w + r) * rounds;
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const tStr = s > 0 ? `${m}m ${s}s` : `${m} min`;
+    if (sumEl) sumEl.innerHTML = `⚡ <strong>${rounds} rondas</strong>: <span style="color:#38bdf8; font-weight:800;">${w}s Trabajo (Azul)</span> / <span style="color:#22c55e; font-weight:800;">${r}s Descanso (Verde)</span> (Total: ${tStr})`;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.ceil(totalSec / 60);
   } else if (isEmom) {
     const intSec = Number($('warmupEmomInterval')?.value) || 60;
     const rounds = Number($('warmupEmomRounds')?.value) || 8;
-    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.round((intSec * rounds) / 60);
+    const totalM = Math.round((intSec * rounds) / 60);
+    if (sumEl) sumEl.innerHTML = `⚡ <strong>EMOM</strong>: Cada ${intSec}s durante ${rounds} rondas (Total: ${totalM} min)`;
+    if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = totalM;
+  } else if (isCap) {
+    const mins = Number($('warmupTimerMinutes')?.value) || 8;
+    if (sumEl) sumEl.innerHTML = `⚡ Duración / Cap: <strong>${mins} minutos</strong>`;
   }
 }
 
-$('warmupTimerType')?.addEventListener('change', updateWarmupTimerUI);
-['warmupTabataWork', 'warmupTabataRest', 'warmupTabataRounds', 'warmupEmomInterval', 'warmupEmomRounds'].forEach((id) => {
-  $(id)?.addEventListener('input', updateWarmupTimerUI);
-  $(id)?.addEventListener('change', updateWarmupTimerUI);
-});
+function initCoachWarmupTimerControls() {
+  $('warmupTimerType')?.addEventListener('change', updateWarmupTimerUI);
+
+  // Tabata coach steppers for Warm Up
+  $('btnCoachDecWarmupWork')?.addEventListener('click', () => {
+    const cur = Number($('warmupTabataWork')?.value) || 20;
+    if ($('warmupTabataWork')) $('warmupTabataWork').value = Math.max(5, cur - 5);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupWork')?.addEventListener('click', () => {
+    const cur = Number($('warmupTabataWork')?.value) || 20;
+    if ($('warmupTabataWork')) $('warmupTabataWork').value = cur + 5;
+    updateWarmupTimerUI();
+  });
+  $('btnCoachDecWarmupRest')?.addEventListener('click', () => {
+    const cur = $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10;
+    if ($('warmupTabataRest')) $('warmupTabataRest').value = Math.max(0, cur - 5);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupRest')?.addEventListener('click', () => {
+    const cur = $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10;
+    if ($('warmupTabataRest')) $('warmupTabataRest').value = cur + 5;
+    updateWarmupTimerUI();
+  });
+  $('btnCoachDecWarmupRounds')?.addEventListener('click', () => {
+    const cur = Number($('warmupTabataRounds')?.value) || 8;
+    if ($('warmupTabataRounds')) $('warmupTabataRounds').value = Math.max(1, cur - 1);
+    updateWarmupTimerUI();
+  });
+  $('btnCoachIncWarmupRounds')?.addEventListener('click', () => {
+    const cur = Number($('warmupTabataRounds')?.value) || 8;
+    if ($('warmupTabataRounds')) $('warmupTabataRounds').value = Math.min(50, cur + 1);
+    updateWarmupTimerUI();
+  });
+
+  // Presets Tabata for Warm Up
+  document.querySelectorAll('.coach-warmup-tabata-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if ($('warmupTabataWork')) $('warmupTabataWork').value = btn.dataset.work;
+      if ($('warmupTabataRest')) $('warmupTabataRest').value = btn.dataset.rest;
+      if ($('warmupTabataRounds')) $('warmupTabataRounds').value = btn.dataset.rounds;
+      updateWarmupTimerUI();
+    });
+  });
+
+  // Quick minutes for AMRAP / FOR TIME in Warm Up
+  document.querySelectorAll('[data-set-coach-warmup-mins]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = btn.dataset.setCoachWarmupMins;
+      updateWarmupTimerUI();
+    });
+  });
+
+  ['warmupTabataWork', 'warmupTabataRest', 'warmupTabataRounds', 'warmupEmomInterval', 'warmupEmomRounds', 'warmupTimerMinutes'].forEach((id) => {
+    $(id)?.addEventListener('input', updateWarmupTimerUI);
+    $(id)?.addEventListener('change', updateWarmupTimerUI);
+  });
+
+  // Launch Crono Pro for Warm Up
+  $('btnLaunchWarmupCronoPro')?.addEventListener('click', () => {
+    const raw = ($('warmupTimerType')?.value || 'AMRAP').toUpperCase();
+    if (raw.includes('SIN CRONO')) {
+      return showToast('Elige un formato de crono para el Warm Up');
+    }
+    const mode = raw.includes('TABATA') ? 'TABATA' : (raw.includes('EMOM') ? 'EMOM' : (raw.includes('TIME') ? 'FOR TIME' : 'AMRAP'));
+    const spec = {
+      mode,
+      minutes: Number($('warmupTimerMinutes')?.value) || 8,
+      workSec: Number($('warmupTabataWork')?.value) || 20,
+      restSec: Number($('warmupTabataRest')?.value) || 10,
+      tabataRounds: Number($('warmupTabataRounds')?.value) || 8,
+      intervalSec: Number($('warmupEmomInterval')?.value) || 60,
+    };
+    openCoachCronoProModal(spec);
+  });
+}
+initCoachWarmupTimerControls();
 
 // ================= COACH WOD TIMER CONTROLS =================
 function updateWodTimerUI() {
@@ -1216,6 +1349,23 @@ function initCoachWodTimerControls() {
       delete $('wodTimeCap').dataset.manualEdited;
       updateWodTimerUI();
     });
+  });
+
+  $('btnLaunchWodCronoPro')?.addEventListener('click', () => {
+    const rawType = ($('wodType')?.value || '').toUpperCase();
+    if (rawType.includes('SIN CRONO') || rawType === 'SIN') {
+      return showToast('Elige un formato de crono para el WOD');
+    }
+    const mode = rawType.includes('TABATA') ? 'TABATA' : (rawType.includes('EMOM') ? 'EMOM' : (rawType.includes('TIME') ? 'FOR TIME' : 'AMRAP'));
+    const spec = {
+      mode,
+      minutes: Number($('wodMinutes')?.value) || 12,
+      workSec: Number($('wodTabataWork')?.value) || 20,
+      restSec: Number($('wodTabataRest')?.value) || 10,
+      tabataRounds: Number($('wodTabataRounds')?.value) || 8,
+      intervalSec: Number($('wodEmomInterval')?.value) || 60,
+    };
+    openCoachCronoProModal(spec);
   });
 }
 initCoachWodTimerControls();
