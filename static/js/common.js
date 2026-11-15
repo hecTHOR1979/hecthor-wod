@@ -197,14 +197,21 @@ export function cleanMesocycleTitle(mc) {
   if (!mc) return 'MESOCICLO 1';
   const rawName = (mc.name || '').trim();
   const goal = (mc.primary_goal || '').trim();
-  let title = '';
 
-  if (/^mesociclo\s+\d+/i.test(rawName)) {
-    title = rawName;
-  } else if (/^mesociclo/i.test(rawName)) {
-    title = `${rawName} ${mc.id || 1}`;
-  } else {
-    title = `MESOCICLO ${mc.id || 1}${rawName ? ': ' + rawName : ''}`;
+  // Detectar si el usuario especificó un número de mesociclo (ej. "Mesociclo 1")
+  let num = mc.id || 1;
+  const numMatches = [...rawName.matchAll(/mesociclo\s*[:\-–]?\s*(\d+)/gi)];
+  if (numMatches.length > 0) {
+    num = numMatches[numMatches.length - 1][1];
+  }
+
+  // Eliminar prefijos repetidos tipo "MESOCICLO X:" o "MESOCICLO:"
+  let cleanName = rawName.replace(/mesociclo\s*[:\-–]?\s*(\d+)?\s*[:\-–]?/gi, '').trim();
+  cleanName = cleanName.replace(/^[:\-–\s]+/, '').trim();
+
+  let title = `MESOCICLO ${num}`;
+  if (cleanName) {
+    title += `: ${cleanName}`;
   }
 
   if (goal && !title.toLowerCase().includes(goal.toLowerCase())) {

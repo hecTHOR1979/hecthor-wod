@@ -108,7 +108,10 @@ function openStudentDashboard(student, microcycles, preferredCode = '') {
     return;
   }
 
-  let selectedMc = state.microcycles[0];
+  // Recordar el mesociclo activo editado por el Coach o visto previamente
+  const savedActiveMcId = Number(localStorage.getItem('hecthor_active_mc_id'));
+  const foundActive = state.microcycles.find((m) => m.id === savedActiveMcId);
+  let selectedMc = foundActive || state.microcycles[0];
   if (preferredCode) {
     const match = state.microcycles.find((m) => (m.access_code || '').toUpperCase() === preferredCode.toUpperCase());
     if (match) selectedMc = match;
@@ -137,8 +140,15 @@ function openStudentDashboard(student, microcycles, preferredCode = '') {
 
   state.microcycle = selectedMc;
   state.microcycleHash = JSON.stringify(selectedMc);
-  state.selectedWeek = 1;
-  state.selectedDayId = selectedMc.days?.[0]?.id || null;
+
+  // Recordar la semana y día exactos que se estaban editando o viendo
+  const savedWeek = Number(localStorage.getItem(`hecthor_active_week_${selectedMc.id}`)) || Number(localStorage.getItem('hecthor_active_week')) || 1;
+  state.selectedWeek = (savedWeek >= 1 && savedWeek <= selectedMc.weeks_count) ? savedWeek : 1;
+
+  const savedDayId = Number(localStorage.getItem(`hecthor_active_day_${selectedMc.id}`)) || Number(localStorage.getItem('hecthor_active_day_id'));
+  const weekDays = (selectedMc.days || []).filter((d) => d.week_number === state.selectedWeek);
+  const targetDay = weekDays.find((d) => d.id === savedDayId) || weekDays[0] || selectedMc.days?.[0];
+  state.selectedDayId = targetDay?.id || null;
 
   $('loginSection').classList.add('hidden');
   $('studentApp').classList.remove('hidden');
@@ -153,8 +163,16 @@ $('studentMcSelect')?.addEventListener('change', (e) => {
   if (!mc) return;
   state.microcycle = mc;
   state.microcycleHash = JSON.stringify(mc);
-  state.selectedWeek = 1;
-  state.selectedDayId = mc.days?.[0]?.id || null;
+  localStorage.setItem('hecthor_active_mc_id', String(mc.id));
+
+  const savedWeek = Number(localStorage.getItem(`hecthor_active_week_${mc.id}`)) || 1;
+  state.selectedWeek = (savedWeek >= 1 && savedWeek <= mc.weeks_count) ? savedWeek : 1;
+
+  const savedDayId = Number(localStorage.getItem(`hecthor_active_day_${mc.id}`));
+  const weekDays = (mc.days || []).filter((d) => d.week_number === state.selectedWeek);
+  const targetDay = weekDays.find((d) => d.id === savedDayId) || weekDays[0] || mc.days?.[0];
+  state.selectedDayId = targetDay?.id || null;
+
   renderStudentApp(true);
 });
 
@@ -305,8 +323,16 @@ function renderWeekSelect() {
 $('weekSelect')?.addEventListener('change', (e) => {
   const w = Number(e.target.value);
   state.selectedWeek = w;
+  if (state.microcycle) {
+    localStorage.setItem(`hecthor_active_week_${state.microcycle.id}`, String(w));
+    localStorage.setItem('hecthor_active_week', String(w));
+  }
   const firstDay = state.microcycle.days.find((d) => d.week_number === w);
   state.selectedDayId = firstDay?.id || null;
+  if (firstDay && state.microcycle) {
+    localStorage.setItem(`hecthor_active_day_${state.microcycle.id}`, String(firstDay.id));
+    localStorage.setItem('hecthor_active_day_id', String(firstDay.id));
+  }
   renderDayTabs();
   renderCurrentDay(true);
 });
@@ -321,6 +347,10 @@ function renderDayTabs() {
     btn.textContent = `Día ${d.day_number}`;
     btn.addEventListener('click', () => {
       state.selectedDayId = d.id;
+      if (state.microcycle) {
+        localStorage.setItem(`hecthor_active_day_${state.microcycle.id}`, String(d.id));
+        localStorage.setItem('hecthor_active_day_id', String(d.id));
+      }
       renderDayTabs();
       renderCurrentDay(true);
     });

@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, Response
 
-from .database import get_db, init_db
+from .database import get_db, init_db, save_server_auto_backup
 from .models import (
     MicrocycleCreate, MicrocycleUpdate,
     DayUpdate, ExerciseCreate, ExerciseUpdate,
@@ -298,6 +298,7 @@ def create_microcycle(m: MicrocycleCreate, _coach=Depends(require_coach)):
                     ""
                 ))
         conn.commit()
+        save_server_auto_backup()
         return {"id": microcycle_id, "message": "Microciclo creado correctamente con todas sus sesiones"}
     except sqlite3.IntegrityError as e:
         conn.close()
@@ -364,6 +365,7 @@ def update_microcycle(id: int, u: MicrocycleUpdate, _coach=Depends(require_coach
     try:
         cursor.execute(query, values)
         conn.commit()
+        save_server_auto_backup()
     except sqlite3.IntegrityError:
         conn.close()
         raise HTTPException(status_code=400, detail="El código de acceso ya está en uso por otro microciclo")
@@ -381,6 +383,7 @@ def delete_microcycle(id: int, _coach=Depends(require_coach)):
     cursor.execute("DELETE FROM student_logs WHERE microcycle_id = ?", (id,))
     conn.commit()
     conn.close()
+    save_server_auto_backup()
     return {"message": "Microciclo y sus sesiones eliminados"}
 
 # ================= DAYS API =================
@@ -417,6 +420,7 @@ def update_day(day_id: int, d: DayUpdate, _coach=Depends(require_coach)):
     ))
     conn.commit()
     conn.close()
+    save_server_auto_backup()
     return {"message": "Día guardado correctamente"}
 
 @app.get("/api/warmup-types")
@@ -459,6 +463,7 @@ def copy_day(source_day_id: int, target_day_id: int, _coach=Depends(require_coac
     """, (source[0], source[1], source[2], source[3], source[4], source[5], source[6], target_day_id))
     conn.commit()
     conn.close()
+    save_server_auto_backup()
     return {"message": "Sesión duplicada en el día destino"}
 
 # ================= EXERCISES & VIDEOS API =================
@@ -947,18 +952,80 @@ async def import_database_backup(req: Request, _coach=Depends(require_coach)):
                 cursor.execute("INSERT OR IGNORE INTO warmup_types (name) VALUES (?)", (wt_name,))
 
         conn.commit()
+        conn.close()
+        save_server_auto_backup()
+        return {
+            "status": "ok",
+            "imported_microcycles": imported_mc,
+            "imported_days": imported_days,
+            "imported_exercises": imported_ex,
+        }
     except Exception as e:
         conn.rollback()
         conn.close()
         raise HTTPException(status_code=500, detail=f"Error al importar copia de seguridad: {str(e)}")
 
-    conn.close()
-    return {
-        "status": "ok",
-        "imported_microcycles": imported_mc,
-        "imported_days": imported_days,
-        "imported_exercises": imported_ex,
-    }
+@app.post("/api/backup/auto-restore")
+def auto_restore_backup(_coach=Depends(require_coach)):
+    """Restaura forzosamente la copia automática del servidor en SQLite."""
+    from .database import AUTO_BACKUP_PATH
+    if not os.path.exists(AUTO_BACKUP_PATH):
+        raise HTTPException(status_code=404, detail="No se encontró archivo de copia automática en el servidor.")
+    try:
+        with open(AUTO_BACKUP_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        backup_mcs = data.get("microcycles") or []
+        backup_days = data.get("days") or []
+        backup_ex = data.get("exercises") or []
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        for m in backup_mcs:
+            cursor.execute("""
+                INSERT OR REPLACE INTO microcycles (id, name, weeks_count, days_per_week, primary_goal, description, access_code, start_date, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                m.get("id"),
+                m.get("name", "Mesociclo"),
+                m.get("weeks_count", 4),
+                m.get("days_per_week", 5),
+                m.get("primary_goal", "Fuerza"),
+                m.get("description", ""),
+                (m.get("access_code") or f"CF{m.get('id', 1)}").upper().strip(),
+                m.get("start_date", ""),
+                1 if m.get("is_active", 1) else 0
+            ))
+
+        for d in backup_days:
+            cursor.execute("""
+                INSERT OR REPLACE INTO days (id, microcycle_id, week_number, day_number, title, warmup_type, warmup_notes, warmup_exercises, warmup_timer, parts, wod, coaching_tips)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                d.get("id"),
+                d.get("microcycle_id"),
+                d.get("week_number", 1),
+                d.get("day_number", 1),
+                d.get("title", f"Día {d.get('day_number', 1)}"),
+                d.get("warmup_type", "Movilidad GROUND"),
+                d.get("warmup_notes", ""),
+                d.get("warmup_exercises") if isinstance(d.get("warmup_exercises"), str) else json.dumps(d.get("warmup_exercises") or []),
+                d.get("warmup_timer") if isinstance(d.get("warmup_timer"), str) else json.dumps(d.get("warmup_timer") or {"type": "AMRAP", "minutes": 8}),
+                d.get("parts") if isinstance(d.get("parts"), str) else json.dumps(d.get("parts") or []),
+                d.get("wod") if isinstance(d.get("wod"), str) else json.dumps(d.get("wod") or {}),
+                d.get("coaching_tips", "")
+            ))
+        conn.commit()
+        conn.close()
+        save_server_auto_backup()
+        return {
+            "status": "ok",
+            "restored_microcycles": len(backup_mcs),
+            "restored_days": len(backup_days),
+            "restored_exercises": len(backup_ex),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al restaurar copia automática: {str(e)}")
 
 # ================= STATIC FILE SERVING =================
 

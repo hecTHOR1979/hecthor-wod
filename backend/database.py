@@ -8,6 +8,11 @@ DB_PATH = os.environ.get(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "crossfit.db")
 )
 
+AUTO_BACKUP_PATH = os.environ.get(
+    "CROSSFIT_BACKUP_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "crossfit_auto_backup.json")
+)
+
 def get_db():
     parent = os.path.dirname(os.path.abspath(DB_PATH))
     if parent:
@@ -15,6 +20,105 @@ def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+def save_server_auto_backup():
+    """Genera una instantánea JSON automática e indestructible de la base de datos completa."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM microcycles ORDER BY id ASC")
+        microcycles = [dict(r) for r in cursor.fetchall()]
+        cursor.execute("SELECT * FROM days ORDER BY microcycle_id ASC, week_number ASC, day_number ASC")
+        days = [dict(r) for r in cursor.fetchall()]
+        cursor.execute("SELECT * FROM exercises ORDER BY id ASC")
+        exercises = [dict(r) for r in cursor.fetchall()]
+        cursor.execute("SELECT * FROM warmup_types ORDER BY id ASC")
+        warmup_types = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+
+        data = {
+            "version": 1,
+            "saved_at": os.path.getmtime(DB_PATH) if os.path.exists(DB_PATH) else None,
+            "microcycles": microcycles,
+            "days": days,
+            "exercises": exercises,
+            "warmup_types": warmup_types,
+        }
+        temp_path = AUTO_BACKUP_PATH + ".tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        if os.path.exists(AUTO_BACKUP_PATH):
+            try:
+                os.remove(AUTO_BACKUP_PATH)
+            except Exception:
+                pass
+        os.replace(temp_path, AUTO_BACKUP_PATH)
+    except Exception as e:
+        print("[AutoBackup] Warning saving auto backup:", e)
+
+def try_restore_server_auto_backup():
+    """Restaura automáticamente si la base de datos se reinició o tiene menos microciclos/días que el archivo de respaldo."""
+    if not os.path.exists(AUTO_BACKUP_PATH):
+        return False
+    try:
+        with open(AUTO_BACKUP_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        backup_mcs = data.get("microcycles") or []
+        backup_days = data.get("days") or []
+        if not backup_mcs:
+            return False
+
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM microcycles")
+        db_mc_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM days")
+        db_day_count = cursor.fetchone()[0]
+
+        # Si la base de datos está vacía o tiene menos microciclos/días que el respaldo
+        if db_mc_count == 0 or db_day_count < len(backup_days):
+            print(f"[AutoBackup] Restaurando automáticamente {len(backup_mcs)} mesociclos y {len(backup_days)} días desde {AUTO_BACKUP_PATH}...")
+            for m in backup_mcs:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO microcycles (id, name, weeks_count, days_per_week, primary_goal, description, access_code, start_date, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    m.get("id"),
+                    m.get("name", "Mesociclo"),
+                    m.get("weeks_count", 4),
+                    m.get("days_per_week", 5),
+                    m.get("primary_goal", "Fuerza"),
+                    m.get("description", ""),
+                    (m.get("access_code") or f"CF{m.get('id', 1)}").upper().strip(),
+                    m.get("start_date", ""),
+                    1 if m.get("is_active", 1) else 0
+                ))
+
+            for d in backup_days:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO days (id, microcycle_id, week_number, day_number, title, warmup_type, warmup_notes, warmup_exercises, warmup_timer, parts, wod, coaching_tips)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    d.get("id"),
+                    d.get("microcycle_id"),
+                    d.get("week_number", 1),
+                    d.get("day_number", 1),
+                    d.get("title", f"Día {d.get('day_number', 1)}"),
+                    d.get("warmup_type", "Movilidad GROUND"),
+                    d.get("warmup_notes", ""),
+                    d.get("warmup_exercises") if isinstance(d.get("warmup_exercises"), str) else json.dumps(d.get("warmup_exercises") or []),
+                    d.get("warmup_timer") if isinstance(d.get("warmup_timer"), str) else json.dumps(d.get("warmup_timer") or {"type": "AMRAP", "minutes": 8}),
+                    d.get("parts") if isinstance(d.get("parts"), str) else json.dumps(d.get("parts") or []),
+                    d.get("wod") if isinstance(d.get("wod"), str) else json.dumps(d.get("wod") or {}),
+                    d.get("coaching_tips", "")
+                ))
+            conn.commit()
+            conn.close()
+            return True
+        conn.close()
+    except Exception as e:
+        print("[AutoBackup] Error restoring auto backup:", e)
+    return False
 
 def init_db():
     conn = get_db()
@@ -149,12 +253,18 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         seed_exercises(conn)
 
-    # Seed default microcycle if empty
+    # Try auto-restore from latest auto-backup before seeding sample
+    restored = try_restore_server_auto_backup()
+
+    # Seed default microcycle only if still empty
     cursor.execute("SELECT COUNT(*) FROM microcycles")
     if cursor.fetchone()[0] == 0:
         seed_sample_microcycle(conn)
 
     conn.close()
+
+    # Always ensure a valid auto-backup snapshot exists on disk
+    save_server_auto_backup()
 
 def seed_exercises(conn):
     cursor = conn.cursor()

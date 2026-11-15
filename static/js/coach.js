@@ -372,7 +372,11 @@ async function loadMicrocycles(selectId = null) {
     opt.textContent = `${m.name} (${m.weeks_count || 4} sem · ${m.days_per_week || 5} días/sem · Código: ${m.access_code})`;
     sel.appendChild(opt);
   });
-  const targetId = selectId || state.microcycles[0].id;
+  
+  // Memoria del mesociclo activo para no reiniciar nunca al [0] tras refrescar o volver de alumnos
+  const savedMcId = Number(localStorage.getItem('hecthor_active_mc_id'));
+  const mcExists = state.microcycles.some((m) => m.id === savedMcId);
+  const targetId = selectId || (mcExists ? savedMcId : state.microcycles[0].id);
   sel.value = String(targetId);
   await selectMicrocycle(targetId);
 }
@@ -381,18 +385,30 @@ $('microcycleSelect').addEventListener('change', async (e) => {
   if (state.currentDay && pendingSave) {
     await doAutoSave();
   }
-  if (e.target.value) selectMicrocycle(Number(e.target.value));
+  if (e.target.value) {
+    const id = Number(e.target.value);
+    localStorage.setItem('hecthor_active_mc_id', String(id));
+    selectMicrocycle(id);
+  }
 });
 
 async function selectMicrocycle(id) {
+  localStorage.setItem('hecthor_active_mc_id', String(id));
   const mc = await api(`/api/microcycles/${id}`);
   state.currentMicrocycle = mc;
-  state.selectedWeek = 1;
+  
+  const savedWeek = Number(localStorage.getItem(`hecthor_active_week_${id}`)) || 1;
+  state.selectedWeek = (savedWeek >= 1 && savedWeek <= mc.weeks_count) ? savedWeek : 1;
+  
   renderMicrocycleMeta();
   renderWeekSelect();
   renderDaysGrid();
+  
   if (mc.days && mc.days.length > 0) {
-    openDayEditor(mc.days[0].id);
+    const savedDayId = Number(localStorage.getItem(`hecthor_active_day_${id}`));
+    const weekDays = mc.days.filter((d) => d.week_number === state.selectedWeek);
+    const targetDay = weekDays.find((d) => d.id === savedDayId) || weekDays[0] || mc.days[0];
+    openDayEditor(targetDay.id);
   } else {
     $('dayEditorCard').classList.add('hidden');
   }
@@ -451,7 +467,12 @@ $('coachWeekSelect')?.addEventListener('change', async (e) => {
   if (state.currentDay && pendingSave) {
     await doAutoSave();
   }
-  state.selectedWeek = Number(e.target.value);
+  const w = Number(e.target.value);
+  state.selectedWeek = w;
+  if (state.currentMicrocycle) {
+    localStorage.setItem(`hecthor_active_week_${state.currentMicrocycle.id}`, String(w));
+    localStorage.setItem('hecthor_active_week', String(w));
+  }
   renderDaysGrid();
   const weekDays = (state.currentMicrocycle?.days || []).filter((d) => d.week_number === state.selectedWeek);
   if (weekDays.length > 0) {
@@ -492,16 +513,32 @@ async function openDayEditor(dayId) {
     await doAutoSave();
   }
   const mc = state.currentMicrocycle;
-  const day = (mc.days || []).find((d) => d.id === dayId);
+  if (mc) {
+    localStorage.setItem(`hecthor_active_day_${mc.id}`, String(dayId));
+    localStorage.setItem('hecthor_active_day_id', String(dayId));
+  }
+  const day = (mc?.days || []).find((d) => d.id === dayId);
   if (!day) return;
-  state.currentDay = JSON.parse(JSON.stringify(day));
+  
+  let effectiveDay = JSON.parse(JSON.stringify(day));
+  try {
+    const rawDraft = localStorage.getItem(`hecthor_draft_day_${dayId}`);
+    if (rawDraft) {
+      const draft = JSON.parse(rawDraft);
+      if (draft && draft.payload) {
+        effectiveDay = { ...effectiveDay, ...draft.payload };
+      }
+    }
+  } catch {}
+  
+  state.currentDay = effectiveDay;
   $('dayEditorCard').classList.remove('hidden');
-  $('editorDayBadge').textContent = `MICROCICLO ${day.week_number} · Día ${day.day_number}`;
-  $('dayTitle').value = day.title || '';
-  $('dayCoachingTips').value = day.coaching_tips || '';
-  renderWarmupTypeSelect(day.warmup_type || 'Movilidad GROUND');
-  $('warmupNotes').value = day.warmup_notes || '';
-  const wt = day.warmup_timer || { type: 'AMRAP', minutes: 8 };
+  $('editorDayBadge').textContent = `MICROCICLO ${effectiveDay.week_number} · Día ${effectiveDay.day_number}`;
+  $('dayTitle').value = effectiveDay.title || '';
+  $('dayCoachingTips').value = effectiveDay.coaching_tips || '';
+  renderWarmupTypeSelect(effectiveDay.warmup_type || 'Movilidad GROUND');
+  $('warmupNotes').value = effectiveDay.warmup_notes || '';
+  const wt = effectiveDay.warmup_timer || { type: 'AMRAP', minutes: 8 };
   $('warmupTimerType').value = wt.type || 'AMRAP';
   $('warmupTimerMinutes').value = wt.minutes || 8;
   if ($('warmupTabataWork')) $('warmupTabataWork').value = wt.tabata_work !== undefined ? wt.tabata_work : 20;
@@ -2231,6 +2268,18 @@ function setAutoSaveStatus(status) {
 function triggerAutoSave(immediate = false) {
   if (!state.currentDay) return;
   pendingSave = true;
+
+  // Persistencia local inmediata (indestructible ante recargas de página o cierres)
+  try {
+    const payload = buildCurrentDayPayload();
+    if (payload) {
+      localStorage.setItem(`hecthor_draft_day_${state.currentDay.id}`, JSON.stringify({
+        timestamp: Date.now(),
+        payload,
+      }));
+    }
+  } catch (_) {}
+
   if (autoSaveTimer) {
     clearTimeout(autoSaveTimer);
     autoSaveTimer = null;
@@ -2240,7 +2289,7 @@ function triggerAutoSave(immediate = false) {
   } else {
     autoSaveTimer = setTimeout(() => {
       doAutoSave();
-    }, 350);
+    }, 300);
   }
 }
 
@@ -2334,12 +2383,12 @@ $('dayEditorCard')?.addEventListener('change', (e) => {
 // Intercept navigation to Alumnos view or external pages to guarantee changes are saved first
 document.querySelectorAll('a[href*="/alumnos"]').forEach((a) => {
   a.addEventListener('click', async (e) => {
-    if (state.currentDay && pendingSave) {
-      e.preventDefault();
-      const href = a.getAttribute('href');
-      await doAutoSave();
-      window.location.href = href;
+    e.preventDefault();
+    const href = a.getAttribute('href');
+    if (state.currentDay) {
+      await saveCurrentDay();
     }
+    window.location.href = href;
   });
 });
 
@@ -2460,6 +2509,23 @@ $('btnRestoreLocalBackup')?.addEventListener('click', async () => {
     }
   } catch (err) {
     showToast('Error al restaurar copia local: ' + err.message);
+  }
+});
+
+$('btnRestoreServerAutoBackup')?.addEventListener('click', async () => {
+  try {
+    if (!confirm('¿Restaurar la última copia automática generada en el servidor? Esto recuperará los mesociclos y días guardados.')) return;
+    const statusEl = $('serverBackupStatus');
+    if (statusEl) statusEl.textContent = 'Restaurando copia del servidor...';
+    const res = await api('/api/backup/auto-restore', { method: 'POST' });
+    showToast(`¡Copia del servidor restaurada con éxito! (${res.restored_microcycles} mesociclos, ${res.restored_days} días)`);
+    if (statusEl) statusEl.textContent = `Restaurado: ${res.restored_microcycles} mesociclos, ${res.restored_days} días.`;
+    await loadMicrocycles();
+    $('backupModal')?.classList.remove('open');
+  } catch (err) {
+    showToast('Error al restaurar copia del servidor: ' + err.message);
+    const statusEl = $('serverBackupStatus');
+    if (statusEl) statusEl.textContent = 'Error: ' + err.message;
   }
 });
 

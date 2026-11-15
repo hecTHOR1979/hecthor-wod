@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=32" />
+  <link rel="stylesheet" href="/static/css/app.css?v=33" />
 </head>
 <body>
   <header class="topbar">
@@ -647,6 +647,15 @@
         <button class="btn btn-sm btn-outline" id="btnRestoreLocalBackup" type="button">Restaurar Copia Local Guardada</button>
       </div>
 
+      <div class="item-box" style="margin-bottom:14px; background:var(--bg-elev); border-left: 3px solid var(--accent, #f59e0b);">
+        <strong style="display:block; margin-bottom:4px; font-size:0.95rem;">🛡️ Copia de Seguridad Automática del Servidor</strong>
+        <p class="muted" style="font-size:0.85rem; margin:0 0 8px;">
+          El servidor guarda una instantánea automática en cada cambio. Si alguna vez falta alguna sesión tras un reinicio de la nube, restáurala aquí directamente.
+        </p>
+        <button class="btn btn-sm btn-primary" id="btnRestoreServerAutoBackup" type="button">🔄 Restaurar Copia del Servidor</button>
+        <div id="serverBackupStatus" style="font-size:0.85rem; margin-top:6px;"></div>
+      </div>
+
       <div class="row-between">
         <button class="btn" data-close="backupModal">Cerrar</button>
       </div>
@@ -852,6 +861,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=32"></script>
+  <script type="module" src="/static/js/coach.js?v=33"></script>
 </body>
 </html>
