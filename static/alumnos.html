@@ -11,23 +11,19 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=30" />
+  <link rel="stylesheet" href="/static/css/app.css?v=32" />
 </head>
-<body>
+<body class="alumnos-page">
   <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <img class="brand-logo" src="/icon-192.png" alt="hecTHOR WOD" />
-        <div>
-          <div class="brand-title">hecTHOR WOD</div>
-          <div class="brand-sub" id="headerSub">App de Entrenamiento</div>
-        </div>
-      </div>
-      <div class="nav-pills">
+    <div class="topbar-inner" style="justify-content:flex-end;">
+      <span id="headerSub" style="display:none;" aria-hidden="true"></span>
+      <div class="nav-pills" style="width:100%; justify-content:space-between; gap:6px;">
         <a class="btn btn-sm btn-outline" href="/" title="Panel de gestión y edición del entrenador">🔒 Coach</a>
-        <span class="badge badge-ground hidden" id="syncBadge">● Sincronizado</span>
-        <button class="btn btn-sm" id="btnFullscreen" title="Ocultar barra del navegador">⛶ Pantalla completa</button>
-        <button class="btn btn-sm hidden" id="btnStudentLogout">Cerrar sesión</button>
+        <div class="row-wrap" style="gap:6px;">
+          <span class="badge badge-ground hidden" id="syncBadge">● Sincronizado</span>
+          <button class="btn btn-sm" id="btnFullscreen" title="Ocultar barra del navegador">⛶ Pantalla completa</button>
+          <button class="btn btn-sm hidden" id="btnStudentLogout">Cerrar sesión</button>
+        </div>
       </div>
     </div>
   </header>
@@ -212,6 +208,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=30"></script>
+  <script type="module" src="/static/js/alumnos.js?v=32"></script>
 </body>
 </html>

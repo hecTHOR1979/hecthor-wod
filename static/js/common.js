@@ -178,3 +178,37 @@ export function formatMesocycleOption(mc) {
   const d = mc.days_per_week || 5;
   return `${mc.name} (${w} sem · ${d} días/sem)`;
 }
+
+export function formatWeekDateRange(mc, weekNumber) {
+  const baseStr = (mc?.start_date || '').trim() || getDefaultMondayIso(mc?.created_at || '');
+  const parts = baseStr.split('-').map(Number);
+  if (parts.length === 3 && !parts.some(isNaN)) {
+    const start = new Date(parts[0], parts[1] - 1, parts[2]);
+    start.setDate(start.getDate() + (Number(weekNumber || 1) - 1) * 7);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `SEMANA del ${pad(start.getDate())}/${pad(start.getMonth() + 1)} al ${pad(end.getDate())}/${pad(end.getMonth() + 1)}`;
+  }
+  return `SEMANA ${weekNumber || 1}`;
+}
+
+export function cleanMesocycleTitle(mc) {
+  if (!mc) return 'MESOCICLO 1';
+  const rawName = (mc.name || '').trim();
+  const goal = (mc.primary_goal || '').trim();
+  let title = '';
+
+  if (/^mesociclo\s+\d+/i.test(rawName)) {
+    title = rawName;
+  } else if (/^mesociclo/i.test(rawName)) {
+    title = `${rawName} ${mc.id || 1}`;
+  } else {
+    title = `MESOCICLO ${mc.id || 1}${rawName ? ': ' + rawName : ''}`;
+  }
+
+  if (goal && !title.toLowerCase().includes(goal.toLowerCase())) {
+    title += ` (${goal})`;
+  }
+  return title;
+}
