@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=29" />
+  <link rel="stylesheet" href="/static/css/app.css?v=30" />
 </head>
 <body>
   <header class="topbar">
@@ -84,27 +84,24 @@
 
     <!-- STUDENT DASHBOARD -->
     <section id="studentApp" class="hidden">
-      <div class="card">
-        <div class="row-between">
-          <div>
-            <div class="row-wrap" style="gap:6px; margin-bottom:4px;">
-              <span class="badge badge-celeste-matte">MESOCICLO ACTIVO</span>
-              <span class="badge badge-accent" id="mcGoalBadge">Objetivo</span>
-            </div>
-            <h1 id="mcTitle" style="margin:4px 0; font-size:1.3rem;"></h1>
-            <p id="mcDesc" class="muted" style="margin:0;"></p>
-          </div>
-          <div id="studentMcSelectWrap" class="hidden">
-            <label for="studentMcSelect" style="display:block; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Cambiar Mesociclo</label>
-            <select id="studentMcSelect" class="input" style="min-width:200px; font-weight:700;"></select>
-          </div>
-        </div>
+      <!-- Hidden elements to preserve JS references without duplicate visual output -->
+      <div id="studentDashboardHeader" style="display:none;" aria-hidden="true">
+        <span id="mcGoalBadge"></span>
+        <h1 id="mcTitle"></h1>
+        <p id="mcDesc"></p>
       </div>
 
-      <div class="card">
-        <div style="margin-bottom:12px;">
-          <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Microciclo (Semana)</label>
-          <select id="weekSelect" class="input" style="font-size:1.02rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
+      <!-- Microcycle / Week / Day selectors (No-print) -->
+      <div class="card no-print" style="margin-bottom:12px;">
+        <div class="row-between" style="align-items:flex-end; gap:8px; margin-bottom:10px;">
+          <div style="flex:1;">
+            <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Microciclo (Semana)</label>
+            <select id="weekSelect" class="input" style="font-size:1.02rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
+          </div>
+          <div id="studentMcSelectWrap" class="hidden">
+            <label for="studentMcSelect" style="display:block; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Mesociclo</label>
+            <select id="studentMcSelect" class="input" style="min-width:180px; font-weight:700;"></select>
+          </div>
         </div>
         <div id="dayTabs" class="week-tabs"></div>
       </div>
@@ -215,6 +212,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=29"></script>
+  <script type="module" src="/static/js/alumnos.js?v=30"></script>
 </body>
 </html>

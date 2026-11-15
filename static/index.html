@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=29" />
+  <link rel="stylesheet" href="/static/css/app.css?v=30" />
 </head>
 <body>
   <header class="topbar">
@@ -28,6 +28,7 @@
         <button class="btn btn-primary" id="btnShareMobile">📱 Abrir / Pasar al Móvil</button>
         <a class="btn" href="/alumnos">Vista Alumnos ↗</a>
         <a class="btn btn-outline" href="/crono" target="_blank" rel="noopener" title="Abrir la app Crono CrossFit oficial en una pestaña">⏱ Crono Pro ↗</a>
+        <button class="btn btn-sm btn-outline" id="btnOpenBackupModal" type="button" title="Copias de seguridad del box">💾 Copia de Seguridad</button>
         <button class="btn btn-sm" id="btnCoachChangePw" title="Cambiar contraseña">🔒 Clave</button>
         <button class="btn btn-sm" id="btnCoachLogout" title="Cerrar sesión">Salir</button>
       </div>
@@ -609,6 +610,49 @@
     </div>
   </div>
 
+  <!-- MODAL: BACKUP & RESTORE -->
+  <div id="backupModal" class="modal-backdrop">
+    <div class="modal" style="max-width:540px;">
+      <div class="section-header">
+        <h3 class="section-title">💾 Copias de Seguridad &amp; Restauración</h3>
+        <button class="btn btn-sm" data-close="backupModal">✕</button>
+      </div>
+      <p class="muted" style="margin-top:0; font-size:0.92rem;">
+        Guarda copias de tus entrenamientos en tu ordenador o restaura una copia guardada para <strong>no perder nunca nada</strong> ante cambios o actualizaciones.
+      </p>
+
+      <div class="item-box" style="margin-bottom:12px; background:var(--bg-elev);">
+        <strong style="display:block; margin-bottom:4px; font-size:0.95rem;">📥 Descargar Copia a tu Ordenador</strong>
+        <p class="muted" style="font-size:0.85rem; margin:0 0 10px;">
+          Descarga un archivo <code>.json</code> con todos los mesociclos, microciclos, días y ejercicios de tu box.
+        </p>
+        <button class="btn btn-primary btn-sm" id="btnDownloadBackup" type="button">Descargar Archivo de Seguridad (.json)</button>
+      </div>
+
+      <div class="item-box" style="margin-bottom:12px; background:var(--bg-elev);">
+        <strong style="display:block; margin-bottom:4px; font-size:0.95rem;">📤 Restaurar desde un Archivo</strong>
+        <p class="muted" style="font-size:0.85rem; margin:0 0 10px;">
+          Selecciona un archivo <code>.json</code> de copia previamente descargado para cargarlo en la aplicación.
+        </p>
+        <input type="file" id="backupFileInput" accept=".json" class="hidden" />
+        <button class="btn btn-outline btn-sm" id="btnTriggerRestoreFile" type="button">Seleccionar archivo y restaurar</button>
+        <div id="backupFileStatus" style="font-size:0.85rem; margin-top:6px;"></div>
+      </div>
+
+      <div class="item-box" style="margin-bottom:14px; background:var(--bg-elev);">
+        <strong style="display:block; margin-bottom:4px; font-size:0.95rem;">🔄 Copia Automática Local (Navegador)</strong>
+        <p class="muted" style="font-size:0.85rem; margin:0 0 8px;" id="localBackupStatusText">
+          Comprobando última copia local...
+        </p>
+        <button class="btn btn-sm btn-outline" id="btnRestoreLocalBackup" type="button">Restaurar Copia Local Guardada</button>
+      </div>
+
+      <div class="row-between">
+        <button class="btn" data-close="backupModal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: NEW MESOCYCLE -->
   <div id="microcycleModal" class="modal-backdrop">
     <div class="modal">
@@ -808,6 +852,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=29"></script>
+  <script type="module" src="/static/js/coach.js?v=30"></script>
 </body>
 </html>

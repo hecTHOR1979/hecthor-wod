@@ -547,31 +547,47 @@ function renderCurrentDay(resetTimer = true) {
     }
   }
 
-  let html = `
-    <div class="print-header-brand">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:16px;">
-        <div>
-          <div style="font-size:0.75rem; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px;">MESOCICLO ACTIVO</div>
-          <div style="font-size:1.25rem; color:#0f172a; font-weight:900; line-height:1.2;">
-            ${esc(state.microcycle?.name || 'Crossfit Training')}
-            ${state.microcycle?.primary_goal ? `<span style="font-size:0.92rem; font-weight:600; color:#475569;"> · Objetivo: ${esc(state.microcycle.primary_goal)}</span>` : ''}
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:0.8rem; font-weight:800; color:#0284c7; text-transform:uppercase; letter-spacing:0.5px;">
-            MICROCICLO ${day.week_number} · DÍA ${day.day_number}
-          </div>
-          <div style="font-size:1.05rem; font-weight:800; color:#0f172a;">${esc(day.title || `Día ${day.day_number}`)}</div>
-        </div>
-      </div>
-    </div>
+  // Compute week bounds for SEMANA line
+  const allDays = state.microcycle?.days || [];
+  const daysInCurrentWeek = allDays.filter((d) => d.week_number === day.week_number);
+  const minDayNum = daysInCurrentWeek.length > 0 ? Math.min(...daysInCurrentWeek.map((d) => d.day_number)) : 1;
+  const maxDayNum = daysInCurrentWeek.length > 0 ? Math.max(...daysInCurrentWeek.map((d) => d.day_number)) : (state.microcycle?.days_per_week || 5);
 
-    <div class="card card-block-celeste day-overview-card">
-      <div class="row-between" style="align-items:flex-start;">
+  const mcNum = state.microcycle?.id || 1;
+  const mcName = state.microcycle?.name || 'Mesociclo';
+  const mcGoal = state.microcycle?.primary_goal || '';
+
+  // Warmup work description line right under WARM UP
+  let wuWorkType = '';
+  if (wuSpec) {
+    if (wuSpec.mode === 'TABATA') {
+      wuWorkType = `TABATA (${wuSpec.tabataRounds || 8} rondas · ${wuSpec.workSec || 20}s Trabajo / ${wuSpec.restSec !== undefined ? wuSpec.restSec : 10}s Descanso)`;
+    } else if (wuSpec.mode === 'EMOM') {
+      wuWorkType = `EMOM (${wuSpec.rounds || 8} rondas · cada ${wuSpec.intervalSec || 60}s)`;
+    } else if (wuSpec.mode === 'FOR TIME') {
+      wuWorkType = `FOR TIME (Cap: ${wuSpec.minutes || 8} min)`;
+    } else {
+      wuWorkType = `${esc(wuSpec.mode)} (${wuSpec.minutes || 8} min)`;
+    }
+  } else {
+    wuWorkType = esc(warmupType);
+  }
+
+  // WOD Final work description line right under WOD FINAL
+  let wodWorkType = esc(wod.type || 'WOD');
+  if (wod.time_cap) {
+    wodWorkType += ` · ${esc(wod.time_cap)}`;
+  }
+
+  let html = `
+    <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF) -->
+    <div class="card card-session-sheet">
+      <div class="row-between" style="align-items:flex-start; gap:12px;">
         <div>
-          <span class="badge badge-celeste-matte no-print">MICROCICLO ${day.week_number} · Día ${day.day_number}</span>
-          <h2 class="no-print" style="margin:8px 0 4px;">${esc(day.title)}</h2>
-          ${day.coaching_tips ? `<p class="muted coaching-tips-text" style="margin:4px 0 0;">💡 <strong>Coach:</strong> ${esc(day.coaching_tips)}</p>` : ''}
+          <h2 class="session-section-title">MESOCICLO ${mcNum}${mcName ? ': ' + esc(mcName) : ''}${mcGoal ? ` (${esc(mcGoal)})` : ''}</h2>
+          <h2 class="session-section-title">MICROCICLO ${day.week_number} / DÍA ${day.day_number}${day.title ? ': ' + esc(day.title) : ''}</h2>
+          <h2 class="session-section-title">SEMANA ${day.week_number} (DEL DÍA ${minDayNum} AL DÍA ${maxDayNum})</h2>
+          ${day.coaching_tips ? `<div class="session-body-text" style="margin-top:6px;">💡 <strong>Consejo del Coach:</strong> ${esc(day.coaching_tips)}</div>` : ''}
         </div>
         <button class="btn btn-sm btn-celeste-matte no-print" id="btnPrintDayPdf" style="display:inline-flex; align-items:center; gap:6px; white-space:nowrap; margin-top:2px;">
           🖨️ Imprimir / Guardar en PDF
@@ -579,44 +595,38 @@ function renderCurrentDay(resetTimer = true) {
       </div>
     </div>
 
-    <!-- 1. WARM UP CARD -->
-    <div class="card card-block-celeste">
-      <div class="section-header">
-        <span class="badge badge-celeste-matte">WARM UP · ${esc(warmupType)}</span>
-        ${wuSpec ? `<span class="badge badge-celeste-matte">${esc(wuSpec.mode)} · ${esc(wuSpec.minutes)} min</span>` : ''}
-      </div>
-      ${day.warmup_notes ? `<p class="muted" style="margin-top:0;">${esc(day.warmup_notes)}</p>` : ''}
-      ${wu.length === 0 ? '<p class="muted">Sin movimientos listados en el calentamiento.</p>' : `
+    <!-- 1. WARM UP (SOLO WARM UP Y DEBAJO EL TIPO DE TRABAJO) -->
+    <div class="card card-session-sheet">
+      <h3 class="session-section-title">WARM UP</h3>
+      <div class="session-subheading">${wuWorkType}</div>
+      ${day.warmup_notes ? `<div class="session-body-text" style="margin-bottom:8px;">${esc(day.warmup_notes)}</div>` : ''}
+      ${wu.length === 0 ? '<div class="session-body-text">Sin movimientos listados en el calentamiento.</div>' : `
         <div class="ex-clean-list" id="stuWarmupList"></div>
       `}
       ${wuSpec ? renderCronoWodHtml(wuSpec, false) : ''}
     </div>
 
-    <!-- 2. DAILY BLOCKS -->
+    <!-- 2. BLOQUES (BLOQUE N Y DEBAJO EL TÍTULO DEL BLOQUE) -->
     ${parts.map((p, idx) => {
       const pSpec = currentDaySpecs[`part-${idx}`];
-      const blockLabel = `BLOQUE ${idx + 1}`;
+      const blockTitle = p.title || `Trabajo Bloque ${idx + 1}`;
+      const blockSub = `${esc(blockTitle)}${p.type ? ' · ' + esc(p.type) : ''}`;
       return `
-        <div class="card card-block-celeste">
-          <div class="section-header">
-            <div>
-              <span class="badge badge-celeste-matte">${esc(blockLabel)}${p.type ? ' · ' + esc(p.type) : ''}</span>
-              <h3 class="section-title" style="margin-top:6px;">${esc(p.title || `Trabajo ${blockLabel}`)}</h3>
-            </div>
-            ${pSpec ? `<span class="badge badge-celeste-matte">${esc(pSpec.mode)} · ${esc(pSpec.minutes)} min</span>` : ''}
-          </div>
-          ${p.description ? `<p class="muted" style="margin-top:0;">${esc(p.description)}</p>` : ''}
+        <div class="card card-session-sheet">
+          <h3 class="session-section-title">BLOQUE ${idx + 1}</h3>
+          <div class="session-subheading">${blockSub}</div>
+          ${p.description ? `<div class="session-body-text" style="margin-bottom:8px;">${esc(p.description)}</div>` : ''}
           ${(p.exercises || []).length > 0 ? `
             <div class="ex-clean-list stu-part-ex" data-part-idx="${idx}"></div>
           ` : ''}
           ${p.has_score ? `
-            <div class="block-score-box" style="margin-top:12px; background:rgba(255,107,53,0.08); border:1px dashed rgba(255,107,53,0.4); border-radius:8px; padding:10px 14px;">
+            <div class="block-score-box no-print" style="margin-top:12px; background:rgba(255,107,53,0.08); border:1px dashed rgba(255,107,53,0.4); border-radius:8px; padding:10px 14px;">
               <div style="font-size:0.82rem; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:6px;">
-                🏆 Registrar mi resultado en este bloque (${esc(p.title || blockLabel)})
+                🏆 Registrar mi resultado en este bloque (${esc(blockTitle)})
               </div>
               <div class="row-wrap" style="gap:8px;">
                 <input class="input" style="flex:1; min-width:180px;" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
-                <button class="btn btn-primary btn-sm" data-block-score-btn="${idx}" data-part-title="${esc(p.title || blockLabel)}">Guardar Marca</button>
+                <button class="btn btn-primary btn-sm" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
               </div>
               <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px;"></div>
             </div>
@@ -626,21 +636,19 @@ function renderCurrentDay(resetTimer = true) {
       `;
     }).join('')}
 
-    <!-- 3. WOD FINAL -->
-    <div class="card card-block-celeste">
-      <div class="section-header">
-        <span class="badge badge-celeste-matte">WOD FINAL · ${esc(wod.type || 'WOD')}</span>
-        ${wod.time_cap ? `<span class="badge badge-celeste-matte">${esc(wod.time_cap)}</span>` : ''}
-      </div>
-      <h3 style="margin:4px 0 8px;">${esc(wod.title || 'Entrenamiento del día')}</h3>
-      ${wod.description ? `<div class="wod-pre">${esc(wod.description)}</div>` : '<p class="muted">Sin descripción.</p>'}
-      ${wod.rx_weights ? `<p style="margin:6px 0;"><strong>Rx:</strong> ${esc(wod.rx_weights)}</p>` : ''}
-      ${wod.scaled_weights ? `<p style="margin:6px 0;" class="muted"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</p>` : ''}
-      ${wod.target_score ? `<p style="margin:6px 0;" class="muted"><strong>Objetivo:</strong> ${esc(wod.target_score)}</p>` : ''}
-      ${wod.strategy ? `<p style="margin:6px 0;" class="muted"><strong>Estrategia:</strong> ${esc(wod.strategy)}</p>` : ''}
+    <!-- 3. WOD FINAL (WOD FINAL Y DEBAJO TIPO DE TRABAJO, TIEMPO, RONDAS) -->
+    <div class="card card-session-sheet">
+      <h3 class="session-section-title">WOD FINAL</h3>
+      <div class="session-subheading">${wodWorkType}</div>
+      ${wod.title ? `<div class="session-body-text" style="font-weight:700; margin-bottom:4px;">${esc(wod.title)}</div>` : ''}
+      ${wod.description ? `<div class="wod-pre-clean">${esc(wod.description)}</div>` : '<div class="session-body-text">Sin descripción.</div>'}
+      ${wod.rx_weights ? `<div class="session-body-text"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
+      ${wod.scaled_weights ? `<div class="session-body-text"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
+      ${wod.target_score ? `<div class="session-body-text"><strong>Objetivo:</strong> ${esc(wod.target_score)}</div>` : ''}
+      ${wod.strategy ? `<div class="session-body-text"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
       ${(wod.movements || []).length > 0 ? `
-        <div class="wod-videos-box no-print">
-          <div class="muted" style="font-size:0.8rem; font-weight:800; text-transform:uppercase;">🎬 Vídeos de movimientos del WOD</div>
+        <div class="wod-videos-box no-print" style="margin-top:10px;">
+          <div style="font-size:0.82rem; font-weight:800; color:#075985; text-transform:uppercase;">🎬 Vídeos de movimientos del WOD</div>
           <div id="stuWodMovements"></div>
         </div>
       ` : ''}

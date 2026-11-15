@@ -772,6 +772,194 @@ def generate_qr_svg(text: str = Query(..., min_length=1, max_length=500), _coach
     img.save(buf)
     return Response(content=buf.getvalue(), media_type="image/svg+xml")
 
+# ================= BACKUP & RESTORE (PERSISTENCIA Y SEGURIDAD) =================
+@app.get("/api/backup/export")
+def export_database_backup(_coach=Depends(require_coach)):
+    """Exporta una copia completa de toda la base de datos (microciclos, días, ejercicios, calentamientos y registros)
+    en formato JSON estructurado para que el entrenador pueda guardarla localmente.
+    """
+    from datetime import datetime as _dt
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM microcycles ORDER BY id ASC")
+    microcycles = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT * FROM days ORDER BY microcycle_id ASC, week_number ASC, day_number ASC")
+    days = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT * FROM exercises ORDER BY id ASC")
+    exercises = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT * FROM warmup_types ORDER BY id ASC")
+    warmup_types = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT * FROM student_logs ORDER BY id ASC")
+    student_logs = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        "version": 1,
+        "exported_at": _dt.now().isoformat(),
+        "app": "hecTHOR WOD",
+        "microcycles": microcycles,
+        "days": days,
+        "exercises": exercises,
+        "warmup_types": warmup_types,
+        "student_logs": student_logs,
+    }
+
+@app.post("/api/backup/import")
+async def import_database_backup(req: Request, _coach=Depends(require_coach)):
+    """Restaura una copia de seguridad en formato JSON, asegurando que todos los microciclos,
+    días y ejercicios queden permanentemente guardados en SQLite.
+    """
+    body = await req.json()
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Formato de copia de seguridad no válido (debe ser un objeto JSON).")
+    
+    microcycles = body.get("microcycles") or []
+    days = body.get("days") or []
+    exercises = body.get("exercises") or []
+    warmup_types = body.get("warmup_types") or []
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    imported_mc = 0
+    imported_days = 0
+    imported_ex = 0
+    
+    try:
+        # Microcycles
+        for m in microcycles:
+            m_id = m.get("id")
+            name = m.get("name") or "Mesociclo Restaurado"
+            weeks_count = m.get("weeks_count") or 4
+            days_per_week = m.get("days_per_week") or 5
+            primary_goal = m.get("primary_goal") or "Fuerza"
+            desc = m.get("description") or ""
+            access_code = (m.get("access_code") or f"CF{m_id or 100}").upper().strip()
+            start_date = m.get("start_date") or ""
+            is_active = 1 if m.get("is_active", 1) else 0
+            
+            cursor.execute("SELECT id FROM microcycles WHERE id = ? OR access_code = ?", (m_id, access_code))
+            existing = cursor.fetchone()
+            if existing:
+                cursor.execute("""
+                    UPDATE microcycles
+                    SET name = ?, weeks_count = ?, days_per_week = ?, primary_goal = ?, description = ?, access_code = ?, start_date = ?, is_active = ?
+                    WHERE id = ?
+                """, (name, weeks_count, days_per_week, primary_goal, desc, access_code, start_date, is_active, existing["id"]))
+            else:
+                if m_id:
+                    cursor.execute("""
+                        INSERT INTO microcycles (id, name, weeks_count, days_per_week, primary_goal, description, access_code, start_date, is_active)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (m_id, name, weeks_count, days_per_week, primary_goal, desc, access_code, start_date, is_active))
+                else:
+                    cursor.execute("""
+                        INSERT INTO microcycles (name, weeks_count, days_per_week, primary_goal, description, access_code, start_date, is_active)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (name, weeks_count, days_per_week, primary_goal, desc, access_code, start_date, is_active))
+            imported_mc += 1
+
+        # Days
+        for d in days:
+            d_id = d.get("id")
+            mc_id = d.get("microcycle_id")
+            w_num = d.get("week_number", 1)
+            d_num = d.get("day_number", 1)
+            title = d.get("title") or f"Día {d_num}"
+            warmup_type = d.get("warmup_type") or "Movilidad GROUND"
+            warmup_notes = d.get("warmup_notes") or ""
+            wu_ex = d.get("warmup_exercises")
+            if not isinstance(wu_ex, str):
+                wu_ex = json.dumps(wu_ex or [])
+            wu_tm = d.get("warmup_timer")
+            if not isinstance(wu_tm, str):
+                wu_tm = json.dumps(wu_tm or {"type": "AMRAP", "minutes": 8})
+            parts = d.get("parts")
+            if not isinstance(parts, str):
+                parts = json.dumps(parts or [])
+            wod = d.get("wod")
+            if not isinstance(wod, str):
+                wod = json.dumps(wod or {})
+            tips = d.get("coaching_tips") or ""
+
+            cursor.execute("SELECT id FROM days WHERE id = ? OR (microcycle_id = ? AND week_number = ? AND day_number = ?)",
+                           (d_id, mc_id, w_num, d_num))
+            existing_d = cursor.fetchone()
+            if existing_d:
+                cursor.execute("""
+                    UPDATE days
+                    SET title = ?, warmup_type = ?, warmup_notes = ?, warmup_exercises = ?, warmup_timer = ?, parts = ?, wod = ?, coaching_tips = ?
+                    WHERE id = ?
+                """, (title, warmup_type, warmup_notes, wu_ex, wu_tm, parts, wod, tips, existing_d["id"]))
+            else:
+                if d_id:
+                    cursor.execute("""
+                        INSERT INTO days (id, microcycle_id, week_number, day_number, title, warmup_type, warmup_notes, warmup_exercises, warmup_timer, parts, wod, coaching_tips)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (d_id, mc_id, w_num, d_num, title, warmup_type, warmup_notes, wu_ex, wu_tm, parts, wod, tips))
+                else:
+                    cursor.execute("""
+                        INSERT INTO days (microcycle_id, week_number, day_number, title, warmup_type, warmup_notes, warmup_exercises, warmup_timer, parts, wod, coaching_tips)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (mc_id, w_num, d_num, title, warmup_type, warmup_notes, wu_ex, wu_tm, parts, wod, tips))
+            imported_days += 1
+
+        # Exercises
+        for ex in exercises:
+            name = (ex.get("name") or "").strip()
+            if not name:
+                continue
+            cat = ex.get("category") or "General"
+            equip = ex.get("equipment")
+            if not isinstance(equip, str):
+                equip = json.dumps(equip or [])
+            desc = ex.get("description") or ""
+            cues = ex.get("coaching_cues") or ""
+            vid = ex.get("video_url") or ""
+            is_g = 1 if ex.get("is_ground") else 0
+            lvl = ex.get("ground_flow_level") or "Todos"
+
+            cursor.execute("SELECT id FROM exercises WHERE LOWER(name) = LOWER(?)", (name,))
+            ex_row = cursor.fetchone()
+            if ex_row:
+                cursor.execute("""
+                    UPDATE exercises
+                    SET category = ?, equipment = ?, description = ?, coaching_cues = ?, video_url = ?, is_ground = ?, ground_flow_level = ?
+                    WHERE id = ?
+                """, (cat, equip, desc, cues, vid, is_g, lvl, ex_row["id"]))
+            else:
+                cursor.execute("""
+                    INSERT INTO exercises (name, category, equipment, description, coaching_cues, video_url, is_ground, ground_flow_level)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (name, cat, equip, desc, cues, vid, is_g, lvl))
+            imported_ex += 1
+
+        # Warmup types
+        for wt in warmup_types:
+            wt_name = (wt.get("name") if isinstance(wt, dict) else str(wt)).strip()
+            if wt_name:
+                cursor.execute("INSERT OR IGNORE INTO warmup_types (name) VALUES (?)", (wt_name,))
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        raise HTTPException(status_code=500, detail=f"Error al importar copia de seguridad: {str(e)}")
+
+    conn.close()
+    return {
+        "status": "ok",
+        "imported_microcycles": imported_mc,
+        "imported_days": imported_days,
+        "imported_exercises": imported_ex,
+    }
+
 # ================= STATIC FILE SERVING =================
 
 @app.get("/manifest.json")

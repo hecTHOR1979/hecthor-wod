@@ -330,9 +330,34 @@ function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
 
 async function loadMicrocycles(selectId = null) {
   state.microcycles = await api('/api/microcycles');
+  
+  // Respaldo de seguridad y auto-recuperación ante reinicios o despliegues
+  if (!state.microcycles || state.microcycles.length === 0) {
+    const rawBackup = localStorage.getItem('hecthor_crossfit_coach_backup');
+    if (rawBackup) {
+      try {
+        const snap = JSON.parse(rawBackup);
+        if (snap && snap.microcycles && snap.microcycles.length > 0) {
+          console.warn('⚡ Base de datos vacía en el servidor. Restaurando copia de seguridad local del navegador...');
+          await api('/api/backup/import', {
+            method: 'POST',
+            body: JSON.stringify({
+              microcycles: snap.microcycles,
+              days: snap.currentMicrocycle?.days || [],
+            }),
+          });
+          state.microcycles = await api('/api/microcycles');
+          showToast('✓ Sesión y mesociclos restaurados automáticamente desde copia local');
+        }
+      } catch (e) {
+        console.error('Error al restaurar copia local:', e);
+      }
+    }
+  }
+
   const sel = $('microcycleSelect');
   sel.innerHTML = '';
-  if (state.microcycles.length === 0) {
+  if (!state.microcycles || state.microcycles.length === 0) {
     sel.innerHTML = '<option value="">Sin mesociclos (crea uno nuevo)</option>';
     state.currentMicrocycle = null;
     $('microcycleMeta').innerHTML = '';
@@ -371,6 +396,7 @@ async function selectMicrocycle(id) {
   } else {
     $('dayEditorCard').classList.add('hidden');
   }
+  saveLocalStateSnapshot();
 }
 
 function renderMicrocycleMeta() {
@@ -2218,6 +2244,21 @@ function triggerAutoSave(immediate = false) {
   }
 }
 
+function saveLocalStateSnapshot() {
+  try {
+    if (!state.currentMicrocycle) return;
+    const snap = {
+      timestamp: Date.now(),
+      microcycles: state.microcycles || [],
+      currentMicrocycle: state.currentMicrocycle,
+      exercises: state.exercises || [],
+    };
+    localStorage.setItem('hecthor_crossfit_coach_backup', JSON.stringify(snap));
+  } catch (e) {
+    console.warn('Could not save local snapshot', e);
+  }
+}
+
 async function doAutoSave() {
   if (!state.currentDay || isSaving) return;
   const payload = buildCurrentDayPayload();
@@ -2237,6 +2278,7 @@ async function doAutoSave() {
       }
     }
     setAutoSaveStatus('saved');
+    saveLocalStateSnapshot();
   } catch (err) {
     console.error('AutoSave error:', err);
     setAutoSaveStatus('error');
@@ -2269,6 +2311,7 @@ async function saveCurrentDay() {
       renderDaysGrid();
     }
     setAutoSaveStatus('saved');
+    saveLocalStateSnapshot();
     showToast('Sesión guardada correctamente');
   } catch (err) {
     showToast(err.message);
@@ -2302,6 +2345,7 @@ document.querySelectorAll('a[href*="/alumnos"]').forEach((a) => {
 
 // Guard changes on tab close or navigation
 window.addEventListener('beforeunload', () => {
+  saveLocalStateSnapshot();
   if (state.currentDay && pendingSave) {
     const payload = buildCurrentDayPayload();
     if (payload) {
@@ -2317,6 +2361,105 @@ window.addEventListener('beforeunload', () => {
         });
       } catch (_) {}
     }
+  }
+});
+
+// ================= BACKUP & RESTORE MODAL =================
+function updateLocalBackupStatusText() {
+  const statusEl = $('localBackupStatusText');
+  if (!statusEl) return;
+  try {
+    const raw = localStorage.getItem('hecthor_crossfit_coach_backup');
+    if (!raw) {
+      statusEl.textContent = 'Aún no hay copias automáticas guardadas en este navegador.';
+      return;
+    }
+    const snap = JSON.parse(raw);
+    const dateStr = snap.timestamp ? new Date(snap.timestamp).toLocaleString('es-ES') : 'reciente';
+    const mcCount = (snap.microcycles || []).length;
+    statusEl.innerHTML = `Última copia local guardada: <strong>${dateStr}</strong> (${mcCount} mesociclos en memoria).`;
+  } catch (_) {
+    statusEl.textContent = 'Copia local presente.';
+  }
+}
+
+$('btnOpenBackupModal')?.addEventListener('click', () => {
+  updateLocalBackupStatusText();
+  $('backupModal')?.classList.add('open');
+});
+
+$('btnDownloadBackup')?.addEventListener('click', async () => {
+  try {
+    const backupData = await api('/api/backup/export');
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `hecthor_wod_backup_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Copia de seguridad descargada correctamente');
+  } catch (err) {
+    showToast('Error al descargar copia: ' + err.message);
+  }
+});
+
+$('btnTriggerRestoreFile')?.addEventListener('click', () => {
+  $('backupFileInput')?.click();
+});
+
+$('backupFileInput')?.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const statusEl = $('backupFileStatus');
+  if (statusEl) statusEl.textContent = `Leyendo archivo ${file.name}...`;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data || (!data.microcycles && !data.days)) {
+      throw new Error('El archivo no contiene una copia válida de hecTHOR WOD.');
+    }
+    if (statusEl) statusEl.textContent = 'Restaurando en la base de datos...';
+    const res = await api('/api/backup/import', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (statusEl) statusEl.innerHTML = `✅ <strong style="color:#22c55e;">Restaurado con éxito</strong>: ${res.imported_microcycles} mesociclos, ${res.imported_days} días y ${res.imported_exercises} ejercicios.`;
+    showToast('¡Copia de seguridad restaurada correctamente!');
+    await loadMicrocycles();
+    await loadLibrary();
+    saveLocalStateSnapshot();
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `❌ <strong style="color:#ef4444;">Error:</strong> ${err.message}`;
+    showToast('Error al restaurar: ' + err.message);
+  }
+  e.target.value = '';
+});
+
+$('btnRestoreLocalBackup')?.addEventListener('click', async () => {
+  try {
+    const raw = localStorage.getItem('hecthor_crossfit_coach_backup');
+    if (!raw) return showToast('No hay ninguna copia local guardada en este navegador.');
+    const snap = JSON.parse(raw);
+    const payload = {
+      microcycles: snap.microcycles || [],
+      days: (snap.currentMicrocycle?.days || []),
+      exercises: state.exercises || [],
+    };
+    if (confirm('¿Restaurar la copia local guardada en este navegador en el servidor?')) {
+      const res = await api('/api/backup/import', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      showToast(`¡Copia local restaurada! (${res.imported_microcycles} mesociclos, ${res.imported_days} días)`);
+      await loadMicrocycles();
+      $('backupModal')?.classList.remove('open');
+    }
+  } catch (err) {
+    showToast('Error al restaurar copia local: ' + err.message);
   }
 });
 
