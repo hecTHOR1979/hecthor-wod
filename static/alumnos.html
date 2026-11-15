@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=36" />
+  <link rel="stylesheet" href="/static/css/app.css?v=37" />
 </head>
 <body class="alumnos-page">
   <header class="topbar">
@@ -91,12 +91,12 @@
       <div class="card no-print" style="margin-bottom:12px;">
         <div class="row-between" style="align-items:flex-end; gap:8px; margin-bottom:10px;">
           <div style="flex:1;">
-            <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Microciclo (Semana)</label>
-            <select id="weekSelect" class="input" style="font-size:1.02rem; font-weight:700; background:var(--bg-elev); border-color:rgba(255,255,255,0.15);"></select>
+            <label for="weekSelect" style="display:block; font-size:0.8rem; font-weight:800; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Seleccionar Microciclo (Semana)</label>
+            <select id="weekSelect" class="input" style="font-size:1.02rem; font-weight:700; color:#ffffff; background:var(--bg-elev); border-color:rgba(255,255,255,0.25);"></select>
           </div>
           <div id="studentMcSelectWrap" class="hidden">
-            <label for="studentMcSelect" style="display:block; font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Mesociclo</label>
-            <select id="studentMcSelect" class="input" style="min-width:180px; font-weight:700;"></select>
+            <label for="studentMcSelect" style="display:block; font-size:0.75rem; font-weight:800; color:#ffffff; text-transform:uppercase; margin-bottom:6px;">Mesociclo</label>
+            <select id="studentMcSelect" class="input" style="min-width:180px; font-weight:700; color:#ffffff;"></select>
           </div>
         </div>
         <div id="dayTabs" class="week-tabs"></div>
@@ -108,10 +108,10 @@
       <div class="card" id="studentLogCard">
         <div class="row-between" style="align-items:flex-start; margin-bottom:12px;">
           <div>
-            <h2 class="section-title" style="margin:0 0 4px;">🏆 Registrar mi Resultado en el WOD</h2>
-            <div id="logScoreSubInfo" class="muted" style="font-size:0.85rem;">Introduce tus datos de la sesión de hoy</div>
+            <h2 class="section-title" style="margin:0 0 4px; color:#ffffff;">🏆 Registrar mi Resultado en el WOD</h2>
+            <div id="logScoreSubInfo" style="font-size:0.85rem; color:#ffffff;">Introduce tus datos de la sesión de hoy</div>
           </div>
-          <span class="badge badge-accent" id="logScoreTypeBadge">Métrica: REPS</span>
+          <span class="badge" id="logScoreTypeBadge" style="background:rgba(255,255,255,0.12); color:#ffffff; font-weight:800; border:1px solid rgba(255,255,255,0.35);">Métrica: REPS</span>
         </div>
         <div class="grid-2">
           <div class="field">
@@ -208,6 +208,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=36"></script>
+  <script type="module" src="/static/js/alumnos.js?v=37"></script>
 </body>
 </html>

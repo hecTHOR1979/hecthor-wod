@@ -246,8 +246,8 @@ button, input, select, textarea {
 
 .btn-celeste-matte {
   background: var(--celeste-matte-soft);
-  color: var(--celeste-matte-text);
-  border-color: var(--celeste-matte-border);
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .btn-celeste-matte:hover {
@@ -350,7 +350,7 @@ body.alumnos-page .brand {
   padding: 5px 14px !important;
   border-radius: 6px !important;
   margin-bottom: 6px !important;
-  border: 1px solid #38bdf8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
 .clean-pill-val {
@@ -364,7 +364,7 @@ body.alumnos-page .brand {
   font-size: 0.88rem !important;
   color: #ffffff !important;
   background: #0c121e !important;
-  border: 1.5px solid #38bdf8 !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
@@ -448,7 +448,7 @@ body.alumnos-page .brand {
 .card-session-sheet .ex-col-name {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  color: #f8fafc !important;
+  color: #ffffff !important;
   word-break: break-word !important;
 }
 
@@ -489,44 +489,89 @@ body.alumnos-page .brand {
   transform: translateY(-1px) !important;
 }
 
-.session-section-title {
-  font-family: inherit !important;
-  color: #000000 !important;
-  font-size: 1.15rem !important;
-  font-weight: 900 !important;
-  margin: 0 0 4px 0 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.5px;
+/* ========================================================
+   VISTA DE ALUMNOS: TODAS LAS LETRAS EN BLANCO EN PANTALLA
+   ======================================================== */
+body.alumnos-page,
+body.alumnos-page h1,
+body.alumnos-page h2,
+body.alumnos-page h3,
+body.alumnos-page h4,
+body.alumnos-page p,
+body.alumnos-page span,
+body.alumnos-page div,
+body.alumnos-page strong,
+body.alumnos-page label,
+body.alumnos-page button,
+body.alumnos-page a,
+body.alumnos-page input,
+body.alumnos-page select,
+body.alumnos-page textarea,
+body.alumnos-page .session-main-header,
+body.alumnos-page .session-sub-header,
+body.alumnos-page .session-subheading,
+body.alumnos-page .session-body-text,
+body.alumnos-page .section-badge-banner,
+body.alumnos-page .ex-columns-header,
+body.alumnos-page .ex-col-cell,
+body.alumnos-page .ex-col-name,
+body.alumnos-page .ex-col-name strong,
+body.alumnos-page .ex-notes-text,
+body.alumnos-page .clean-pill-val,
+body.alumnos-page .btn-video-sym,
+body.alumnos-page .btn-crono-pro-action,
+body.alumnos-page .badge,
+body.alumnos-page .muted,
+body.alumnos-page .text-muted,
+body.alumnos-page .wod-pre-clean {
+  color: #ffffff !important;
 }
 
-.session-subheading {
-  font-family: inherit !important;
-  color: #000000 !important;
-  font-size: 1.02rem !important;
-  font-weight: 800 !important;
-  margin: 4px 0 6px 0 !important;
-  line-height: 1.35 !important;
+body.alumnos-page input::placeholder,
+body.alumnos-page textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
 }
 
-.session-body-text {
-  font-family: inherit !important;
-  color: #000000 !important;
-  font-size: 0.94rem !important;
-  line-height: 1.45 !important;
-  margin: 4px 0 !important;
+body.alumnos-page .clean-pill-val {
+  background: #0c121e !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
 }
 
-.wod-pre-clean {
-  font-family: inherit !important;
-  color: #000000 !important;
-  font-size: 0.95rem !important;
-  line-height: 1.45 !important;
-  white-space: pre-wrap !important;
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  padding: 10px 12px !important;
-  margin: 6px 0 !important;
+body.alumnos-page .card-session-sheet {
+  background: var(--bg-card, #151923) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+body.alumnos-page .ex-clean-line {
+  background: #0c121e !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+body.alumnos-page .btn {
+  color: #ffffff !important;
+}
+
+body.alumnos-page .active-tab {
+  color: #ffffff !important;
+  background: #0284c7 !important;
+  border-color: #38bdf8 !important;
+}
+
+body.alumnos-page input,
+body.alumnos-page select,
+body.alumnos-page textarea {
+  color: #ffffff !important;
+  background: #0b111e !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.alumnos-page .badge {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .item-box-celeste {
@@ -1077,9 +1122,9 @@ textarea.input {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f0f9ff;
-  color: #0284c7;
-  border: 1px solid #38bdf8;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 0.78rem;
@@ -1091,9 +1136,9 @@ textarea.input {
 }
 
 .btn-video-sym:hover {
-  background: #e0f2fe;
-  border-color: #0284c7;
-  color: #0369a1;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff !important;
 }
 
 .btn-video-sym:active {
@@ -1566,14 +1611,14 @@ textarea.input {
 
   .ex-clean-line {
     background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #000000 !important;
     color: #000000 !important;
     padding: 6px 10px !important;
     page-break-inside: avoid;
   }
 
   .ex-columns-header {
-    color: #075985 !important;
+    color: #000000 !important;
     font-weight: 900 !important;
     font-size: 9.5pt !important;
     padding: 2px 10px !important;
@@ -1587,7 +1632,7 @@ textarea.input {
   .card, .item-box, .card-session-sheet {
     background: #ffffff !important;
     color: #000000 !important;
-    border: 1.5px solid #075985 !important;
+    border: 1.5px solid #000000 !important;
     border-radius: 8px !important;
     box-shadow: none !important;
     margin-bottom: 14px !important;
@@ -1595,10 +1640,10 @@ textarea.input {
     page-break-inside: avoid;
   }
 
-  /* Headings strictly dark blue (#075985) and underlined in print */
+  /* Headings strictly black (#000000) and underlined in print */
   .session-section-title,
   .session-main-header {
-    color: #075985 !important;
+    color: #000000 !important;
     font-size: 14pt !important;
     font-weight: 800 !important;
     text-decoration: underline !important;
@@ -1623,7 +1668,7 @@ textarea.input {
   .section-badge-banner {
     display: block !important;
     background: transparent !important;
-    color: #075985 !important;
+    color: #000000 !important;
     border: none !important;
     font-size: 13pt !important;
     font-weight: 900 !important;
@@ -1636,14 +1681,29 @@ textarea.input {
   }
 
   .clean-pill-val {
-    background: #f1f5f9 !important;
+    background: #ffffff !important;
     color: #000000 !important;
-    border: 1px solid #64748b !important;
+    border: 1px solid #000000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   /* All body, subheadings and notes strictly black (#000000) and uniform 11pt in print */
+  *,
+  body,
+  p,
+  div,
+  span,
+  strong,
+  h1,
+  h2,
+  h3,
+  h4,
+  label,
+  small,
+  em,
+  b,
+  a,
   .session-subheading,
   .session-body-text,
   .wod-pre-clean,
@@ -1654,75 +1714,79 @@ textarea.input {
   .ex-col-name,
   .ex-col-cell,
   .card-session-sheet *,
-  p, div, span, strong {
+  .badge,
+  .section-title,
+  .muted,
+  .text-muted {
     color: #000000 !important;
     font-size: 11pt !important;
+    text-shadow: none !important;
   }
 
   .badge {
-    background: #e0f2fe !important;
-    color: #075985 !important;
-    border: 1px solid #075985 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
     font-weight: 800 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .badge-accent, .badge-ground, .badge-orange, .badge-blue, .badge-celeste-matte {
-    background: #e0f2fe !important;
-    color: #075985 !important;
-    border: 1px solid #075985 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
   }
 
   .section-title, h1, h2, h3 {
-    color: #075985 !important;
+    color: #000000 !important;
   }
 
   .ex-table {
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #000000 !important;
     border-radius: 6px !important;
   }
 
   .ex-table-head {
     background: #f1f5f9 !important;
-    color: #334155 !important;
-    border-bottom: 2px solid #cbd5e1 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   .ex-table-row {
     background: #ffffff !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    color: #0f172a !important;
+    border-bottom: 1px solid #000000 !important;
+    color: #000000 !important;
   }
 
   .ex-cell-num {
-    background: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
   }
 
   .ex-cell-reps, .ex-cell-sets {
-    color: #0369a1 !important;
+    color: #000000 !important;
   }
 
   .ex-video-link {
-    color: #0f172a !important;
+    color: #000000 !important;
     text-decoration: none !important;
     pointer-events: none !important;
   }
 
   .wod-pre {
-    background: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
     white-space: pre-wrap !important;
     padding: 10px !important;
     border-radius: 6px !important;
   }
 
   .muted, .text-muted {
-    color: #475569 !important;
+    color: #000000 !important;
   }
 }

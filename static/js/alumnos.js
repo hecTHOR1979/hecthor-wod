@@ -638,15 +638,15 @@ function renderCurrentDay(resetTimer = true) {
             <div class="ex-clean-list stu-part-ex" data-part-idx="${idx}"></div>
           ` : ''}
           ${p.has_score ? `
-            <div class="block-score-box no-print" style="margin-top:12px; background:rgba(34,197,94,0.08); border:1.5px dashed rgba(34,197,94,0.4); border-radius:8px; padding:10px 14px;">
-              <div style="font-size:0.85rem; font-weight:800; color:#4ade80; text-transform:uppercase; margin-bottom:6px;">
+            <div class="block-score-box no-print" style="margin-top:12px; background:rgba(255,255,255,0.06); border:1.5px dashed rgba(255,255,255,0.3); border-radius:8px; padding:10px 14px;">
+              <div style="font-size:0.85rem; font-weight:800; color:#ffffff; text-transform:uppercase; margin-bottom:6px;">
                 🏆 Registrar mi resultado en este bloque (${esc(blockTitle)})
               </div>
               <div class="row-wrap" style="gap:8px;">
-                <input class="input" style="flex:1; min-width:180px; color:#ffffff; background:#0b111e; border-color:rgba(255,255,255,0.15);" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
-                <button class="btn btn-primary btn-sm" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
+                <input class="input" style="flex:1; min-width:180px; color:#ffffff; background:#0b111e; border-color:rgba(255,255,255,0.25);" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
+                <button class="btn btn-primary btn-sm" style="color:#ffffff;" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
               </div>
-              <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px;"></div>
+              <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px; color:#ffffff;"></div>
             </div>
           ` : ''}
           ${pSpec ? renderCronoProLinkHtml(pSpec) : ''}
@@ -665,8 +665,8 @@ function renderCurrentDay(resetTimer = true) {
       ${wod.target_score ? `<div class="session-body-text"><strong>Objetivo:</strong> ${esc(wod.target_score)}</div>` : ''}
       ${wod.strategy ? `<div class="session-body-text"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
       ${(wod.movements || []).length > 0 ? `
-        <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.3); border-radius:8px;">
-          <div style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>
+        <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.25); border-radius:8px;">
+          <div style="font-size:0.82rem; font-weight:800; color:#ffffff; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>
           <div id="stuWodMovements"></div>
         </div>
       ` : ''}
@@ -693,19 +693,19 @@ function renderCurrentDay(resetTimer = true) {
       if (badgeEl) badgeEl.textContent = `Métrica: ${rawScoreType}`;
 
       if (rawScoreType.includes('TIEMPO')) {
-        if (labelEl) labelEl.innerHTML = '⏱ Tiempo empleado en terminar el WOD <span style="color:var(--accent); font-weight:800;">(TIEMPO)</span>';
+        if (labelEl) labelEl.innerHTML = '⏱ Tiempo empleado en terminar el WOD <span style="color:#ffffff; font-weight:800;">(TIEMPO)</span>';
         if (inputEl) inputEl.placeholder = 'Ej: 11:45 (Minutos : Segundos)';
         if (subInfoEl) subInfoEl.textContent = 'Apunta el tiempo exacto que has tardado en completar todo el trabajo.';
       } else if (rawScoreType.includes('RONDAS')) {
-        if (labelEl) labelEl.innerHTML = '🔄 Rondas completadas + Reps extras <span style="color:var(--accent); font-weight:800;">(RONDAS + REPS)</span>';
+        if (labelEl) labelEl.innerHTML = '🔄 Rondas completadas + Reps extras <span style="color:#ffffff; font-weight:800;">(RONDAS + REPS)</span>';
         if (inputEl) inputEl.placeholder = 'Ej: 5 rondas + 12 reps';
         if (subInfoEl) subInfoEl.textContent = 'Apunta las rondas enteras finalizadas y las repeticiones de la ronda en curso.';
       } else if (rawScoreType.includes('REPS')) {
-        if (labelEl) labelEl.innerHTML = '🔢 Total de repeticiones conseguidas <span style="color:var(--accent); font-weight:800;">(REPS)</span>';
+        if (labelEl) labelEl.innerHTML = '🔢 Total de repeticiones conseguidas <span style="color:#ffffff; font-weight:800;">(REPS)</span>';
         if (inputEl) inputEl.placeholder = 'Ej: 145 reps';
         if (subInfoEl) subInfoEl.textContent = 'Apunta la suma total de repeticiones realizadas en el tiempo límite.';
       } else if (rawScoreType.includes('PESO') || rawScoreType.includes('CARGA')) {
-        if (labelEl) labelEl.innerHTML = '🏋️ Carga / Peso máximo alcanzado <span style="color:var(--accent); font-weight:800;">(KG)</span>';
+        if (labelEl) labelEl.innerHTML = '🏋️ Carga / Peso máximo alcanzado <span style="color:#ffffff; font-weight:800;">(KG)</span>';
         if (inputEl) inputEl.placeholder = 'Ej: 90 kg';
         if (subInfoEl) subInfoEl.textContent = 'Apunta los kilogramos de tu mejor levantamiento o serie final.';
       } else {
@@ -1041,7 +1041,7 @@ function renderCurrentDay(resetTimer = true) {
       const status = container.querySelector(`[data-block-score-status="${idx}"]`);
       const scoreVal = (input?.value || '').trim();
       if (!scoreVal) {
-        if (status) status.innerHTML = '<span style="color:#f87171;">Introduce tu marca antes de guardar.</span>';
+        if (status) status.innerHTML = '<span style="color:#ffffff; font-weight:700;">Introduce tu marca antes de guardar.</span>';
         return;
       }
       const day = state.microcycle.days.find((d) => d.id === state.selectedDayId);
@@ -1065,11 +1065,11 @@ function renderCurrentDay(resetTimer = true) {
             notes: `[${blockLabel}] ${blockTitle}`,
           }),
         });
-        if (status) status.innerHTML = '<span style="color:#22c55e; font-weight:800;">✓ ¡Marca registrada con éxito!</span>';
+        if (status) status.innerHTML = '<span style="color:#ffffff; font-weight:800;">✓ ¡Marca registrada con éxito!</span>';
         showToast(`Marca de ${blockLabel} registrada`);
         loadDayLeaderboard();
       } catch (err) {
-        if (status) status.innerHTML = `<span style="color:#f87171;">Error al guardar: ${esc(err.message)}</span>`;
+        if (status) status.innerHTML = `<span style="color:#ffffff; font-weight:700;">Error al guardar: ${esc(err.message)}</span>`;
       } finally {
         btn.disabled = false;
         btn.textContent = 'Guardar Marca';
@@ -1085,7 +1085,7 @@ async function loadDayLeaderboard() {
   const logs = await api(`/api/student/logs/${state.microcycle.id}?day_id=${state.selectedDayId}`);
   const wrap = $('dayLeaderboard');
   if (logs.length === 0) {
-    wrap.innerHTML = '<p class="muted">Sé el primero en registrar tu marca hoy.</p>';
+    wrap.innerHTML = '<p class="muted" style="color:#ffffff;">Sé el primero en registrar tu marca hoy.</p>';
     return;
   }
   wrap.innerHTML = '';
@@ -1093,25 +1093,25 @@ async function loadDayLeaderboard() {
     const isRx = l.rx_status === 'Rx';
     const isScaled = l.rx_status === 'Scaled';
     const rxBadge = isRx
-      ? '<span class="badge" style="background:rgba(34,197,94,0.18); color:#22c55e; font-weight:800; border:1px solid rgba(34,197,94,0.35);">⚡ Rx</span>'
+      ? '<span class="badge" style="background:rgba(255,255,255,0.12); color:#ffffff; font-weight:800; border:1px solid rgba(255,255,255,0.35);">⚡ Rx</span>'
       : (isScaled
-        ? '<span class="badge" style="background:rgba(255,107,53,0.18); color:#ff6b35; font-weight:800; border:1px solid rgba(255,107,53,0.35);">🔄 Scaled</span>'
-        : `<span class="badge badge-accent">${esc(l.rx_status || '')}</span>`);
+        ? '<span class="badge" style="background:rgba(255,255,255,0.12); color:#ffffff; font-weight:800; border:1px solid rgba(255,255,255,0.35);">🔄 Scaled</span>'
+        : `<span class="badge" style="background:rgba(255,255,255,0.12); color:#ffffff; font-weight:800; border:1px solid rgba(255,255,255,0.35);">${esc(l.rx_status || '')}</span>`);
 
     const row = document.createElement('div');
     row.className = 'item-box';
     row.innerHTML = `
       <div class="row-between" style="align-items:center;">
         <div>
-          <strong style="font-size:0.95rem;">${esc(l.student_name)}</strong>
-          ${l.notes ? `<div class="muted" style="font-size:0.82rem; margin-top:2px;">${esc(l.notes)}</div>` : ''}
+          <strong style="font-size:0.95rem; color:#ffffff;">${esc(l.student_name)}</strong>
+          ${l.notes ? `<div style="font-size:0.82rem; margin-top:2px; color:#ffffff;">${esc(l.notes)}</div>` : ''}
         </div>
         <div class="row-wrap" style="gap:8px; align-items:center;">
-          <strong style="font-size:1.05rem; color:#38bdf8;">${esc(l.score)}</strong>
+          <strong style="font-size:1.05rem; color:#ffffff;">${esc(l.score)}</strong>
           ${rxBadge}
         </div>
       </div>
-      ${l.weights_used ? `<div class="muted" style="font-size:0.82rem; margin-top:4px;">Pesos/Adaptaciones: ${esc(l.weights_used)}</div>` : ''}
+      ${l.weights_used ? `<div style="font-size:0.82rem; margin-top:4px; color:#ffffff;">Pesos/Adaptaciones: ${esc(l.weights_used)}</div>` : ''}
     `;
     wrap.appendChild(row);
   });
