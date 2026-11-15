@@ -360,11 +360,11 @@ body.alumnos-page .brand {
   width: 100% !important;
   padding: 4px 6px !important;
   border-radius: 6px !important;
-  font-weight: 800 !important;
+  font-weight: 900 !important;
   font-size: 0.88rem !important;
   color: #ffffff !important;
-  background: #0c121e !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  background: #0284c7 !important;
+  border: 1.5px solid #38bdf8 !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
@@ -533,9 +533,10 @@ body.alumnos-page textarea::placeholder {
 }
 
 body.alumnos-page .clean-pill-val {
-  background: #0c121e !important;
+  background: #0284c7 !important;
   color: #ffffff !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  border: 1.5px solid #38bdf8 !important;
+  font-weight: 900 !important;
 }
 
 body.alumnos-page .card-session-sheet {
@@ -554,10 +555,31 @@ body.alumnos-page .btn {
   color: #ffffff !important;
 }
 
-body.alumnos-page .active-tab {
-  color: #ffffff !important;
-  background: #0284c7 !important;
-  border-color: #38bdf8 !important;
+/* ========================================================
+   TECLAS AMARILLAS EN LA PÁGINA DEL ALUMNO: LETRAS EN NEGRO
+   ======================================================== */
+body.alumnos-page .btn-primary,
+body.alumnos-page .btn-primary *,
+body.alumnos-page button.btn-primary,
+body.alumnos-page [data-block-score-btn],
+body.alumnos-page #btnSubmitLog,
+body.alumnos-page #btnStudentLogin,
+body.alumnos-page #btnStudentRegister,
+body.alumnos-page .active-tab,
+body.alumnos-page .btn.active-tab,
+body.alumnos-page .btn-accent,
+body.alumnos-page .badge-accent {
+  background: var(--accent) !important;
+  color: #000000 !important;
+  border-color: var(--accent) !important;
+  font-weight: 900 !important;
+}
+
+body.alumnos-page .btn-primary:hover,
+body.alumnos-page button.btn-primary:hover,
+body.alumnos-page [data-block-score-btn]:hover {
+  background: #d5fb61 !important;
+  color: #000000 !important;
 }
 
 body.alumnos-page input,
@@ -1680,12 +1702,14 @@ textarea.input {
     print-color-adjust: exact;
   }
 
+  /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF */
   .clean-pill-val {
-    background: #ffffff !important;
+    background: #bae6fd !important;
     color: #000000 !important;
-    border: 1px solid #000000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    border: 1.5px solid #0284c7 !important;
+    font-weight: 900 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* All body, subheadings and notes strictly black (#000000) and uniform 11pt in print */

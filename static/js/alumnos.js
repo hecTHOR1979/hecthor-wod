@@ -644,7 +644,7 @@ function renderCurrentDay(resetTimer = true) {
               </div>
               <div class="row-wrap" style="gap:8px;">
                 <input class="input" style="flex:1; min-width:180px; color:#ffffff; background:#0b111e; border-color:rgba(255,255,255,0.25);" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
-                <button class="btn btn-primary btn-sm" style="color:#ffffff;" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
+                <button class="btn btn-primary btn-sm" style="color:#000000; font-weight:800;" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
               </div>
               <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px; color:#ffffff;"></div>
             </div>
