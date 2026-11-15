@@ -46,6 +46,142 @@ app.add_middleware(
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 
 # Helper to serialize sqlite rows with json fields parsed
+def normalize_ex_name(name: str) -> str:
+    if not name:
+        return ""
+    import unicodedata, re
+    n = unicodedata.normalize('NFD', name)
+    n = ''.join(c for c in n if unicodedata.category(c) != 'Mn')
+    n = n.lower()
+    n = re.sub(r'[^a-z0-9]', ' ', n)
+    return re.sub(r'\s+', ' ', n).strip()
+
+def build_exercise_library_lookup(cursor=None):
+    close_conn = False
+    if cursor is None:
+        conn = get_db()
+        cursor = conn.cursor()
+        close_conn = True
+    cursor.execute("SELECT id, name, video_url, coaching_cues, description FROM exercises")
+    rows = cursor.fetchall()
+    lookup = {}
+    import re
+    for r in rows:
+        vid = (r["video_url"] if isinstance(r, dict) or hasattr(r, "keys") and "video_url" in r.keys() else r[2]) or ""
+        if not vid or not vid.strip():
+            continue
+        raw_name = (r["name"] if isinstance(r, dict) or hasattr(r, "keys") and "name" in r.keys() else r[1]) or ""
+        cues = (r["coaching_cues"] if isinstance(r, dict) or hasattr(r, "keys") and "coaching_cues" in r.keys() else r[3]) or ""
+        desc = (r["description"] if isinstance(r, dict) or hasattr(r, "keys") and "description" in r.keys() else r[4]) or ""
+        notes = cues or desc or ""
+        meta = {"video_url": vid.strip(), "notes": notes.strip(), "canonical_name": raw_name}
+        
+        norm_full = normalize_ex_name(raw_name)
+        if norm_full:
+            lookup[norm_full] = meta
+        
+        # Split aliases in parentheses, e.g. Back Squat (Sentadilla Trasera)
+        parts = re.split(r'[\(\)\/]', raw_name)
+        for p in parts:
+            norm_p = normalize_ex_name(p)
+            if norm_p and len(norm_p) >= 3 and norm_p not in lookup:
+                lookup[norm_p] = meta
+
+    if close_conn:
+        conn.close()
+    return lookup
+
+def enrich_day_videos(d: dict, lookup: Optional[dict] = None):
+    try:
+        if lookup is None:
+            lookup = build_exercise_library_lookup()
+        if not lookup:
+            return d
+
+        import re
+        def attach_video(item: dict):
+            if not isinstance(item, dict):
+                return
+            name = item.get("name") or ""
+            cur_vid = (item.get("video_url") or "").strip()
+            if not cur_vid and name:
+                norm = normalize_ex_name(name)
+                match = lookup.get(norm)
+                if not match:
+                    for part in re.split(r'[\(\)\/]', name):
+                        norm_p = normalize_ex_name(part)
+                        if norm_p in lookup:
+                            match = lookup[norm_p]
+                            break
+                if not match and len(norm) >= 4:
+                    for k, v in lookup.items():
+                        if k.startswith(norm) or norm.startswith(k):
+                            match = v
+                            break
+                if match:
+                    item["video_url"] = match["video_url"]
+                    if not item.get("notes") and match.get("notes"):
+                        item["notes"] = match["notes"]
+            
+            # Check sub_exercises
+            for sub in (item.get("sub_exercises") or []):
+                attach_video(sub)
+
+        for ex in (d.get("warmup_exercises") or []):
+            attach_video(ex)
+        for part in (d.get("parts") or []):
+            for ex in (part.get("exercises") or []):
+                attach_video(ex)
+        wod = d.get("wod")
+        if isinstance(wod, dict):
+            for m in (wod.get("movements") or []):
+                attach_video(m)
+    except Exception as err:
+        print("enrich_day_videos error:", err)
+    return d
+
+def auto_sync_exercises_to_db(warmup_exercises, parts, wod, cursor):
+    try:
+        items_to_sync = []
+        def collect(item, default_cat="Fuerza"):
+            if not isinstance(item, dict):
+                return
+            name = (item.get("name") or "").strip()
+            vid = (item.get("video_url") or "").strip()
+            notes = (item.get("notes") or "").strip()
+            if name and vid:
+                items_to_sync.append({"name": name, "video_url": vid, "notes": notes, "category": default_cat})
+            for sub in (item.get("sub_exercises") or []):
+                collect(sub, default_cat)
+
+        for ex in (warmup_exercises or []):
+            collect(ex, "Calentamiento")
+        for part in (parts or []):
+            p_cat = (part.get("type") or "Fuerza").strip()
+            for ex in (part.get("exercises") or []):
+                collect(ex, p_cat)
+        if isinstance(wod, dict):
+            for m in (wod.get("movements") or []):
+                collect(m, "WOD")
+
+        for item in items_to_sync:
+            norm = normalize_ex_name(item["name"])
+            cursor.execute("SELECT id, video_url FROM exercises WHERE LOWER(name) = LOWER(?)", (item["name"],))
+            existing = cursor.fetchone()
+            if existing:
+                ex_id = existing[0]
+                cur_vid = (existing[1] or "").strip()
+                if not cur_vid:
+                    cursor.execute("UPDATE exercises SET video_url = ?, coaching_cues = ? WHERE id = ?", (item["video_url"], item["notes"], ex_id))
+            else:
+                is_ground = 1 if "ground" in norm else 0
+                cursor.execute("""
+                    INSERT INTO exercises (name, category, equipment, description, coaching_cues, video_url, is_ground, ground_flow_level)
+                    VALUES (?, ?, '[]', '', ?, ?, ?, 'N/A')
+                """, (item["name"], item["category"], item["notes"], item["video_url"], is_ground))
+    except Exception as err:
+        print("auto_sync_exercises_to_db error:", err)
+
 def row_to_day(row: sqlite3.Row):
     d = dict(row)
     d["warmup_type"] = d.get("warmup_type") or "Movilidad GROUND"
@@ -66,7 +202,7 @@ def row_to_day(row: sqlite3.Row):
         d["wod"] = json.loads(d.get("wod") or "{}")
     except Exception:
         d["wod"] = {}
-    return d
+    return enrich_day_videos(d)
 
 def row_to_exercise(row: sqlite3.Row):
     d = dict(row)
@@ -418,6 +554,7 @@ def update_day(day_id: int, d: DayUpdate, _coach=Depends(require_coach)):
         d.coaching_tips or "",
         day_id
     ))
+    auto_sync_exercises_to_db(d.warmup_exercises, d.parts, d.wod, cursor)
     conn.commit()
     conn.close()
     save_server_auto_backup()
@@ -469,7 +606,7 @@ def copy_day(source_day_id: int, target_day_id: int, _coach=Depends(require_coac
 # ================= EXERCISES & VIDEOS API =================
 
 @app.get("/api/exercises")
-def list_exercises(category: Optional[str] = None, ground_only: Optional[int] = None, _coach=Depends(require_coach)):
+def list_exercises(category: Optional[str] = None, ground_only: Optional[int] = None, _actor=Depends(require_student_or_coach)):
     conn = get_db()
     cursor = conn.cursor()
     query = "SELECT * FROM exercises WHERE 1=1"

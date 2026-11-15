@@ -1795,17 +1795,46 @@ textarea.input {
 
   /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF */
   .clean-pill-val,
-  body.alumnos-page .clean-pill-val {
+  body.alumnos-page .clean-pill-val,
+  .ex-col-sets .clean-pill-val,
+  .ex-col-reps .clean-pill-val {
     background: #bae6fd !important;
+    background-color: #bae6fd !important;
     color: #000000 !important;
     border: 1.2px solid #0284c7 !important;
     font-weight: 900 !important;
     font-size: 8.5pt !important;
-    padding: 1px 5px !important;
-    min-width: 28px !important;
+    padding: 2px 6px !important;
+    min-width: 32px !important;
     border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF */
+  .ex-clean-line,
+  body.alumnos-page .ex-clean-line {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    padding: 3px 6px !important;
+    margin-bottom: 2px !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .ex-col-name,
+  .ex-col-name strong,
+  body.alumnos-page .ex-col-name,
+  body.alumnos-page .ex-col-name strong {
+    color: #000000 !important;
+    background: transparent !important;
   }
 
   /* Secciones con Crono dentro de Warm Up o Bloques en PDF */

@@ -310,26 +310,125 @@ function populateExercisesDatalist() {
   const dl = $('libraryExercisesDatalist');
   if (!dl) return;
   dl.innerHTML = '';
+  const seen = new Set();
   (state.exercises || []).forEach((ex) => {
     if (!ex.name) return;
-    const opt = document.createElement('option');
-    opt.value = ex.name;
-    if (ex.category) opt.label = ex.category;
-    dl.appendChild(opt);
+    const namesToAdd = [ex.name.trim()];
+
+    // Extraer nombre principal antes de paréntesis
+    const mainMatch = ex.name.match(/^([^\(\/]+)/);
+    if (mainMatch && mainMatch[1].trim().length >= 3) {
+      namesToAdd.push(mainMatch[1].trim());
+    }
+
+    // Extraer alias dentro de paréntesis (ej: Back Squat (Sentadilla Trasera) o BMU)
+    const aliasMatches = ex.name.matchAll(/\(([^)]+)\)/g);
+    for (const m of aliasMatches) {
+      const alias = m[1].trim();
+      if (alias.length >= 2) {
+        namesToAdd.push(alias);
+        alias.split('/').forEach((subA) => {
+          if (subA.trim().length >= 3) namesToAdd.push(subA.trim());
+        });
+      }
+    }
+
+    namesToAdd.forEach((n) => {
+      const key = n.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        const opt = document.createElement('option');
+        opt.value = n;
+        if (n !== ex.name && ex.name) {
+          opt.label = `${ex.name}`;
+        } else if (ex.category) {
+          opt.label = `${ex.category}`;
+        }
+        dl.appendChild(opt);
+      }
+    });
   });
 }
 
+function findLibraryExercise(searchStr) {
+  if (!searchStr) return null;
+  const raw = searchStr.trim().toLowerCase();
+  if (!raw) return null;
+
+  const normalize = (s) => (s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normTarget = normalize(raw);
+  if (!normTarget) return null;
+
+  const list = state.exercises || [];
+
+  // 1. Coincidencia exacta cruda
+  let match = list.find((ex) => (ex.name || '').trim().toLowerCase() === raw);
+  if (match) return match;
+
+  // 2. Coincidencia normalizada completa
+  match = list.find((ex) => normalize(ex.name) === normTarget);
+  if (match) return match;
+
+  // 3. Coincidencia con nombre principal o alias entre paréntesis/barras
+  for (const ex of list) {
+    const exName = ex.name || '';
+    const normFull = normalize(exName);
+
+    const parts = exName.split(/[\(\)\/]/).map((p) => normalize(p)).filter(Boolean);
+    for (const part of parts) {
+      if (part === normTarget) return ex;
+    }
+
+    if (normFull.split(' ').includes(normTarget)) {
+      return ex;
+    }
+  }
+
+  // 4. Coincidencia por prefijo / inclusión (>= 4 caracteres)
+  if (normTarget.length >= 4) {
+    for (const ex of list) {
+      const normFull = normalize(ex.name);
+      if (normFull.startsWith(normTarget) || normTarget.startsWith(normFull)) {
+        return ex;
+      }
+    }
+  }
+
+  return null;
+}
+
 function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
-  const nameVal = (itemOrEx.name || '').trim().toLowerCase();
-  if (!nameVal) return false;
-  const match = (state.exercises || []).find((ex) => (ex.name || '').trim().toLowerCase() === nameVal);
+  if (!itemOrEx || !itemOrEx.name) return false;
+  const match = findLibraryExercise(itemOrEx.name);
   if (match) {
     let updated = false;
-    if (match.video_url && (!itemOrEx.video_url || itemOrEx.video_url.trim() === '')) {
+    if (match.video_url && itemOrEx.video_url !== match.video_url) {
       itemOrEx.video_url = match.video_url;
-      const vInp = rowEl.querySelector(`[data-wu-field="${fieldName}"], [data-ex-f="${fieldName}"], [data-sub-wu-f="${fieldName}"], [data-sub-part-f="${fieldName}"]`);
+      const vInp = rowEl.querySelector(`
+        [data-wu-field="${fieldName}"],
+        [data-ex-f="${fieldName}"],
+        [data-sub-wu-f="${fieldName}"],
+        [data-sub-part-f="${fieldName}"],
+        [data-timed-sub-wu-f="${fieldName}"],
+        [data-timed-sub-part-f="${fieldName}"]
+      `);
       if (vInp) vInp.value = match.video_url;
-      const playBtn = rowEl.querySelector('[data-play], [data-play-ex], [data-play-sub-wu], [data-play-sub-part]');
+
+      const playBtn = rowEl.querySelector(`
+        [data-play],
+        [data-play-ex],
+        [data-play-sub-wu],
+        [data-play-sub-part],
+        [data-play-timed-sub-wu],
+        [data-play-timed-sub-part]
+      `);
       if (playBtn) {
         playBtn.className = 'btn btn-sm btn-primary';
         playBtn.title = 'Ver vídeo explicativo';
@@ -338,17 +437,71 @@ function tryAutoLinkExercise(itemOrEx, rowEl, fieldName = 'video_url') {
     }
     if ((match.notes || match.coaching_cues) && (!itemOrEx.notes || itemOrEx.notes.trim() === '')) {
       itemOrEx.notes = match.notes || match.coaching_cues || '';
-      const nInp = rowEl.querySelector('[data-wu-field="notes"], [data-ex-f="notes"], [data-sub-wu-f="notes"], [data-sub-part-f="notes"]');
+      const nInp = rowEl.querySelector(`
+        [data-wu-field="notes"],
+        [data-ex-f="notes"],
+        [data-sub-wu-f="notes"],
+        [data-sub-part-f="notes"],
+        [data-timed-sub-wu-f="notes"],
+        [data-timed-sub-part-f="notes"]
+      `);
       if (nInp) nInp.value = itemOrEx.notes;
       updated = true;
     }
     if (updated) {
-      showToast(`⚡ Enlazado con biblioteca: "${match.name}"`);
+      showToast(`🎬 Vídeo vinculado de biblioteca: "${match.name}"`);
       triggerAutoSave(true);
     }
     return true;
   }
   return false;
+}
+
+async function autoSyncExerciseToLibrary(name, video_url, notes = '', category = 'Fuerza') {
+  const cleanName = (name || '').trim();
+  const cleanVideo = (video_url || '').trim();
+  if (!cleanName || !cleanVideo) return;
+
+  const existing = findLibraryExercise(cleanName);
+  try {
+    if (existing) {
+      if (existing.video_url !== cleanVideo) {
+        await api(`/api/exercises/${existing.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ video_url: cleanVideo, coaching_cues: notes || existing.coaching_cues }),
+        });
+        existing.video_url = cleanVideo;
+        if (notes) existing.coaching_cues = notes;
+        console.log(`✓ Vídeo actualizado en biblioteca para: ${existing.name}`);
+      }
+    } else {
+      const created = await api('/api/exercises', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: cleanName,
+          category: category || 'Fuerza',
+          equipment: [],
+          description: '',
+          coaching_cues: notes || '',
+          video_url: cleanVideo,
+          is_ground: cleanName.toUpperCase().includes('GROUND') ? 1 : 0,
+          ground_flow_level: 'N/A',
+        }),
+      });
+      state.exercises.push({
+        id: created.id || Date.now(),
+        name: cleanName,
+        category: category || 'Fuerza',
+        video_url: cleanVideo,
+        coaching_cues: notes || '',
+        is_ground: cleanName.toUpperCase().includes('GROUND') ? 1 : 0,
+      });
+      populateExercisesDatalist();
+      showToast(`💾 "${cleanName}" guardado en biblioteca con su vídeo`);
+    }
+  } catch (err) {
+    console.warn('autoSyncExerciseToLibrary error:', err);
+  }
 }
 
 async function loadMicrocycles(selectId = null) {
@@ -2821,6 +2974,33 @@ $('btnRunWodGen').addEventListener('click', async () => {
 // ================= AUTOGUARDADO AUTOMÁTICO =================
 function buildCurrentDayPayload() {
   if (!state.currentDay) return null;
+
+  // Asegurar que cualquier ejercicio con nombre enlace automáticamente su vídeo de biblioteca si está vacío,
+  // y auto-sincronizar en la biblioteca cualquier ejercicio que tenga nombre y vídeo introducido
+  const ensureExerciseVideo = (item, defaultCat = 'Fuerza') => {
+    if (!item || !item.name) return;
+    if (!item.video_url || item.video_url.trim() === '') {
+      const match = findLibraryExercise(item.name);
+      if (match && match.video_url) {
+        item.video_url = match.video_url;
+        if (!item.notes && (match.coaching_cues || match.description)) {
+          item.notes = match.coaching_cues || match.description;
+        }
+      }
+    } else {
+      autoSyncExerciseToLibrary(item.name, item.video_url, item.notes, defaultCat);
+    }
+    (item.sub_exercises || []).forEach((sub) => ensureExerciseVideo(sub, defaultCat));
+  };
+
+  (state.currentDay.warmup_exercises || []).forEach((ex) => ensureExerciseVideo(ex, 'Calentamiento'));
+  (state.currentDay.parts || []).forEach((p) => {
+    (p.exercises || []).forEach((ex) => ensureExerciseVideo(ex, p.type || 'Fuerza'));
+  });
+  if (state.currentDay.wod && Array.isArray(state.currentDay.wod.movements)) {
+    state.currentDay.wod.movements.forEach((m) => ensureExerciseVideo(m, 'WOD'));
+  }
+
   return {
     title: $('dayTitle')?.value.trim() || `Día ${state.currentDay.day_number}`,
     warmup_type: $('warmupTypeSelect')?.value || 'Movilidad GROUND',
