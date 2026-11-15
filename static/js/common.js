@@ -196,24 +196,33 @@ export function formatWeekDateRange(mc, weekNumber) {
 }
 
 export function cleanMesocycleTitle(mc) {
-  if (!mc) return 'MESOCICLO 1';
+  if (!mc) return 'MESOCICLO';
   const rawName = (mc.name || '').trim();
   const goal = (mc.primary_goal || '').trim();
 
-  // Detectar si el usuario especificó un número de mesociclo (ej. "Mesociclo 1")
-  let num = mc.id || 1;
-  const numMatches = [...rawName.matchAll(/mesociclo\s*[:\-–]?\s*(\d+)/gi)];
-  if (numMatches.length > 0) {
-    num = numMatches[numMatches.length - 1][1];
+  if (!rawName) {
+    let title = 'MESOCICLO';
+    if (goal) title += ` (${goal})`;
+    return title;
   }
 
-  // Eliminar prefijos repetidos tipo "MESOCICLO X:" o "MESOCICLO:"
-  let cleanName = rawName.replace(/mesociclo\s*[:\-–]?\s*(\d+)?\s*[:\-–]?/gi, '').trim();
-  cleanName = cleanName.replace(/^[:\-–\s]+/, '').trim();
-
-  let title = `MESOCICLO ${num}`;
-  if (cleanName) {
-    title += `: ${cleanName}`;
+  let title = rawName;
+  const mcMatch = rawName.match(/^(?:mesociclo|microciclo)\s*(\d+)?\s*[:\-–]?\s*(.*)$/i);
+  if (mcMatch) {
+    const num = mcMatch[1];
+    const rest = (mcMatch[2] || '').trim();
+    if (num && rest) {
+      title = `MESOCICLO ${num}: ${rest}`;
+    } else if (num) {
+      title = `MESOCICLO ${num}`;
+    } else if (rest) {
+      title = `MESOCICLO: ${rest}`;
+    } else {
+      title = 'MESOCICLO';
+    }
+  } else {
+    // Si el usuario puso un nombre personalizado directo (ej. "Resistencia" o "Fuerza Máxima")
+    title = `MESOCICLO: ${rawName}`;
   }
 
   if (goal && !title.toLowerCase().includes(goal.toLowerCase())) {

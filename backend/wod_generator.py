@@ -450,13 +450,24 @@ def build_amrap(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[st
     lines = []
     rx_notes = []
     scaled_notes = []
+    exercises = []
 
     for m in moves:
         reps = m.get("reps_amrap", 10)
         lines.append(f"- {reps} {m['name']}")
+        rx_cue = ""
         if m.get("rx_m") and m["rx_m"] not in ("Sin peso", "Comba", "Rx"):
             rx_notes.append(f"{m['name']}: {m['rx_m']} / {m['rx_f']}")
             scaled_notes.append(f"{m['name']}: -35% carga")
+            rx_cue = f"Rx: {m['rx_m']} / {m['rx_f']}"
+        exercises.append({
+            "sets": "",
+            "reps": str(reps),
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": rx_cue,
+            "sub_exercises": []
+        })
 
     description = "\n".join(lines)
     title = random.choice(['Iron Will', 'Velocity', 'Apex Predator', 'Engine Lab', 'Tormenta', 'Thunderstrike'])
@@ -471,6 +482,7 @@ def build_amrap(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[st
         "scaled_weights": "; ".join(scaled_notes) if scaled_notes else "Ajustar repeticiones al 75%",
         "target_score": f"{est_rounds} a {est_rounds + 2} rondas completas",
         "strategy": "Pacing sostenible y transiciones rápidas.",
+        "exercises": exercises,
     }
 
 def build_emom(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str, Any]:
@@ -481,13 +493,24 @@ def build_emom(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str
     lines = []
     rx_notes = []
     scaled_notes = []
+    exercises = []
 
     for i, m in enumerate(moves, 1):
         reps = m.get("reps_emom", 8)
         lines.append(f"- Minuto {i}: {reps} {m['name']}")
+        rx_cue = ""
         if m.get("rx_m") and m["rx_m"] not in ("Sin peso", "Rx"):
             rx_notes.append(f"{m['name']}: {m['rx_m']} / {m['rx_f']}")
             scaled_notes.append(f"{m['name']}: reducir 2-3 reps")
+            rx_cue = f"Rx: {m['rx_m']} / {m['rx_f']}"
+        exercises.append({
+            "sets": f"Min {i}",
+            "reps": str(reps),
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": rx_cue,
+            "sub_exercises": []
+        })
 
     if include_rest:
         lines.append(f"- Minuto {cycle_len}: Descanso activo")
@@ -504,18 +527,30 @@ def build_emom(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str
         "scaled_weights": "; ".join(scaled_notes) if scaled_notes else "Adaptar repeticiones a 40s trabajo / 20s descanso",
         "target_score": "Completar todos los intervalos dentro del minuto.",
         "strategy": "Ritmo constante desde el primer minuto.",
+        "exercises": exercises,
     }
 
 def build_for_time(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str, Any]:
     lines = []
     rx_notes = []
     scaled_notes = []
+    exercises = []
 
     if len(moves) == 2 and minutes <= 14:
         for m in moves:
+            rx_cue = ""
             if m.get("rx_m") and m["rx_m"] not in ("Sin peso", "Rx"):
                 rx_notes.append(f"{m['name']}: {m['rx_m']} / {m['rx_f']}")
                 scaled_notes.append(f"{m['name']}: carga adaptada")
+                rx_cue = f"Rx: {m['rx_m']} / {m['rx_f']}"
+            exercises.append({
+                "sets": "",
+                "reps": "21-15-9",
+                "name": m["name"],
+                "video_url": m.get("video_url", ""),
+                "notes": rx_cue,
+                "sub_exercises": []
+            })
         description = f"21 - 15 - 9 Repeticiones:\n- {moves[0]['name']}\n- {moves[1]['name']}"
         title = "Fast & Furious 21-15-9"
     else:
@@ -523,9 +558,19 @@ def build_for_time(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict
         for m in moves:
             reps = m.get("reps_ft", 15)
             lines.append(f"- {reps} {m['name']}")
+            rx_cue = ""
             if m.get("rx_m") and m["rx_m"] not in ("Sin peso", "Rx"):
                 rx_notes.append(f"{m['name']}: {m['rx_m']} / {m['rx_f']}")
                 scaled_notes.append(f"{m['name']}: carga moderada escalada")
+                rx_cue = f"Rx: {m['rx_m']} / {m['rx_f']}"
+            exercises.append({
+                "sets": f"{num_rounds} rondas",
+                "reps": str(reps),
+                "name": m["name"],
+                "video_url": m.get("video_url", ""),
+                "notes": rx_cue,
+                "sub_exercises": []
+            })
         description = f"{num_rounds} Rondas:\n" + "\n".join(lines)
         title = random.choice(['Metcon Rush', 'Vanguard', 'Titan Track', 'The Crucible'])
 
@@ -538,12 +583,24 @@ def build_for_time(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict
         "scaled_weights": "; ".join(scaled_notes) if scaled_notes else "Escalar repeticiones o peso",
         "target_score": f"Sub {int(minutes * 0.75)} minutos",
         "strategy": "Empezar al 85% y apretar en la última ronda.",
+        "exercises": exercises,
     }
 
 def build_tabata(moves: List[Dict[str, Any]]) -> Dict[str, Any]:
     selected = moves[:4] if len(moves) >= 4 else moves
     lines = [f"- Bloque {i}: {m['name']} (20s Trabajo / 10s Descanso x8)" for i, m in enumerate(selected, 1)]
     total_min = len(selected) * 4
+    exercises = [
+        {
+            "sets": "8 rondas",
+            "reps": "20s/10s",
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": "20s Trabajo / 10s Descanso",
+            "sub_exercises": []
+        }
+        for m in selected
+    ]
 
     return {
         "title": random.choice(['Tabata Storm', 'Tabata Madness', 'High Voltage']),
@@ -554,19 +611,31 @@ def build_tabata(moves: List[Dict[str, Any]]) -> Dict[str, Any]:
         "scaled_weights": "Ritmo moderado en trabajo",
         "target_score": "Contar la ronda de menor puntuación",
         "strategy": "Mantener intensidad constante en todas las rondas.",
+        "exercises": exercises,
     }
 
 def build_chipper(moves: List[Dict[str, Any]], minutes: int) -> Dict[str, Any]:
     lines = []
     rx_notes = []
     scaled_notes = []
+    exercises = []
 
     for m in moves:
         reps = m.get("reps_ft", 15) * 2
         lines.append(f"- {reps} {m['name']}")
+        rx_cue = ""
         if m.get("rx_m") and m["rx_m"] not in ("Sin peso", "Rx"):
             rx_notes.append(f"{m['name']}: {m['rx_m']} / {m['rx_f']}")
             scaled_notes.append(f"{m['name']}: reducir 40% reps")
+            rx_cue = f"Rx: {m['rx_m']} / {m['rx_f']}"
+        exercises.append({
+            "sets": "1 serie",
+            "reps": str(reps),
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": rx_cue,
+            "sub_exercises": []
+        })
 
     description = "\n".join(lines)
     return {
@@ -578,12 +647,24 @@ def build_chipper(moves: List[Dict[str, Any]], minutes: int) -> Dict[str, Any]:
         "scaled_weights": "; ".join(scaled_notes) if scaled_notes else "Escalar volumen",
         "target_score": f"Terminar antes de {minutes} min",
         "strategy": "Partir en series cortas con descansos breves.",
+        "exercises": exercises,
     }
 
 def build_endurance(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str, Any]:
     stations = len(moves)
     rounds = max(3, int(minutes / max(3, stations)))
     lines = [f"- {int(m.get('reps_amrap', 12) * 1.2)} {m['name']}" for m in moves]
+    exercises = [
+        {
+            "sets": f"{rounds} rondas",
+            "reps": str(int(m.get("reps_amrap", 12) * 1.2)),
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": "",
+            "sub_exercises": []
+        }
+        for m in moves
+    ]
 
     description = f"{rounds} Rondas continuas:\n" + "\n".join(lines)
     title = random.choice(['Steady Diesel', 'Aero Lab', 'Oxygen Flow', 'Iron Lung'])
@@ -597,11 +678,23 @@ def build_endurance(moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dic
         "scaled_weights": "Ritmo conversacional",
         "target_score": f"Completar {rounds} rondas a ritmo estable",
         "strategy": "Pacing aeróbico constante sin picos de fatiga.",
+        "exercises": exercises,
     }
 
 def build_custom_wod_style(style_name: str, moves: List[Dict[str, Any]], minutes: int, goal: str) -> Dict[str, Any]:
     lines = [f"- {m.get('reps_amrap', 10)} {m['name']}" for m in moves]
     clean_style = style_name.strip()
+    exercises = [
+        {
+            "sets": "",
+            "reps": str(m.get("reps_amrap", 10)),
+            "name": m["name"],
+            "video_url": m.get("video_url", ""),
+            "notes": "",
+            "sub_exercises": []
+        }
+        for m in moves
+    ]
 
     return {
         "title": random.choice(['Vanguard', 'Apex', 'Thunder', 'Titan']),
@@ -612,4 +705,5 @@ def build_custom_wod_style(style_name: str, moves: List[Dict[str, Any]], minutes
         "scaled_weights": "Escalar según nivel",
         "target_score": f"Completar en {minutes} min",
         "strategy": "Técnica y ritmo estable.",
+        "exercises": exercises,
     }

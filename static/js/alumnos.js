@@ -645,6 +645,10 @@ function renderCurrentDay(resetTimer = true) {
     }
   }
 
+  const wodExercises = Array.isArray(wod.exercises) && wod.exercises.length > 0
+    ? wod.exercises
+    : (Array.isArray(wod.movements) ? wod.movements : []);
+
   // Limpiar descripciones para que no repitan en la primera línea el título o tipo de WOD
   let wodDescLines = (wod.description || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (wodDescLines.length > 0) {
@@ -729,15 +733,13 @@ function renderCurrentDay(resetTimer = true) {
     <div class="card card-session-sheet">
       <div class="section-badge-banner">WOD FINAL</div>
       <div class="session-subheading" style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">${esc(wodHeaderLine)}</div>
-      ${cleanWodDesc ? `<div class="wod-pre-clean">${esc(cleanWodDesc)}</div>` : '<div class="session-body-text">Sin descripción.</div>'}
+      ${cleanWodDesc ? `<div class="wod-pre-clean">${esc(cleanWodDesc)}</div>` : ''}
       ${wod.rx_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
       ${wod.scaled_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:2px;"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
-      ${(wod.movements || []).length > 0 ? `
-        <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.25); border-radius:8px;">
-          <div style="font-size:0.82rem; font-weight:800; color:#ffffff; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>
-          <div id="stuWodMovements"></div>
-        </div>
-      ` : ''}
+      ${wod.strategy ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
+      ${wodExercises.length > 0 ? `
+        <div class="ex-clean-list" id="stuWodList" style="margin-top:8px;"></div>
+      ` : (!cleanWodDesc ? '<div class="session-body-text">Sin ejercicios ni descripción añadida en el WOD.</div>' : '')}
       ${wodSpec ? renderCronoProLinkHtml(wodSpec) : ''}
     </div>
   `;
@@ -795,26 +797,24 @@ function renderCurrentDay(resetTimer = true) {
     }, 1500);
   });
 
-  // Populate Warmup clean rows: SETS | REPS | MOVE | VIDEO
-  const wuWrap = $('stuWarmupList');
-  if (wuWrap) {
-    if (wu.length > 0) {
-      const hdr = document.createElement('div');
-      hdr.className = 'ex-columns-header';
-      hdr.innerHTML = `
-        <div class="ex-col-cell ex-col-sets">SETS</div>
-        <div class="ex-col-cell ex-col-reps">REPS</div>
-        <div class="ex-col-name">MOVE</div>
-        <div class="ex-col-action no-print">VIDEO</div>
-      `;
-      wuWrap.appendChild(hdr);
-    }
+  // Función unificada para renderizar listas de ejercicios con la misma estructura (SETS | REPS | MOVE | VIDEO)
+  function renderStudentExerciseRows(targetWrap, exercises, prefix = 'ex') {
+    if (!targetWrap || !Array.isArray(exercises) || exercises.length === 0) return;
+    const hdr = document.createElement('div');
+    hdr.className = 'ex-columns-header';
+    hdr.innerHTML = `
+      <div class="ex-col-cell ex-col-sets">SETS</div>
+      <div class="ex-col-cell ex-col-reps">REPS</div>
+      <div class="ex-col-name">MOVE</div>
+      <div class="ex-col-action no-print">VIDEO</div>
+    `;
+    targetWrap.appendChild(hdr);
 
-    wu.forEach((item, itemIdx) => {
-      // Si es una sección con crono dentro del calentamiento (ej. AMRAP, EMOM, TABATA, FOR TIME)
+    exercises.forEach((item, itemIdx) => {
+      // Bloques con cronómetro incrustados (AMRAP, EMOM, TABATA, FOR TIME)
       if (item.is_timed_section) {
         const timedSpec = {
-          id: `wu-timed-${itemIdx}`,
+          id: `${prefix}-timed-${itemIdx}`,
           label: item.name || `${item.timer_type || 'AMRAP'} (${item.timer_minutes || 10} min)`,
           mode: item.timer_type || 'AMRAP',
           minutes: Number(item.timer_minutes) || 10,
@@ -839,27 +839,34 @@ function renderCurrentDay(resetTimer = true) {
               <div class="ex-col-name">MOVE</div>
               <div class="ex-col-action no-print">VIDEO</div>
             </div>
-            ${subs.map((sub) => `
-              <div class="ex-clean-line">
-                <div class="ex-col-cell ex-col-sets">
-                  <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
+            ${subs.map((sub) => {
+              const subMeta = [];
+              if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
+              if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
+              const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
+              return `
+                <div class="ex-clean-line">
+                  <div class="ex-col-cell ex-col-sets">
+                    <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
+                  </div>
+                  <div class="ex-col-cell ex-col-reps">
+                    <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
+                  </div>
+                  <div class="ex-col-name">
+                    <strong>${esc(sub.name)}</strong>
+                    ${subMetaHtml}
+                    ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
+                  </div>
+                  <div class="ex-col-action">
+                    ${sub.video_url ? `
+                      <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                        🎬 <span class="video-btn-text">Vídeo</span>
+                      </button>
+                    ` : '<span style="display:inline-block; width:100%;"></span>'}
+                  </div>
                 </div>
-                <div class="ex-col-cell ex-col-reps">
-                  <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
-                </div>
-                <div class="ex-col-name">
-                  <strong>${esc(sub.name)}</strong>
-                  ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
-                </div>
-                <div class="ex-col-action">
-                  ${sub.video_url ? `
-                    <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
-                      🎬 <span class="video-btn-text">Vídeo</span>
-                    </button>
-                  ` : '<span style="display:inline-block; width:100%;"></span>'}
-                </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           `;
         }
 
@@ -871,11 +878,16 @@ function renderCurrentDay(resetTimer = true) {
           ${subsHtml}
           ${renderCronoProLinkHtml(timedSpec)}
         `;
-        wuWrap.appendChild(timedBox);
+        targetWrap.appendChild(timedBox);
         return;
       }
 
       const hasSubs = Array.isArray(item.sub_exercises) && item.sub_exercises.length > 0;
+      const meta = [];
+      if (item.load) meta.push(`Carga: ${esc(item.load)}`);
+      if (item.rest) meta.push(`Descanso: ${esc(item.rest)}`);
+      const metaHtml = meta.length > 0 ? `<div class="ex-meta-text">🏋️ ${meta.join(' · ')}</div>` : '';
+
       if (!hasSubs) {
         const row = document.createElement('div');
         row.className = 'ex-clean-line';
@@ -888,6 +900,7 @@ function renderCurrentDay(resetTimer = true) {
           </div>
           <div class="ex-col-name">
             <strong>${esc(item.name)}</strong>
+            ${metaHtml}
             ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
           </div>
           <div class="ex-col-action">
@@ -898,11 +911,10 @@ function renderCurrentDay(resetTimer = true) {
             ` : '<span style="display:inline-block; width:100%;"></span>'}
           </div>
         `;
-        wuWrap.appendChild(row);
+        targetWrap.appendChild(row);
       } else {
         const box = document.createElement('div');
         box.className = 'ex-group-card';
-        
         let subHtml = `
           <div class="ex-clean-line" style="margin-bottom:4px;">
             <div class="ex-col-cell ex-col-sets">
@@ -913,6 +925,7 @@ function renderCurrentDay(resetTimer = true) {
             </div>
             <div class="ex-col-name">
               <strong>${esc(item.name)}</strong>
+              ${metaHtml}
               ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
             </div>
             <div class="ex-col-action">
@@ -924,18 +937,22 @@ function renderCurrentDay(resetTimer = true) {
             </div>
           </div>
         `;
-
         item.sub_exercises.forEach((sub, sIdx) => {
+          const subMeta = [];
+          if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
+          if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
+          const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
           subHtml += `
-            <div class="ex-clean-line" style="margin-bottom:4px;">
+            <div class="ex-clean-line" style="margin-top:4px;">
               <div class="ex-col-cell ex-col-sets">
-                <span class="clean-pill-val superserie-plus">+</span>
+                <span class="clean-pill-val" style="opacity:0.75;">+ ${sIdx + 2}</span>
               </div>
               <div class="ex-col-cell ex-col-reps">
                 <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
               </div>
               <div class="ex-col-name">
                 <strong>${esc(sub.name)}</strong>
+                ${subMetaHtml}
                 ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
               </div>
               <div class="ex-col-action">
@@ -948,194 +965,35 @@ function renderCurrentDay(resetTimer = true) {
             </div>
           `;
         });
-
         box.innerHTML = subHtml;
-        wuWrap.appendChild(box);
+        targetWrap.appendChild(box);
       }
     });
   }
 
-  // Populate Parts clean rows: SETS | REPS | MOVE | VIDEO
+  // Populate Warmup clean rows: SETS | REPS | MOVE | VIDEO
+  const wuWrap = $('stuWarmupList');
+  if (wuWrap) {
+    renderStudentExerciseRows(wuWrap, wu, 'wu');
+  }
+
+  // 2. Populate Parts clean rows: SETS | REPS | MOVE | VIDEO
   parts.forEach((p, idx) => {
     const pWrap = container.querySelector(`.stu-part-ex[data-part-idx="${idx}"]`);
     if (pWrap) {
-      if ((p.exercises || []).length > 0) {
-        const hdr = document.createElement('div');
-        hdr.className = 'ex-columns-header';
-        hdr.innerHTML = `
-          <div class="ex-col-cell ex-col-sets">SETS</div>
-          <div class="ex-col-cell ex-col-reps">REPS</div>
-          <div class="ex-col-name">MOVE</div>
-          <div class="ex-col-action no-print">VIDEO</div>
-        `;
-        pWrap.appendChild(hdr);
-      }
-
-      (p.exercises || []).forEach((ex, exIdx) => {
-        // Si es una sección con crono dentro del bloque (ej. AMRAP, EMOM, TABATA, FOR TIME)
-        if (ex.is_timed_section) {
-          const timedSpec = {
-            id: `part-${idx}-timed-${exIdx}`,
-            label: ex.name || `${ex.timer_type || 'AMRAP'} (${ex.timer_minutes || 10} min)`,
-            mode: ex.timer_type || 'AMRAP',
-            minutes: Number(ex.timer_minutes) || 10,
-            workSec: Number(ex.tabata_work !== undefined ? ex.tabata_work : 20),
-            restSec: Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10),
-            tabataRounds: Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8),
-            intervalSec: Number(ex.emom_interval !== undefined ? ex.emom_interval : 60),
-            rounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10),
-          };
-          currentDaySpecs[timedSpec.id] = timedSpec;
-
-          const timedBox = document.createElement('div');
-          timedBox.className = 'timed-section-student-card';
-
-          let subsHtml = '';
-          const subs = Array.isArray(ex.sub_exercises) ? ex.sub_exercises : [];
-          if (subs.length > 0) {
-            subsHtml = `
-              <div class="ex-columns-header" style="margin-top:8px;">
-                <div class="ex-col-cell ex-col-sets">SETS</div>
-                <div class="ex-col-cell ex-col-reps">REPS</div>
-                <div class="ex-col-name">MOVE</div>
-                <div class="ex-col-action no-print">VIDEO</div>
-              </div>
-              ${subs.map((sub) => `
-                <div class="ex-clean-line">
-                  <div class="ex-col-cell ex-col-sets">
-                    <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
-                  </div>
-                  <div class="ex-col-cell ex-col-reps">
-                    <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
-                  </div>
-                  <div class="ex-col-name">
-                    <strong>${esc(sub.name)}</strong>
-                    ${sub.load ? `<div class="ex-meta-text">🏋️ Carga: ${esc(sub.load)}</div>` : ''}
-                    ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
-                  </div>
-                  <div class="ex-col-action">
-                    ${sub.video_url ? `
-                      <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
-                        🎬 <span class="video-btn-text">Vídeo</span>
-                      </button>
-                    ` : '<span style="display:inline-block; width:100%;"></span>'}
-                  </div>
-                </div>
-              `).join('')}
-            `;
-          }
-
-          timedBox.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-              <span class="timed-section-student-badge">⏱ ${esc(ex.name || ex.timer_type || 'AMRAP')}</span>
-            </div>
-            ${ex.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(ex.notes)}</div>` : ''}
-            ${subsHtml}
-            ${renderCronoProLinkHtml(timedSpec)}
-          `;
-          pWrap.appendChild(timedBox);
-          return;
-        }
-
-        const hasSubs = Array.isArray(ex.sub_exercises) && ex.sub_exercises.length > 0;
-        const metaParts = [];
-        if (ex.load) metaParts.push(`Carga: ${esc(ex.load)}`);
-        if (ex.rest) metaParts.push(`Descanso: ${esc(ex.rest)}`);
-        const metaHtml = metaParts.length > 0 ? `<div class="ex-meta-text">🏋️ ${metaParts.join(' · ')}</div>` : '';
-        const notesHtml = ex.notes ? `<div class="ex-notes-text">${esc(ex.notes)}</div>` : '';
-
-        if (!hasSubs) {
-          const row = document.createElement('div');
-          row.className = 'ex-clean-line';
-          row.innerHTML = `
-            <div class="ex-col-cell ex-col-sets">
-              <span class="clean-pill-val">${cleanSetsVal(ex.sets) || '-'}</span>
-            </div>
-            <div class="ex-col-cell ex-col-reps">
-              <span class="clean-pill-val">${esc(ex.reps || '-')}</span>
-            </div>
-            <div class="ex-col-name">
-              <strong>${esc(ex.name)}</strong>
-              ${metaHtml}
-              ${notesHtml}
-            </div>
-            <div class="ex-col-action">
-              ${ex.video_url ? `
-                <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
-                  🎬 <span class="video-btn-text">Vídeo</span>
-                </button>
-              ` : '<span style="display:inline-block; width:100%;"></span>'}
-            </div>
-          `;
-          pWrap.appendChild(row);
-        } else {
-          const box = document.createElement('div');
-          box.className = 'ex-group-card';
-          
-          let subHtml = `
-            <div class="ex-clean-line" style="margin-bottom:4px;">
-              <div class="ex-col-cell ex-col-sets">
-                <span class="clean-pill-val">${cleanSetsVal(ex.sets) || '1'}</span>
-              </div>
-              <div class="ex-col-cell ex-col-reps">
-                <span class="clean-pill-val">${esc(ex.reps || '-')}</span>
-              </div>
-              <div class="ex-col-name">
-                <strong>${esc(ex.name)}</strong>
-                ${metaHtml}
-                ${notesHtml}
-              </div>
-              <div class="ex-col-action">
-                ${ex.video_url ? `
-                  <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(ex.name)}" data-url="${esc(ex.video_url)}" data-notes="${esc(ex.notes || '')}" title="Ver vídeo explicativo">
-                    🎬 <span class="video-btn-text">Vídeo</span>
-                  </button>
-                ` : '<span style="display:inline-block; width:100%;"></span>'}
-              </div>
-            </div>
-          `;
-
-          ex.sub_exercises.forEach((sub, sIdx) => {
-            const subMeta = [];
-            if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
-            if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
-            const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-            const subNotesHtml = sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : '';
-
-            subHtml += `
-              <div class="ex-clean-line" style="margin-bottom:4px;">
-                <div class="ex-col-cell ex-col-sets">
-                  <span class="clean-pill-val superserie-plus">+</span>
-                </div>
-                <div class="ex-col-cell ex-col-reps">
-                  <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
-                </div>
-                <div class="ex-col-name">
-                  <strong>${esc(sub.name)}</strong>
-                  ${subMetaHtml}
-                  ${subNotesHtml}
-                </div>
-                <div class="ex-col-action">
-                  ${sub.video_url ? `
-                    <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
-                      🎬 <span class="video-btn-text">Vídeo</span>
-                    </button>
-                  ` : '<span style="display:inline-block; width:100%;"></span>'}
-                </div>
-              </div>
-            `;
-          });
-
-          box.innerHTML = subHtml;
-          pWrap.appendChild(box);
-        }
-      });
+      renderStudentExerciseRows(pWrap, p.exercises || [], `part-${idx}`);
     }
   });
 
-  // Populate WOD movements videos
+  // 3. Populate WOD Final clean rows: SETS | REPS | MOVE | VIDEO
+  const wodWrap = $('stuWodList');
+  if (wodWrap) {
+    renderStudentExerciseRows(wodWrap, wodExercises, 'wod');
+  }
+
+  // Fallback: Populate legacy WOD movements videos if no structured exercises
   const wodMovWrap = $('stuWodMovements');
-  if (wodMovWrap) {
+  if (wodMovWrap && wodExercises.length === 0) {
     (wod.movements || []).forEach((m) => {
       const box = document.createElement('div');
       box.className = 'wod-video-item';

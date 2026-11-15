@@ -739,7 +739,29 @@ async function openDayEditor(dayId) {
 
   // WOD
   if (!state.currentDay.wod) state.currentDay.wod = {};
-  if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = [];
+  if (!Array.isArray(state.currentDay.wod.exercises)) {
+    if (Array.isArray(state.currentDay.wod.movements) && state.currentDay.wod.movements.length > 0) {
+      state.currentDay.wod.exercises = state.currentDay.wod.movements.map((m) => ({
+        sets: m.sets || '',
+        reps: m.reps || '',
+        name: m.name || '',
+        video_url: m.video_url || '',
+        notes: m.notes || '',
+        sub_exercises: Array.isArray(m.sub_exercises) ? m.sub_exercises : [],
+        is_timed_section: Boolean(m.is_timed_section),
+        timer_type: m.timer_type || 'AMRAP',
+        timer_minutes: m.timer_minutes || 10,
+        tabata_work: m.tabata_work,
+        tabata_rest: m.tabata_rest,
+        tabata_rounds: m.tabata_rounds,
+        emom_interval: m.emom_interval,
+        emom_rounds: m.emom_rounds,
+      }));
+    } else {
+      state.currentDay.wod.exercises = [];
+    }
+  }
+  if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = state.currentDay.wod.exercises;
   const wod = state.currentDay.wod;
   $('wodTitle').value = wod.title || '';
   $('wodType').value = wod.type || 'AMRAP';
@@ -779,7 +801,7 @@ async function openDayEditor(dayId) {
 
   renderWarmupList();
   renderPartsList();
-  renderWodMovementsList();
+  renderWodExercisesList();
   renderDaysGrid();
 }
 
@@ -1970,78 +1992,507 @@ function renderPartsList() {
   });
 }
 
-function renderWodMovementsList() {
-  const list = $('wodMovementsList');
+function renderWodExercisesList() {
+  const list = $('wodExercisesList') || $('wodMovementsList');
   if (!list || !state.currentDay) return;
   if (!state.currentDay.wod) state.currentDay.wod = {};
-  const moves = state.currentDay.wod.movements || [];
-  if (moves.length === 0) {
-    list.innerHTML = '<p class="muted" style="margin:0;">Sin vídeos añadidos aún. Añade movimientos desde la biblioteca o manualmente si requieren explicación.</p>';
+  if (!Array.isArray(state.currentDay.wod.exercises)) {
+    state.currentDay.wod.exercises = [];
+  }
+  const items = state.currentDay.wod.exercises;
+  if (items.length === 0) {
+    list.innerHTML = '<p class="muted" style="margin:8px 0;">Sin ejercicios añadidos en el WOD Final. Pulsa "+ Añadir Ejercicio", "📚 Biblioteca" o utiliza el "⚡ Generador de WOD".</p>';
     return;
   }
   list.innerHTML = '';
-  moves.forEach((m, idx) => {
-    const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent((m.name || 'crossfit').trim() + ' crossfit tutorial')}`;
+
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;';
+  hdr.innerHTML = `
+    <div style="width:75px; text-align:center;">SETS</div>
+    <div style="width:85px; text-align:center;">REPS</div>
+    <div style="flex:1; min-width:140px;">MOVE</div>
+    <div style="flex:1.2; min-width:160px;">VIDEO</div>
+    <div style="width:160px; text-align:right;">ACCIONES</div>
+  `;
+  list.appendChild(hdr);
+
+  items.forEach((item, idx) => {
+    if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
+
+    // SECCIÓN CON CRONÓMETRO DENTRO DEL WOD (AMRAP, EMOM, TABATA, FOR TIME)
+    if (item.is_timed_section) {
+      const row = document.createElement('div');
+      row.className = 'timed-section-coach-box';
+      const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
+      const normTimer = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(curTimer) ? curTimer : 'AMRAP';
+
+      let subExercisesHtml = '';
+      (item.sub_exercises || []).forEach((sub, sIdx) => {
+        subExercisesHtml += `
+          <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+              <div style="width:75px; flex-shrink:0;">
+                <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-wod-f="sets" data-sub-idx="${sIdx}" placeholder="SETS" value="${esc(sub.sets || '')}" title="Series o rondas (opcional)" />
+              </div>
+              <div style="width:85px; flex-shrink:0;">
+                <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-wod-f="reps" data-sub-idx="${sIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+              </div>
+              <div style="flex:1; min-width:140px;">
+                <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-timed-sub-wod-f="name" data-sub-idx="${sIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
+              </div>
+              <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+                <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-timed-sub-wod-f="video_url" data-sub-idx="${sIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
+                <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-timed-sub-wod="${sIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+              </div>
+              <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+                <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-wod="${sIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+                <button class="btn btn-danger btn-sm" type="button" data-del-timed-sub-wod="${sIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
+              </div>
+            </div>
+            <div>
+              <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-timed-sub-wod-f="notes" data-sub-idx="${sIdx}" placeholder="Notas o detalles..." value="${esc(sub.notes || '')}" />
+            </div>
+          </div>
+        `;
+      });
+
+      row.innerHTML = `
+        <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN WOD</span>
+            <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#f59e0b; background:#0c121e; border-color:#f59e0b;" data-wod-timed-field="timer_type">
+              ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </div>
+          <div class="row-wrap" style="gap:6px;">
+            <button class="btn btn-sm btn-outline" type="button" data-test-wod-timed="${idx}" title="Probar en Crono Pro" style="border-color:#f59e0b; color:#f59e0b; font-weight:800;">⚡ Probar Crono Pro</button>
+            <button class="btn btn-danger btn-sm" type="button" data-del-wod-ex="${idx}" title="Eliminar este bloque con crono">✕</button>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div style="flex:2; min-width:180px;">
+            <label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Título / Formato visible</label>
+            <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wod-timed-field="name" value="${esc(item.name || '')}" placeholder="Ej: AMRAP (10 min) / 21-15-9..." />
+          </div>
+          <div style="flex:1; min-width:100px;">
+            <label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Minutos / Cap</label>
+            <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-wod-timed-field="timer_minutes" value="${esc(item.timer_minutes || 10)}" />
+          </div>
+        </div>
+
+        ${normTimer === 'TABATA' ? `
+          <div class="grid-3" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+            <div><label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Trabajo (s)</label><input class="input" type="number" min="5" max="300" step="5" data-wod-timed-field="tabata_work" value="${esc(item.tabata_work !== undefined ? item.tabata_work : 20)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; color:#10b981; font-weight:700;">Descanso (s)</label><input class="input" type="number" min="0" max="300" step="5" data-wod-timed-field="tabata_rest" value="${esc(item.tabata_rest !== undefined ? item.tabata_rest : 10)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="50" data-wod-timed-field="tabata_rounds" value="${esc(item.tabata_rounds !== undefined ? item.tabata_rounds : 8)}" style="padding:4px;" /></div>
+          </div>
+        ` : ''}
+
+        ${normTimer === 'EMOM' ? `
+          <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+            <div><label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-wod-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-wod-timed-field="emom_rounds" value="${esc(item.emom_rounds !== undefined ? item.emom_rounds : 10)}" style="padding:4px;" /></div>
+          </div>
+        ` : ''}
+
+        <div style="margin-bottom:6px;">
+          <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-wod-timed-field="notes" value="${esc(item.notes || '')}" placeholder="Descripción o estrategia (ej: 10 Burpees + 15 KB Swings sin parar)..." />
+        </div>
+
+        <div style="margin-top:8px; border-top:1px dashed rgba(245,158,11,0.3); padding-top:6px;">
+          <div class="row-between" style="align-items:center; margin-bottom:4px;">
+            <span style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform:uppercase;">Ejercicios de este ${normTimer}</span>
+            <div class="row-wrap" style="gap:4px;">
+              <button class="btn btn-sm btn-primary" type="button" data-add-sub-timed-wod="${idx}" style="font-size:0.78rem; padding:3px 8px;">+ Añadir ejercicio</button>
+              <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-wod-any="${idx}" style="font-size:0.78rem; padding:3px 8px;">📚 Biblioteca</button>
+            </div>
+          </div>
+          ${(item.sub_exercises || []).length > 0 ? `
+            <div style="display:flex; align-items:center; gap:6px; padding:2px 8px; font-size:0.72rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">
+              <div style="width:75px; text-align:center;">SETS</div>
+              <div style="width:85px; text-align:center;">REPS</div>
+              <div style="flex:1; min-width:140px;">MOVE</div>
+              <div style="flex:1.2; min-width:160px;">VIDEO</div>
+              <div style="width:130px; text-align:right;">ACCIONES</div>
+            </div>
+          ` : ''}
+          ${subExercisesHtml}
+        </div>
+      `;
+
+      row.querySelector('[data-del-wod-ex]').addEventListener('click', () => {
+        state.currentDay.wod.exercises.splice(idx, 1);
+        renderWodExercisesList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-test-wod-timed="${idx}"]`)?.addEventListener('click', () => {
+        const spec = {
+          mode: normTimer,
+          minutes: Number(item.timer_minutes) || 10,
+          workSec: Number(item.tabata_work !== undefined ? item.tabata_work : 20),
+          restSec: Number(item.tabata_rest !== undefined ? item.tabata_rest : 10),
+          tabataRounds: Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8),
+          intervalSec: Number(item.emom_interval !== undefined ? item.emom_interval : 60),
+          rounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10)
+        };
+        openCoachCronoProModal(spec);
+      });
+
+      row.querySelectorAll('[data-wod-timed-field]').forEach((inp) => {
+        const handler = () => {
+          const field = inp.dataset.wodTimedField;
+          const val = inp.value;
+          state.currentDay.wod.exercises[idx][field] = val;
+          if (field === 'timer_type') {
+            const nextNorm = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(val) ? val : 'AMRAP';
+            if (nextNorm === 'TABATA') {
+              if (item.tabata_work === undefined) item.tabata_work = 20;
+              if (item.tabata_rest === undefined) item.tabata_rest = 10;
+              if (item.tabata_rounds === undefined) item.tabata_rounds = 8;
+              item.timer_minutes = Math.ceil(((Number(item.tabata_work) + Number(item.tabata_rest)) * Number(item.tabata_rounds)) / 60);
+            } else if (nextNorm === 'EMOM') {
+              if (item.emom_interval === undefined) item.emom_interval = 60;
+              if (item.emom_rounds === undefined) item.emom_rounds = 10;
+              item.timer_minutes = Math.round((Number(item.emom_interval) * Number(item.emom_rounds)) / 60);
+            }
+            if (!item.name || item.name.startsWith('AMRAP') || item.name.startsWith('EMOM') || item.name.startsWith('TABATA') || item.name.startsWith('FOR TIME')) {
+              item.name = `${nextNorm} (${item.timer_minutes || 10} min)`;
+            }
+            renderWodExercisesList();
+            triggerAutoSave(true);
+          } else if (field === 'tabata_work' || field === 'tabata_rest' || field === 'tabata_rounds') {
+            const w = Number(item.tabata_work !== undefined ? item.tabata_work : 20);
+            const r = Number(item.tabata_rest !== undefined ? item.tabata_rest : 10);
+            const rounds = Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8);
+            item.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+            triggerAutoSave(false);
+          } else if (field === 'emom_interval' || field === 'emom_rounds') {
+            const intSec = Number(item.emom_interval !== undefined ? item.emom_interval : 60);
+            const rounds = Number(item.emom_rounds !== undefined ? item.emom_rounds : 10);
+            item.timer_minutes = Math.round((intSec * rounds) / 60);
+            triggerAutoSave(false);
+          } else {
+            triggerAutoSave(false);
+          }
+        };
+        inp.addEventListener('input', handler);
+        inp.addEventListener('change', handler);
+      });
+
+      row.querySelector(`[data-add-sub-timed-wod="${idx}"]`)?.addEventListener('click', () => {
+        if (!Array.isArray(state.currentDay.wod.exercises[idx].sub_exercises)) {
+          state.currentDay.wod.exercises[idx].sub_exercises = [];
+        }
+        state.currentDay.wod.exercises[idx].sub_exercises.push({
+          sets: '',
+          reps: '10',
+          name: '',
+          video_url: '',
+          notes: ''
+        });
+        renderWodExercisesList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-search-timed-sub-wod-any="${idx}"]`)?.addEventListener('click', () => {
+        openExercisePicker({ type: 'timed_wod_sub_add', idx }, false);
+      });
+
+      (item.sub_exercises || []).forEach((sub, sIdx) => {
+        row.querySelector(`[data-del-timed-sub-wod="${sIdx}"]`)?.addEventListener('click', () => {
+          state.currentDay.wod.exercises[idx].sub_exercises.splice(sIdx, 1);
+          renderWodExercisesList();
+          triggerAutoSave(true);
+        });
+
+        row.querySelector(`[data-search-timed-sub-wod="${sIdx}"]`)?.addEventListener('click', () => {
+          openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false, sub.name);
+        });
+
+        row.querySelector(`[data-play-timed-sub-wod="${sIdx}"]`)?.addEventListener('click', () => {
+          const curSub = state.currentDay.wod.exercises[idx].sub_exercises[sIdx];
+          if (curSub?.video_url) {
+            openVideoModal(curSub.name, curSub.video_url);
+          } else {
+            openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false, curSub.name);
+          }
+        });
+
+        row.querySelectorAll(`[data-timed-sub-wod-f][data-sub-idx="${sIdx}"]`).forEach((inp) => {
+          const handleTimedSubInput = (isImmediate) => {
+            state.currentDay.wod.exercises[idx].sub_exercises[sIdx][inp.dataset.timedSubWodF] = inp.value;
+            if (inp.dataset.timedSubWodF === 'name') {
+              const subRowEl = inp.closest('.sub-ex-coach-row');
+              if (subRowEl) {
+                tryAutoLinkExercise(state.currentDay.wod.exercises[idx].sub_exercises[sIdx], subRowEl, 'video_url');
+              }
+            }
+            triggerAutoSave(isImmediate);
+          };
+          inp.addEventListener('input', () => handleTimedSubInput(false));
+          inp.addEventListener('change', () => handleTimedSubInput(true));
+          inp.addEventListener('blur', () => {
+            if (inp.dataset.timedSubWodF === 'name') {
+              const subRowEl = inp.closest('.sub-ex-coach-row');
+              if (subRowEl) {
+                tryAutoLinkExercise(state.currentDay.wod.exercises[idx].sub_exercises[sIdx], subRowEl, 'video_url');
+              }
+            }
+          });
+        });
+      });
+
+      list.appendChild(row);
+      return;
+    }
+
+    const hasSubs = item.sub_exercises.length > 0;
     const row = document.createElement('div');
-    row.className = 'item-box';
+    row.className = 'ex-coach-line';
+    if (hasSubs) {
+      row.style.borderLeft = '3px solid #f59e0b';
+      row.style.background = 'rgba(245,158,11,0.03)';
+      row.style.paddingLeft = '10px';
+    }
+
+    let subHtml = '';
+    item.sub_exercises.forEach((sub, subIdx) => {
+      subHtml += `
+        <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(245,158,11,0.25); display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+            <div style="width:75px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+              <span class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+            </div>
+            <div style="width:85px; flex-shrink:0;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wod-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wod-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
+            </div>
+            <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wod-f="video_url" data-sub-idx="${subIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
+              <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wod="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+            </div>
+            <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+              <button class="btn btn-sm btn-outline" type="button" data-add-sub-wod="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#f59e0b; border-color:rgba(245,158,11,0.4); font-size:1rem;">+</button>
+              <button class="btn btn-sm btn-outline" type="button" data-search-sub-wod="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+              <button class="btn btn-danger btn-sm" type="button" data-del-sub-wod="${subIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
+            </div>
+          </div>
+          <div>
+            <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sub-wod-f="notes" data-sub-idx="${subIdx}" placeholder="Notas de este ejercicio..." value="${esc(sub.notes || '')}" />
+          </div>
+        </div>
+      `;
+    });
+
     row.innerHTML = `
-      <div class="row-between" style="margin-bottom:6px;">
-        <strong>Movimiento ${idx + 1}</strong>
-        <div class="row-wrap">
-          ${m.video_url ? `<button class="btn btn-sm" data-play-wod>▶ Vídeo</button>` : ''}
-          <a class="btn btn-sm" href="${ytSearch}" target="_blank" rel="noopener">🔍 YouTube</a>
-          <button class="btn btn-sm btn-outline" data-save-lib-wod title="Guardar este ejercicio y su enlace de vídeo en la biblioteca">💾 Guardar en biblioteca</button>
-          <button class="btn btn-danger btn-sm" data-del-wod>Quitar</button>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+        <div style="width:75px; flex-shrink:0;">
+          ${hasSubs 
+            ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-weight:800; font-size:0.75rem; padding:4px 6px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wod-field="sets" placeholder="SETS" value="${esc(item.sets || '')}" title="SETS (Rondas o Series)" /></div>`
+            : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wod-field="sets" placeholder="SETS" value="${esc(item.sets || '')}" title="SETS (Rondas o Series)" />`
+          }
+        </div>
+        <div style="width:85px; flex-shrink:0;">
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wod-field="reps" placeholder="REPS" value="${esc(item.reps || '')}" title="REPS (Repeticiones o Tiempo)" />
+        </div>
+        <div style="flex:1; min-width:140px;">
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wod-field="name" list="libraryExercisesDatalist" placeholder="MOVE (nombre del ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
+        </div>
+        <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+          <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wod-field="video_url" placeholder="VIDEO (URL vídeo YouTube...)" value="${esc(item.video_url || '')}" />
+          <button class="btn btn-sm ${item.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-wod-ex="${idx}" title="${item.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+        </div>
+        <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+          <button class="btn btn-sm btn-outline" type="button" data-add-sub-wod="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#f59e0b; border-color:rgba(245,158,11,0.4); font-size:1rem;">+</button>
+          <button class="btn btn-sm btn-outline" type="button" data-search-wod-ex="${idx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+          <button class="btn btn-sm btn-outline" type="button" data-save-lib-wod-ex="${idx}" title="Guardar este ejercicio en la biblioteca" style="padding:6px 8px;">💾</button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-wod-ex="${idx}" title="Eliminar este ejercicio" style="padding:6px 8px;">✕</button>
         </div>
       </div>
-      <div class="grid-2">
-        <div class="field" style="margin-bottom:0;">
-          <label>Nombre del ejercicio</label>
-          <input class="input" data-wm="name" placeholder="Ej: Thruster / Double Unders" value="${esc(m.name || '')}" />
-        </div>
-        <div class="field" style="margin-bottom:0;">
-          <label>URL del vídeo</label>
-          <input class="input" data-wm="video_url" placeholder="https://www.youtube.com/..." value="${esc(m.video_url || '')}" />
-        </div>
+      <div>
+        <input class="input" style="padding:4px 6px; font-size:0.82rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-wod-field="notes" placeholder="Notas, peso Rx/Scaled o estrategia del ejercicio..." value="${esc(item.notes || '')}" />
       </div>
-      <input class="input" style="margin-top:8px;" data-wm="notes" placeholder="Explicación opcional para el alumno..." value="${esc(m.notes || '')}" />
+      ${subHtml}
     `;
-    row.querySelector('[data-del-wod]').addEventListener('click', () => {
-      state.currentDay.wod.movements.splice(idx, 1);
-      renderWodMovementsList();
+
+    row.querySelector(`[data-del-wod-ex="${idx}"]`)?.addEventListener('click', () => {
+      state.currentDay.wod.exercises.splice(idx, 1);
+      renderWodExercisesList();
+      triggerAutoSave(true);
     });
-    row.querySelector('[data-play-wod]')?.addEventListener('click', () => {
-      openVideoModal(m.name || 'Movimiento WOD', state.currentDay.wod.movements[idx].video_url);
+
+    row.querySelector(`[data-add-sub-wod="${idx}"]`)?.addEventListener('click', () => {
+      if (!Array.isArray(state.currentDay.wod.exercises[idx].sub_exercises)) {
+        state.currentDay.wod.exercises[idx].sub_exercises = [];
+      }
+      state.currentDay.wod.exercises[idx].sub_exercises.push({
+        sets: '',
+        reps: '10',
+        name: '',
+        video_url: '',
+        notes: ''
+      });
+      renderWodExercisesList();
+      triggerAutoSave(true);
     });
-    row.querySelector('[data-save-lib-wod]')?.addEventListener('click', async () => {
-      const cur = state.currentDay.wod.movements[idx];
+
+    row.querySelector(`[data-search-wod-ex="${idx}"]`)?.addEventListener('click', () => {
+      openExercisePicker({ type: 'wod_replace', idx }, false, item.name);
+    });
+
+    row.querySelector(`[data-play-wod-ex="${idx}"]`)?.addEventListener('click', () => {
+      const curItem = state.currentDay.wod.exercises[idx];
+      if (curItem?.video_url) {
+        openVideoModal(curItem.name, curItem.video_url);
+      } else {
+        openExercisePicker({ type: 'wod_replace', idx }, false, curItem.name);
+      }
+    });
+
+    row.querySelector(`[data-save-lib-wod-ex="${idx}"]`)?.addEventListener('click', async () => {
+      const curItem = state.currentDay.wod.exercises[idx];
       const ok = await saveExerciseToLibrary({
-        name: cur.name,
-        video_url: cur.video_url,
-        notes: cur.notes,
-        category: 'WOD',
+        name: curItem.name,
+        video_url: curItem.video_url,
+        notes: curItem.notes,
+        category: 'WOD'
       });
-      if (ok) renderWodMovementsList();
+      if (ok) renderWodExercisesList();
     });
-    row.querySelectorAll('[data-wm]').forEach((inp) => {
-      inp.addEventListener('input', () => {
-        state.currentDay.wod.movements[idx][inp.dataset.wm] = inp.value;
+
+    row.querySelectorAll('[data-wod-field]').forEach((inp) => {
+      const handleWodInput = (isImmediate) => {
+        state.currentDay.wod.exercises[idx][inp.dataset.wodField] = inp.value;
+        if (inp.dataset.wodField === 'name') {
+          tryAutoLinkExercise(state.currentDay.wod.exercises[idx], row, 'video_url');
+        }
+        triggerAutoSave(isImmediate);
+      };
+      inp.addEventListener('input', () => handleWodInput(false));
+      inp.addEventListener('change', () => handleWodInput(true));
+      inp.addEventListener('blur', () => {
+        if (inp.dataset.wodField === 'name') {
+          tryAutoLinkExercise(state.currentDay.wod.exercises[idx], row, 'video_url');
+        }
       });
     });
+
+    item.sub_exercises.forEach((sub, subIdx) => {
+      row.querySelector(`[data-del-sub-wod="${subIdx}"]`)?.addEventListener('click', () => {
+        state.currentDay.wod.exercises[idx].sub_exercises.splice(subIdx, 1);
+        renderWodExercisesList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-search-sub-wod="${subIdx}"]`)?.addEventListener('click', () => {
+        openExercisePicker({ type: 'wod_sub_replace', idx, subIdx }, false, sub.name);
+      });
+
+      row.querySelector(`[data-play-sub-wod="${subIdx}"]`)?.addEventListener('click', () => {
+        const curSub = state.currentDay.wod.exercises[idx].sub_exercises[subIdx];
+        if (curSub?.video_url) {
+          openVideoModal(curSub.name, curSub.video_url);
+        } else {
+          openExercisePicker({ type: 'wod_sub_replace', idx, subIdx }, false, curSub.name);
+        }
+      });
+
+      row.querySelectorAll(`[data-sub-wod-f][data-sub-idx="${subIdx}"]`).forEach((inp) => {
+        const handleSubInput = (isImmediate) => {
+          state.currentDay.wod.exercises[idx].sub_exercises[subIdx][inp.dataset.subWodF] = inp.value;
+          if (inp.dataset.subWodF === 'name') {
+            const subRowEl = inp.closest('.sub-ex-coach-row');
+            if (subRowEl) {
+              tryAutoLinkExercise(state.currentDay.wod.exercises[idx].sub_exercises[subIdx], subRowEl, 'video_url');
+            }
+          }
+          triggerAutoSave(isImmediate);
+        };
+        inp.addEventListener('input', () => handleSubInput(false));
+        inp.addEventListener('change', () => handleSubInput(true));
+        inp.addEventListener('blur', () => {
+          if (inp.dataset.subWodF === 'name') {
+            const subRowEl = inp.closest('.sub-ex-coach-row');
+            if (subRowEl) {
+              tryAutoLinkExercise(state.currentDay.wod.exercises[idx].sub_exercises[subIdx], subRowEl, 'video_url');
+            }
+          }
+        });
+      });
+    });
+
     list.appendChild(row);
   });
 }
 
-$('btnAddWodMovementLib').addEventListener('click', () => {
-  if (!state.currentDay) return;
-  openExercisePicker({ type: 'wod' }, false);
+// Fallback compatibility alias
+function renderWodMovementsList() {
+  renderWodExercisesList();
+}
+
+$('btnAddWodExercise')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  if (!state.currentDay.wod) state.currentDay.wod = {};
+  if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
+  state.currentDay.wod.exercises.push({
+    sets: '',
+    reps: '10',
+    name: '',
+    video_url: '',
+    notes: '',
+    sub_exercises: []
+  });
+  renderWodExercisesList();
+  triggerAutoSave(true);
 });
-$('btnAddWodMovementManual').addEventListener('click', () => {
+
+$('btnAddWodExerciseLib')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  openExercisePicker({ type: 'wod_add' }, false);
+});
+
+$('btnAddWodTimedSection')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  if (!state.currentDay.wod) state.currentDay.wod = {};
+  if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
+  state.currentDay.wod.exercises.push({
+    is_timed_section: true,
+    timer_type: 'AMRAP',
+    timer_minutes: 10,
+    name: 'AMRAP (10 min)',
+    notes: '',
+    sub_exercises: []
+  });
+  renderWodExercisesList();
+  triggerAutoSave(true);
+});
+
+$('btnAddWodMovementLib')?.addEventListener('click', () => {
+  if (!state.currentDay) return;
+  openExercisePicker({ type: 'wod_add' }, false);
+});
+
+$('btnAddWodMovementManual')?.addEventListener('click', () => {
   if (!state.currentDay) return;
   if (!state.currentDay.wod) state.currentDay.wod = {};
-  if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = [];
-  state.currentDay.wod.movements.push({ name: '', notes: '', video_url: '' });
-  renderWodMovementsList();
+  if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
+  state.currentDay.wod.exercises.push({ sets: '', reps: '10', name: '', notes: '', video_url: '', sub_exercises: [] });
+  renderWodExercisesList();
+  triggerAutoSave(true);
 });
 
 $('btnAddWarmupLine')?.addEventListener('click', () => {
@@ -2236,6 +2687,67 @@ function pickExerciseIntoTarget(ex) {
     }
     return;
   }
+  if (state.pickerTarget.type === 'wod_replace') {
+    const cur = (state.currentDay.wod?.exercises || [])[state.pickerTarget.idx];
+    if (cur) {
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast(`✓ Ejercicio de WOD enlazado: "${ex.name}"`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'wod_sub_replace') {
+    const parent = (state.currentDay.wod?.exercises || [])[state.pickerTarget.idx];
+    if (parent && Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+      const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast(`✓ Ejercicio de WOD enlazado: "${ex.name}"`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_wod_sub_add') {
+    const parent = (state.currentDay.wod?.exercises || [])[state.pickerTarget.idx];
+    if (parent) {
+      if (!Array.isArray(parent.sub_exercises)) parent.sub_exercises = [];
+      parent.sub_exercises.push({
+        sets: '',
+        reps: '10',
+        name: ex.name,
+        video_url: ex.video_url || '',
+        notes: ex.coaching_cues || ex.description || ''
+      });
+      renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast(`✓ "${ex.name}" añadido al ${parent.timer_type || 'WOD'}`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_wod_sub_replace') {
+    const parent = (state.currentDay.wod?.exercises || [])[state.pickerTarget.idx];
+    if (parent && Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+      const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
+    }
+    return;
+  }
   if (state.pickerTarget.type === 'warmup') {
     if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
     state.currentDay.warmup_exercises.push({
@@ -2249,17 +2761,20 @@ function pickExerciseIntoTarget(ex) {
     renderWarmupList();
     triggerAutoSave(true);
     showToast(`✓ "${ex.name}" añadido al Warm Up`);
-  } else if (state.pickerTarget.type === 'wod') {
+  } else if (state.pickerTarget.type === 'wod' || state.pickerTarget.type === 'wod_add') {
     if (!state.currentDay.wod) state.currentDay.wod = {};
-    if (!Array.isArray(state.currentDay.wod.movements)) state.currentDay.wod.movements = [];
-    state.currentDay.wod.movements.push({
+    if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
+    state.currentDay.wod.exercises.push({
       name: ex.name,
+      sets: '',
+      reps: '10',
       notes: ex.coaching_cues || ex.description || '',
       video_url: ex.video_url || '',
+      sub_exercises: [],
     });
-    renderWodMovementsList();
+    renderWodExercisesList();
     triggerAutoSave(true);
-    showToast(`✓ Movimiento añadido al WOD: "${ex.name}"`);
+    showToast(`✓ Ejercicio añadido al WOD Final: "${ex.name}"`);
   } else if (state.pickerTarget.type === 'part') {
     const part = state.currentDay.parts[state.pickerTarget.partIdx];
     if (part) {
@@ -3002,7 +3517,13 @@ $('btnRunWodGen').addEventListener('click', async () => {
     $('wodRx').value = wod.rx_weights || '';
     $('wodScaled').value = wod.scaled_weights || '';
     $('wodStrategy').value = wod.strategy || '';
-    showToast('WOD generado. Pulsa Guardar Sesión para aplicarlo.');
+    if (Array.isArray(wod.exercises) && wod.exercises.length > 0) {
+      if (!state.currentDay.wod) state.currentDay.wod = {};
+      state.currentDay.wod.exercises = wod.exercises;
+      renderWodExercisesList();
+    }
+    triggerAutoSave(true);
+    showToast('WOD generado y cargado en la sesión.');
   } catch (err) {
     showToast(err.message);
   }
@@ -3034,8 +3555,8 @@ function buildCurrentDayPayload() {
   (state.currentDay.parts || []).forEach((p) => {
     (p.exercises || []).forEach((ex) => ensureExerciseVideo(ex, p.type || 'Fuerza'));
   });
-  if (state.currentDay.wod && Array.isArray(state.currentDay.wod.movements)) {
-    state.currentDay.wod.movements.forEach((m) => ensureExerciseVideo(m, 'WOD'));
+  if (state.currentDay.wod && Array.isArray(state.currentDay.wod.exercises)) {
+    state.currentDay.wod.exercises.forEach((ex) => ensureExerciseVideo(ex, 'WOD'));
   }
 
   return {
@@ -3066,7 +3587,8 @@ function buildCurrentDayPayload() {
       has_score: $('wodHasScore')?.checked !== undefined ? $('wodHasScore').checked : true,
       score_type: $('wodScoreType')?.value || 'LIBRE',
       equipment: Array.from(state.selectedEquipment || []),
-      movements: state.currentDay.wod?.movements || [],
+      exercises: state.currentDay.wod?.exercises || [],
+      movements: state.currentDay.wod?.exercises || [],
       tabata_work: Number($('wodTabataWork')?.value) || 20,
       tabata_rest: $('wodTabataRest') && $('wodTabataRest').value !== '' ? Number($('wodTabataRest').value) : 10,
       tabata_rounds: Number($('wodTabataRounds')?.value) || 8,

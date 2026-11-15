@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=43" />
+  <link rel="stylesheet" href="/static/css/app.css?v=44" />
 </head>
 <body>
   <header class="topbar">
@@ -467,15 +467,16 @@
             <input id="wodStrategy" class="input" placeholder="Cómo partir las series, ritmo recomendado..." />
           </div>
 
-          <div class="item-box" style="margin-top:10px; background: var(--bg-elev);">
-            <div class="section-header" style="margin-bottom:8px;">
-              <span class="badge badge-orange">🎬 Vídeos explicativos de movimientos del WOD</span>
-              <div class="row-wrap">
-                <button class="btn btn-sm" id="btnAddWodMovementLib">+ Desde biblioteca</button>
-                <button class="btn btn-sm" id="btnAddWodMovementManual">+ Añadir manual</button>
+          <div class="item-box" style="margin-top:12px; background: var(--bg-elev); border: 1px solid rgba(255,107,53,0.3);">
+            <div class="section-header" style="margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <span class="badge badge-orange" style="font-weight:900;">🏋️ EJERCICIOS DEL WOD FINAL</span>
+              <div class="row-wrap" style="gap:6px;">
+                <button class="btn btn-primary btn-sm" id="btnAddWodExercise" type="button" style="font-weight:800;">+ Añadir Ejercicio</button>
+                <button class="btn btn-outline btn-sm" id="btnAddWodExerciseLib" type="button" style="font-weight:700;">📚 Biblioteca</button>
+                <button class="btn btn-outline btn-sm" id="btnAddWodTimedSection" type="button" style="font-weight:700; border-color:#f59e0b; color:#f59e0b;" title="Añadir un bloque con crono (AMRAP, EMOM, TABATA, FOR TIME) dentro del WOD">⏱ + Crono (AMRAP/EMOM...)</button>
               </div>
             </div>
-            <div id="wodMovementsList"></div>
+            <div id="wodExercisesList"></div>
           </div>
         </div>
 
@@ -833,6 +834,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=43"></script>
+  <script type="module" src="/static/js/coach.js?v=44"></script>
 </body>
 </html>
