@@ -570,6 +570,8 @@ function renderCurrentDay(resetTimer = true) {
 
   const cleanMcTitleStr = cleanMesocycleTitle(state.microcycle);
   const weekDateRangeStr = formatWeekDateRange(state.microcycle, day.week_number);
+  const dateRangeLong = weekDateRangeStr ? ` · SEMANA del ${weekDateRangeStr}` : '';
+  const dateRangeShort = weekDateRangeStr ? ` · S. del ${weekDateRangeStr}` : '';
 
   // Warmup work description line right under WARM UP
   let wuWorkType = '';
@@ -594,19 +596,18 @@ function renderCurrentDay(resetTimer = true) {
   }
 
   let html = `
-    <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF) -->
-    <div class="card card-session-sheet">
-      <div class="row-between" style="align-items:flex-start; gap:12px;">
-        <div style="flex:1;">
-          <h1 class="session-main-header" style="color:#000000; font-size:1.18rem; font-weight:900; margin:0 0 4px 0; text-transform:uppercase; letter-spacing:0.3px;">
-            ${esc(cleanMcTitleStr)}
-          </h1>
-          <h2 class="session-sub-header" style="color:#000000; font-size:1.02rem; font-weight:800; margin:0; text-transform:uppercase;">
-            MICROCICLO ${day.week_number} / DÍA ${day.day_number} (${esc(weekDateRangeStr)})
-          </h2>
-          ${day.coaching_tips ? `<div class="session-body-text" style="color:#000000; margin-top:8px; font-size:0.9rem;">💡 <strong>Consejo del Coach:</strong> ${esc(day.coaching_tips)}</div>` : ''}
-        </div>
-        <button class="btn btn-sm btn-celeste-matte no-print" id="btnPrintDayPdf" style="display:inline-flex; align-items:center; gap:6px; white-space:nowrap; margin-top:2px;">
+    <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF - MAX 2 CLEAN LINES) -->
+    <div class="card card-session-sheet session-header-card">
+      <h1 class="session-main-header">
+        ${esc(cleanMcTitleStr)}
+      </h1>
+      <h2 class="session-sub-header">
+        <span class="sub-header-desktop">MICROCICLO ${day.week_number} · DÍA ${day.day_number}${esc(dateRangeLong)}</span>
+        <span class="sub-header-mobile">MICROCICLO ${day.week_number} · D ${day.day_number}${esc(dateRangeShort)}</span>
+      </h2>
+      ${day.coaching_tips ? `<div class="session-body-text" style="margin-top:8px; font-size:0.9rem;">💡 <strong>Consejo del Coach:</strong> ${esc(day.coaching_tips)}</div>` : ''}
+      <div class="session-header-actions no-print" style="margin-top:10px; display:flex; justify-content:flex-end;">
+        <button class="btn btn-sm btn-celeste-matte" id="btnPrintDayPdf" style="display:inline-flex; align-items:center; gap:6px; white-space:nowrap;">
           🖨️ Imprimir / Guardar en PDF
         </button>
       </div>

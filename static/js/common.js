@@ -188,9 +188,9 @@ export function formatWeekDateRange(mc, weekNumber) {
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     const pad = (n) => String(n).padStart(2, '0');
-    return `SEMANA del ${pad(start.getDate())}/${pad(start.getMonth() + 1)} al ${pad(end.getDate())}/${pad(end.getMonth() + 1)}`;
+    return `${pad(start.getDate())}/${pad(start.getMonth() + 1)} al ${pad(end.getDate())}/${pad(end.getMonth() + 1)}`;
   }
-  return `SEMANA ${weekNumber || 1}`;
+  return '';
 }
 
 export function cleanMesocycleTitle(mc) {

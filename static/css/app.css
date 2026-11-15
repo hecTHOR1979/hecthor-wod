@@ -262,34 +262,86 @@ button, input, select, textarea {
   box-shadow: 0 4px 20px rgba(2, 132, 199, 0.08);
 }
 
-/* SECTION SHEET STYLES (EXACT SPEC: AZUL PARA ENCABEZADOS Y NEGRO PARA CUERPO) */
+/* SECTION SHEET STYLES (APP SCREEN: FONDO NEGRO Y LETRAS EN BLANCO/CELESTE; PDF: FONDO BLANCO Y LETRAS NEGRAS) */
 body.alumnos-page .brand {
   display: none !important;
 }
 
+/* Header text toggles for responsive desktop / mobile */
+.sub-header-desktop {
+  display: inline !important;
+}
+.sub-header-mobile {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .sub-header-desktop {
+    display: none !important;
+  }
+  .sub-header-mobile {
+    display: inline !important;
+  }
+}
+
 .card-session-sheet {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: 1.5px solid #075985 !important;
-  border-radius: 10px !important;
+  background: var(--bg-card, #151923) !important;
+  color: var(--text, #f3f5f8) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-radius: 12px !important;
   padding: 14px 16px !important;
-  box-shadow: 0 4px 16px rgba(7, 89, 133, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
   margin-bottom: 12px !important;
 }
 
-/* SECTION BADGE BANNER: AZUL CON LETRAS NEGRAS */
+/* SESSION HEADERS (MAX 2 CLEAN LINES) */
+.session-main-header {
+  color: #38bdf8 !important;
+  font-size: clamp(1.02rem, 3.8vw, 1.25rem) !important;
+  font-weight: 900 !important;
+  margin: 0 0 4px 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  text-decoration: underline !important;
+  text-underline-offset: 4px !important;
+  line-height: 1.25 !important;
+}
+
+.session-sub-header {
+  color: #f8fafc !important;
+  font-size: clamp(0.82rem, 3.2vw, 1.02rem) !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  line-height: 1.25 !important;
+}
+
+.session-subheading {
+  color: #38bdf8 !important;
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  margin: 2px 0 8px 0 !important;
+}
+
+.session-body-text {
+  color: #cbd5e1 !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+}
+
+/* SECTION BADGE BANNER: AZUL CON LETRAS BLANCAS */
 .section-badge-banner {
   display: inline-block !important;
-  background: #38bdf8 !important; /* Azul celeste */
-  color: #000000 !important;     /* Letras NEGRAS */
-  font-size: 1.15rem !important;
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px;
-  padding: 6px 14px !important;
+  letter-spacing: 0.5px !important;
+  padding: 5px 14px !important;
   border-radius: 6px !important;
   margin-bottom: 6px !important;
-  border: 1.5px solid #0284c7 !important;
+  border: 1px solid #38bdf8 !important;
 }
 
 .clean-pill-val {
@@ -301,17 +353,17 @@ body.alumnos-page .brand {
   border-radius: 6px !important;
   font-weight: 800 !important;
   font-size: 0.88rem !important;
-  color: #000000 !important;
-  background: #f8fafc !important;
-  border: 1.5px solid #94a3b8 !important;
+  color: #38bdf8 !important;
+  background: #0c121e !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
 
 .card-session-sheet .ex-clean-line {
-  background: #ffffff !important;
-  border: 1.5px solid #cbd5e1 !important;
-  color: #000000 !important;
+  background: #0c121e !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #f8fafc !important;
   display: flex !important;
   align-items: center !important;
   flex-wrap: nowrap !important;
@@ -319,7 +371,7 @@ body.alumnos-page .brand {
   padding: 8px 10px !important;
   border-radius: 8px !important;
   margin-bottom: 6px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }
 
 .card-session-sheet .ex-columns-header {
@@ -331,7 +383,7 @@ body.alumnos-page .brand {
   margin-bottom: 4px !important;
   font-size: 0.8rem !important;
   font-weight: 900 !important;
-  color: #000000 !important;
+  color: #94a3b8 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
 }
@@ -359,12 +411,12 @@ body.alumnos-page .brand {
 .card-session-sheet .ex-col-name {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  color: #000000 !important;
+  color: #f8fafc !important;
   word-break: break-word !important;
 }
 
 .card-session-sheet .ex-col-name strong {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
 .card-session-sheet .ex-col-action {
@@ -1507,7 +1559,8 @@ textarea.input {
   }
 
   /* Headings strictly dark blue (#075985) and underlined in print */
-  .session-section-title {
+  .session-section-title,
+  .session-main-header {
     color: #075985 !important;
     font-size: 14pt !important;
     font-weight: 800 !important;
@@ -1516,6 +1569,39 @@ textarea.input {
     text-decoration-thickness: 2px !important;
     margin: 0 0 6px 0 !important;
     text-transform: uppercase !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .session-sub-header {
+    color: #000000 !important;
+    font-size: 11pt !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .section-badge-banner {
+    display: block !important;
+    background: transparent !important;
+    color: #075985 !important;
+    border: none !important;
+    font-size: 13pt !important;
+    font-weight: 900 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+    padding: 0 !important;
+    margin-bottom: 4px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .clean-pill-val {
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+    border: 1px solid #64748b !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
