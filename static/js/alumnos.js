@@ -857,7 +857,7 @@ function renderCurrentDay(resetTimer = true) {
                     ${subMetaHtml}
                     ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
                   </div>
-                  <div class="ex-col-action">
+                  <div class="ex-col-action no-print">
                     ${sub.video_url ? `
                       <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
                         🎬 <span class="video-btn-text">Vídeo</span>
@@ -903,7 +903,7 @@ function renderCurrentDay(resetTimer = true) {
             ${metaHtml}
             ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
           </div>
-          <div class="ex-col-action">
+          <div class="ex-col-action no-print">
             ${item.video_url ? `
               <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
                 🎬 <span class="video-btn-text">Vídeo</span>
@@ -928,7 +928,7 @@ function renderCurrentDay(resetTimer = true) {
               ${metaHtml}
               ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
             </div>
-            <div class="ex-col-action">
+            <div class="ex-col-action no-print">
               ${item.video_url ? `
                 <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
                   🎬 <span class="video-btn-text">Vídeo</span>
@@ -955,7 +955,7 @@ function renderCurrentDay(resetTimer = true) {
                 ${subMetaHtml}
                 ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
               </div>
-              <div class="ex-col-action">
+              <div class="ex-col-action no-print">
                 ${sub.video_url ? `
                   <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
                     🎬 <span class="video-btn-text">Vídeo</span>

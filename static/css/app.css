@@ -1651,7 +1651,12 @@ textarea.input {
   #btnLoginCoachJump,
   .video-btn,
   .btn-video-sym,
+  .video-btn-text,
+  [data-video-btn],
+  .ex-col-action,
+  .card-session-sheet .ex-col-action,
   .wod-videos-box,
+  #stuWodMovements,
   .crono-wod-box,
   .crono-pro-link-wrap,
   .btn-crono-pro-action,
@@ -1820,6 +1825,34 @@ textarea.input {
     max-width: 68px !important;
     text-align: center !important;
     box-sizing: border-box !important;
+  }
+
+  /* Ocultar completamente la columna de VIDEO en el PDF */
+  .ex-col-action,
+  .card-session-sheet .ex-col-action,
+  .ex-col-action.no-print,
+  .btn-video-sym,
+  .video-btn-text,
+  [data-video-btn],
+  .wod-videos-box,
+  #stuWodMovements {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    flex: 0 0 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* El ejercicio ocupa todo el ancho restante tras quitar VIDEO en el PDF */
+  .card-session-sheet .ex-col-name,
+  .ex-col-name {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding-right: 4px !important;
   }
 
   /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF */
