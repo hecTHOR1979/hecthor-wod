@@ -1232,6 +1232,36 @@ textarea.input {
   margin-bottom: 8px;
 }
 
+/* Timed section card in Coach editor */
+.timed-section-coach-box {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1.5px solid #0284c7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+/* Timed section card in Student view */
+.timed-section-student-card {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1.5px solid #0284c7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+
+.timed-section-student-badge {
+  display: inline-block;
+  background: #0284c7;
+  color: #ffffff !important;
+  font-weight: 900;
+  font-size: 0.95rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .ex-explanation {
   margin-top: 4px;
   font-size: 0.82rem;
@@ -1736,6 +1766,34 @@ textarea.input {
     color: #000000 !important;
     border: 1.5px solid #0284c7 !important;
     font-weight: 900 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Secciones con Crono dentro de Warm Up o Bloques en PDF */
+  .timed-section-student-card,
+  body.alumnos-page .timed-section-student-card {
+    background: #f8fafc !important;
+    border: 1.5px solid #0284c7 !important;
+    color: #000000 !important;
+    padding: 8px 10px !important;
+    margin: 8px 0 !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .timed-section-student-badge,
+  body.alumnos-page .timed-section-student-badge {
+    background: transparent !important;
+    color: #000000 !important;
+    border: none !important;
+    border-bottom: 2px solid #000000 !important;
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+    padding: 0 0 2px 0 !important;
+    display: inline-block !important;
+    text-transform: uppercase !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

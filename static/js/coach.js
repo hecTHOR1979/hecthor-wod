@@ -647,6 +647,25 @@ async function saveExerciseToLibrary({ name, video_url = '', notes = '', categor
   }
 }
 
+export function createTimedSectionItem(timer_type = 'AMRAP', minutes = 10) {
+  const normType = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(timer_type) ? timer_type : 'AMRAP';
+  let defaultMin = Number(minutes) || 10;
+  if (normType === 'TABATA') defaultMin = 4;
+  return {
+    is_timed_section: true,
+    timer_type: normType,
+    name: `${normType} (${defaultMin} min)`,
+    timer_minutes: defaultMin,
+    emom_interval: 60,
+    emom_rounds: 10,
+    tabata_work: 20,
+    tabata_rest: 10,
+    tabata_rounds: 8,
+    notes: '',
+    sub_exercises: []
+  };
+}
+
 function renderWarmupList() {
   const list = $('warmupList');
   const items = state.currentDay.warmup_exercises || [];
@@ -663,12 +682,242 @@ function renderWarmupList() {
     <div style="width:85px; text-align:center;">REPS</div>
     <div style="flex:1; min-width:140px;">MOVE</div>
     <div style="flex:1.2; min-width:160px;">VIDEO</div>
-    <div style="width:130px; text-align:right;">ACCIONES</div>
+    <div style="width:160px; text-align:right;">ACCIONES</div>
   `;
   list.appendChild(hdr);
 
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
+
+    // SECCIÓN CON CRONÓMETRO EN CALENTAMIENTO (AMRAP, EMOM, TABATA, FOR TIME)
+    if (item.is_timed_section) {
+      const row = document.createElement('div');
+      row.className = 'timed-section-coach-box';
+      const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
+      const normTimer = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(curTimer) ? curTimer : 'AMRAP';
+
+      let subExercisesHtml = '';
+      (item.sub_exercises || []).forEach((sub, sIdx) => {
+        subExercisesHtml += `
+          <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+              <div style="width:75px; flex-shrink:0;">
+                <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-wu-f="sets" data-sub-idx="${sIdx}" placeholder="SETS" value="${esc(sub.sets || '')}" title="Series o rondas (opcional)" />
+              </div>
+              <div style="width:85px; flex-shrink:0;">
+                <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-wu-f="reps" data-sub-idx="${sIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+              </div>
+              <div style="flex:1; min-width:140px;">
+                <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-timed-sub-wu-f="name" data-sub-idx="${sIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
+              </div>
+              <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
+                <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-timed-sub-wu-f="video_url" data-sub-idx="${sIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
+                <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-timed-sub-wu="${sIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+              </div>
+              <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+                <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-wu="${sIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+                <button class="btn btn-danger btn-sm" type="button" data-del-timed-sub-wu="${sIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
+              </div>
+            </div>
+            <div>
+              <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-timed-sub-wu-f="notes" data-sub-idx="${sIdx}" placeholder="Notas o detalles..." value="${esc(sub.notes || '')}" />
+            </div>
+          </div>
+        `;
+      });
+
+      row.innerHTML = `
+        <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN CALENTAMIENTO</span>
+            <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-wu-timed-field="timer_type">
+              ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </div>
+          <div class="row-wrap" style="gap:6px;">
+            <button class="btn btn-sm btn-outline" type="button" data-test-wu-timed="${idx}" title="Probar en Crono Pro" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;">⚡ Probar Crono Pro</button>
+            <button class="btn btn-danger btn-sm" type="button" data-del-wu="${idx}" title="Eliminar este bloque con crono">✕</button>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div style="flex:2; min-width:180px;">
+            <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Título / Formato visible</label>
+            <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-timed-field="name" value="${esc(item.name || '')}" placeholder="Ej: AMRAP (10 min) / 500m Run + AMRAP..." />
+          </div>
+          <div style="flex:1; min-width:100px;">
+            <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Minutos / Cap</label>
+            <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-wu-timed-field="timer_minutes" value="${esc(item.timer_minutes || 10)}" />
+          </div>
+        </div>
+
+        ${normTimer === 'TABATA' ? `
+          <div class="grid-3" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+            <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Trabajo (s)</label><input class="input" type="number" min="5" max="300" step="5" data-wu-timed-field="tabata_work" value="${esc(item.tabata_work !== undefined ? item.tabata_work : 20)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; color:#10b981; font-weight:700;">Descanso (s)</label><input class="input" type="number" min="0" max="300" step="5" data-wu-timed-field="tabata_rest" value="${esc(item.tabata_rest !== undefined ? item.tabata_rest : 10)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="50" data-wu-timed-field="tabata_rounds" value="${esc(item.tabata_rounds !== undefined ? item.tabata_rounds : 8)}" style="padding:4px;" /></div>
+          </div>
+        ` : ''}
+
+        ${normTimer === 'EMOM' ? `
+          <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+            <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-wu-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-wu-timed-field="emom_rounds" value="${esc(item.emom_rounds !== undefined ? item.emom_rounds : 10)}" style="padding:4px;" /></div>
+          </div>
+        ` : ''}
+
+        <div style="margin-bottom:6px;">
+          <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-wu-timed-field="notes" value="${esc(item.notes || '')}" placeholder="Descripción o estrategia (ej: 10 Burpees + 15 KB Swings sin parar)..." />
+        </div>
+
+        <div style="margin-top:8px; border-top:1px dashed rgba(56,189,248,0.3); padding-top:6px;">
+          <div class="row-between" style="align-items:center; margin-bottom:4px;">
+            <span style="font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">Ejercicios de este ${normTimer}</span>
+            <div class="row-wrap" style="gap:4px;">
+              <button class="btn btn-sm btn-primary" type="button" data-add-sub-timed-wu="${idx}" style="font-size:0.78rem; padding:3px 8px;">+ Añadir ejercicio</button>
+              <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-wu-any="${idx}" style="font-size:0.78rem; padding:3px 8px;">📚 Biblioteca</button>
+            </div>
+          </div>
+          ${(item.sub_exercises || []).length > 0 ? `
+            <div style="display:flex; align-items:center; gap:6px; padding:2px 8px; font-size:0.72rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">
+              <div style="width:75px; text-align:center;">SETS</div>
+              <div style="width:85px; text-align:center;">REPS</div>
+              <div style="flex:1; min-width:140px;">MOVE</div>
+              <div style="flex:1.2; min-width:160px;">VIDEO</div>
+              <div style="width:130px; text-align:right;">ACCIONES</div>
+            </div>
+          ` : ''}
+          ${subExercisesHtml}
+        </div>
+      `;
+
+      row.querySelector('[data-del-wu]').addEventListener('click', () => {
+        state.currentDay.warmup_exercises.splice(idx, 1);
+        renderWarmupList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-test-wu-timed="${idx}"]`)?.addEventListener('click', () => {
+        const spec = {
+          mode: normTimer,
+          minutes: Number(item.timer_minutes) || 10,
+          workSec: Number(item.tabata_work !== undefined ? item.tabata_work : 20),
+          restSec: Number(item.tabata_rest !== undefined ? item.tabata_rest : 10),
+          tabataRounds: Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8),
+          intervalSec: Number(item.emom_interval !== undefined ? item.emom_interval : 60),
+          rounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10)
+        };
+        openCoachCronoProModal(spec);
+      });
+
+      row.querySelectorAll('[data-wu-timed-field]').forEach((inp) => {
+        const handler = () => {
+          const field = inp.dataset.wuTimedField;
+          const val = inp.value;
+          state.currentDay.warmup_exercises[idx][field] = val;
+          if (field === 'timer_type') {
+            const nextNorm = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(val) ? val : 'AMRAP';
+            if (nextNorm === 'TABATA') {
+              if (item.tabata_work === undefined) item.tabata_work = 20;
+              if (item.tabata_rest === undefined) item.tabata_rest = 10;
+              if (item.tabata_rounds === undefined) item.tabata_rounds = 8;
+              item.timer_minutes = Math.ceil(((Number(item.tabata_work) + Number(item.tabata_rest)) * Number(item.tabata_rounds)) / 60);
+            } else if (nextNorm === 'EMOM') {
+              if (item.emom_interval === undefined) item.emom_interval = 60;
+              if (item.emom_rounds === undefined) item.emom_rounds = 10;
+              item.timer_minutes = Math.round((Number(item.emom_interval) * Number(item.emom_rounds)) / 60);
+            }
+            if (!item.name || item.name.startsWith('AMRAP') || item.name.startsWith('EMOM') || item.name.startsWith('TABATA') || item.name.startsWith('FOR TIME')) {
+              item.name = `${nextNorm} (${item.timer_minutes || 10} min)`;
+            }
+            renderWarmupList();
+            triggerAutoSave(true);
+          } else if (field === 'tabata_work' || field === 'tabata_rest' || field === 'tabata_rounds') {
+            const w = Number(item.tabata_work !== undefined ? item.tabata_work : 20);
+            const r = Number(item.tabata_rest !== undefined ? item.tabata_rest : 10);
+            const rounds = Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8);
+            item.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+            triggerAutoSave(false);
+          } else if (field === 'emom_interval' || field === 'emom_rounds') {
+            const intSec = Number(item.emom_interval !== undefined ? item.emom_interval : 60);
+            const rounds = Number(item.emom_rounds !== undefined ? item.emom_rounds : 10);
+            item.timer_minutes = Math.round((intSec * rounds) / 60);
+            triggerAutoSave(false);
+          } else {
+            triggerAutoSave(false);
+          }
+        };
+        inp.addEventListener('input', handler);
+        inp.addEventListener('change', handler);
+      });
+
+      row.querySelector(`[data-add-sub-timed-wu="${idx}"]`)?.addEventListener('click', () => {
+        if (!Array.isArray(state.currentDay.warmup_exercises[idx].sub_exercises)) {
+          state.currentDay.warmup_exercises[idx].sub_exercises = [];
+        }
+        state.currentDay.warmup_exercises[idx].sub_exercises.push({
+          sets: '',
+          reps: '10',
+          name: '',
+          video_url: '',
+          notes: ''
+        });
+        renderWarmupList();
+        triggerAutoSave(true);
+      });
+
+      row.querySelector(`[data-search-timed-sub-wu-any="${idx}"]`)?.addEventListener('click', () => {
+        openExercisePicker({ type: 'timed_wu_sub_add', idx }, false);
+      });
+
+      (item.sub_exercises || []).forEach((sub, sIdx) => {
+        row.querySelector(`[data-del-timed-sub-wu="${sIdx}"]`)?.addEventListener('click', () => {
+          state.currentDay.warmup_exercises[idx].sub_exercises.splice(sIdx, 1);
+          renderWarmupList();
+          triggerAutoSave(true);
+        });
+
+        row.querySelector(`[data-search-timed-sub-wu="${sIdx}"]`)?.addEventListener('click', () => {
+          openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false, sub.name);
+        });
+
+        row.querySelector(`[data-play-timed-sub-wu="${sIdx}"]`)?.addEventListener('click', () => {
+          const curSub = state.currentDay.warmup_exercises[idx].sub_exercises[sIdx];
+          if (curSub?.video_url) {
+            openVideoModal(curSub.name, curSub.video_url);
+          } else {
+            openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false, curSub.name);
+          }
+        });
+
+        row.querySelectorAll(`[data-timed-sub-wu-f][data-sub-idx="${sIdx}"]`).forEach((inp) => {
+          const handleTimedSubInput = (isImmediate) => {
+            state.currentDay.warmup_exercises[idx].sub_exercises[sIdx][inp.dataset.timedSubWuF] = inp.value;
+            if (inp.dataset.timedSubWuF === 'name') {
+              const subRowEl = inp.closest('.sub-ex-coach-row');
+              if (subRowEl) {
+                tryAutoLinkExercise(state.currentDay.warmup_exercises[idx].sub_exercises[sIdx], subRowEl, 'video_url');
+              }
+            }
+            triggerAutoSave(isImmediate);
+          };
+          inp.addEventListener('input', () => handleTimedSubInput(false));
+          inp.addEventListener('change', () => handleTimedSubInput(true));
+          inp.addEventListener('blur', () => {
+            if (inp.dataset.timedSubWuF === 'name') {
+              const subRowEl = inp.closest('.sub-ex-coach-row');
+              if (subRowEl) {
+                tryAutoLinkExercise(state.currentDay.warmup_exercises[idx].sub_exercises[sIdx], subRowEl, 'video_url');
+              }
+            }
+          });
+        });
+      });
+
+      list.appendChild(row);
+      return;
+    }
+
     const hasSubs = item.sub_exercises.length > 0;
     const row = document.createElement('div');
     row.className = 'ex-coach-line';
@@ -696,7 +945,7 @@ function renderWarmupList() {
               <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
               <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wu="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
             </div>
-            <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+            <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
               <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
               <button class="btn btn-sm btn-outline" type="button" data-search-sub-wu="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
               <button class="btn btn-danger btn-sm" type="button" data-del-sub-wu="${subIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
@@ -729,7 +978,8 @@ function renderWarmupList() {
             🎬
           </button>
         </div>
-        <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+        <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+          <button class="btn btn-sm btn-outline" type="button" data-add-timed-wu="${idx}" title="Añadir AMRAP, EMOM, TABATA o FOR TIME después de este ejercicio" style="padding:6px 8px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.5);">⏱+</button>
           <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
             +
           </button>
@@ -743,6 +993,14 @@ function renderWarmupList() {
       </div>
       ${subHtml}
     `;
+
+    // Botón ⏱+ para añadir AMRAP/EMOM después de este ejercicio
+    row.querySelector(`[data-add-timed-wu="${idx}"]`)?.addEventListener('click', () => {
+      state.currentDay.warmup_exercises.splice(idx + 1, 0, createTimedSectionItem('AMRAP', 10));
+      renderWarmupList();
+      triggerAutoSave(true);
+      showToast('⏱ AMRAP añadido después del ejercicio');
+    });
 
     // Add sub-exercise to create superserie
     row.querySelectorAll(`[data-add-sub-wu="${idx}"]`).forEach((btn) => {
@@ -882,6 +1140,7 @@ function renderPartsList() {
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
         <div class="row-wrap" style="gap:6px;">
           <button class="btn btn-primary btn-sm" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
+          <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir AMRAP / EMOM</button>
           <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           <button class="btn btn-danger btn-sm" type="button" data-del-part="${pIdx}">Eliminar bloque</button>
         </div>
@@ -912,6 +1171,7 @@ function renderPartsList() {
           <span style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">📋 Ejercicios del bloque</span>
           <div class="row-wrap" style="gap:6px;">
             <button class="btn btn-sm btn-primary" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
+            <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir AMRAP / EMOM</button>
             <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           </div>
         </div>
@@ -986,6 +1246,15 @@ function renderPartsList() {
         });
         renderPartsList();
         triggerAutoSave(true);
+      });
+    });
+    box.querySelectorAll('[data-add-part-timed]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!Array.isArray(part.exercises)) part.exercises = [];
+        part.exercises.push(createTimedSectionItem('AMRAP', 10));
+        renderPartsList();
+        triggerAutoSave(true);
+        showToast('⏱ AMRAP añadido al bloque');
       });
     });
     box.querySelectorAll('[data-add-ex]').forEach((btn) => {
@@ -1068,12 +1337,248 @@ function renderPartsList() {
         <div style="width:65px; text-align:center;">DESC.</div>
         <div style="flex:1; min-width:130px;">MOVE</div>
         <div style="flex:1.2; min-width:150px;">VIDEO</div>
-        <div style="width:130px; text-align:right;">ACCIONES</div>
+        <div style="width:160px; text-align:right;">ACCIONES</div>
       `;
       exWrap.appendChild(hdr);
 
       partExercises.forEach((ex, eIdx) => {
         if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
+
+        // SECCIÓN CON CRONÓMETRO DENTRO DEL BLOQUE (AMRAP, EMOM, TABATA, FOR TIME)
+        if (ex.is_timed_section) {
+          const exRow = document.createElement('div');
+          exRow.className = 'timed-section-coach-box';
+          const curTimer = (ex.timer_type || 'AMRAP').toUpperCase();
+          const normTimer = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(curTimer) ? curTimer : 'AMRAP';
+
+          let subExercisesHtml = '';
+          (ex.sub_exercises || []).forEach((sub, sIdx) => {
+            subExercisesHtml += `
+              <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+                  <div style="width:65px; flex-shrink:0;">
+                    <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-part-f="sets" data-sub-idx="${sIdx}" placeholder="SETS" value="${esc(sub.sets || '')}" title="Series o rondas (opcional)" />
+                  </div>
+                  <div style="width:75px; flex-shrink:0;">
+                    <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-part-f="reps" data-sub-idx="${sIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+                  </div>
+                  <div style="width:80px; flex-shrink:0;">
+                    <input class="input" style="padding:6px; font-size:0.85rem;" data-timed-sub-part-f="load" data-sub-idx="${sIdx}" placeholder="CARGA" value="${esc(sub.load || '')}" title="Carga o peso (opcional)" />
+                  </div>
+                  <div style="width:65px; flex-shrink:0;"></div>
+                  <div style="flex:1; min-width:130px;">
+                    <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-timed-sub-part-f="name" data-sub-idx="${sIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
+                  </div>
+                  <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
+                    <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-timed-sub-part-f="video_url" data-sub-idx="${sIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
+                    <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-timed-sub-part="${sIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+                  </div>
+                  <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+                    <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-part="${sIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+                    <button class="btn btn-danger btn-sm" type="button" data-del-timed-sub-part="${sIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
+                  </div>
+                </div>
+                <div>
+                  <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-timed-sub-part-f="notes" data-sub-idx="${sIdx}" placeholder="Notas o detalles..." value="${esc(sub.notes || '')}" />
+                </div>
+              </div>
+            `;
+          });
+
+          exRow.innerHTML = `
+            <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN BLOQUE</span>
+                <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-part-timed-field="timer_type">
+                  ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                </select>
+              </div>
+              <div class="row-wrap" style="gap:6px;">
+                <button class="btn btn-sm btn-outline" type="button" data-test-part-timed="${eIdx}" title="Probar en Crono Pro" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;">⚡ Probar Crono Pro</button>
+                <button class="btn btn-danger btn-sm" type="button" data-del-part-ex="${eIdx}" title="Eliminar este bloque con crono">✕</button>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+              <div style="flex:2; min-width:180px;">
+                <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Título / Formato visible</label>
+                <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-part-timed-field="name" value="${esc(ex.name || '')}" placeholder="Ej: AMRAP (10 min) / Trabajo por tiempo..." />
+              </div>
+              <div style="flex:1; min-width:100px;">
+                <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Minutos / Cap</label>
+                <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-part-timed-field="timer_minutes" value="${esc(ex.timer_minutes || 10)}" />
+              </div>
+            </div>
+
+            ${normTimer === 'TABATA' ? `
+              <div class="grid-3" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+                <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Trabajo (s)</label><input class="input" type="number" min="5" max="300" step="5" data-part-timed-field="tabata_work" value="${esc(ex.tabata_work !== undefined ? ex.tabata_work : 20)}" style="padding:4px;" /></div>
+                <div><label style="font-size:0.75rem; color:#10b981; font-weight:700;">Descanso (s)</label><input class="input" type="number" min="0" max="300" step="5" data-part-timed-field="tabata_rest" value="${esc(ex.tabata_rest !== undefined ? ex.tabata_rest : 10)}" style="padding:4px;" /></div>
+                <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="50" data-part-timed-field="tabata_rounds" value="${esc(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8)}" style="padding:4px;" /></div>
+              </div>
+            ` : ''}
+
+            ${normTimer === 'EMOM' ? `
+              <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
+                <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-part-timed-field="emom_interval" value="${esc(ex.emom_interval !== undefined ? ex.emom_interval : 60)}" style="padding:4px;" /></div>
+                <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-part-timed-field="emom_rounds" value="${esc(ex.emom_rounds !== undefined ? ex.emom_rounds : 10)}" style="padding:4px;" /></div>
+              </div>
+            ` : ''}
+
+            <div style="margin-bottom:6px;">
+              <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-part-timed-field="notes" value="${esc(ex.notes || '')}" placeholder="Descripción o estrategia del AMRAP/EMOM..." />
+            </div>
+
+            <div style="margin-top:8px; border-top:1px dashed rgba(56,189,248,0.3); padding-top:6px;">
+              <div class="row-between" style="align-items:center; margin-bottom:4px;">
+                <span style="font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">Ejercicios de este ${normTimer}</span>
+                <div class="row-wrap" style="gap:4px;">
+                  <button class="btn btn-sm btn-primary" type="button" data-add-sub-timed-part="${eIdx}" style="font-size:0.78rem; padding:3px 8px;">+ Añadir ejercicio</button>
+                  <button class="btn btn-sm btn-outline" type="button" data-search-timed-sub-part-any="${eIdx}" style="font-size:0.78rem; padding:3px 8px;">📚 Biblioteca</button>
+                </div>
+              </div>
+              ${(ex.sub_exercises || []).length > 0 ? `
+                <div style="display:flex; align-items:center; gap:6px; padding:2px 8px; font-size:0.72rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:2px;">
+                  <div style="width:65px; text-align:center;">SETS</div>
+                  <div style="width:75px; text-align:center;">REPS</div>
+                  <div style="width:80px; text-align:center;">CARGA</div>
+                  <div style="flex:1; min-width:130px;">MOVE</div>
+                  <div style="flex:1.2; min-width:150px;">VIDEO</div>
+                  <div style="width:130px; text-align:right;">ACCIONES</div>
+                </div>
+              ` : ''}
+              ${subExercisesHtml}
+            </div>
+          `;
+
+          exRow.querySelector(`[data-del-part-ex="${eIdx}"]`).addEventListener('click', () => {
+            state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
+            renderPartsList();
+            triggerAutoSave(true);
+          });
+
+          exRow.querySelector(`[data-test-part-timed="${eIdx}"]`)?.addEventListener('click', () => {
+            const spec = {
+              mode: normTimer,
+              minutes: Number(ex.timer_minutes) || 10,
+              workSec: Number(ex.tabata_work !== undefined ? ex.tabata_work : 20),
+              restSec: Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10),
+              tabataRounds: Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8),
+              intervalSec: Number(ex.emom_interval !== undefined ? ex.emom_interval : 60),
+              rounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10)
+            };
+            openCoachCronoProModal(spec);
+          });
+
+          exRow.querySelectorAll('[data-part-timed-field]').forEach((inp) => {
+            const handler = () => {
+              const field = inp.dataset.partTimedField;
+              const val = inp.value;
+              state.currentDay.parts[pIdx].exercises[eIdx][field] = val;
+              if (field === 'timer_type') {
+                const nextNorm = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(val) ? val : 'AMRAP';
+                if (nextNorm === 'TABATA') {
+                  if (ex.tabata_work === undefined) ex.tabata_work = 20;
+                  if (ex.tabata_rest === undefined) ex.tabata_rest = 10;
+                  if (ex.tabata_rounds === undefined) ex.tabata_rounds = 8;
+                  ex.timer_minutes = Math.ceil(((Number(ex.tabata_work) + Number(ex.tabata_rest)) * Number(ex.tabata_rounds)) / 60);
+                } else if (nextNorm === 'EMOM') {
+                  if (ex.emom_interval === undefined) ex.emom_interval = 60;
+                  if (ex.emom_rounds === undefined) ex.emom_rounds = 10;
+                  ex.timer_minutes = Math.round((Number(ex.emom_interval) * Number(ex.emom_rounds)) / 60);
+                }
+                if (!ex.name || ex.name.startsWith('AMRAP') || ex.name.startsWith('EMOM') || ex.name.startsWith('TABATA') || ex.name.startsWith('FOR TIME')) {
+                  ex.name = `${nextNorm} (${ex.timer_minutes || 10} min)`;
+                }
+                renderPartsList();
+                triggerAutoSave(true);
+              } else if (field === 'tabata_work' || field === 'tabata_rest' || field === 'tabata_rounds') {
+                const w = Number(ex.tabata_work !== undefined ? ex.tabata_work : 20);
+                const r = Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10);
+                const rounds = Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8);
+                ex.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+                triggerAutoSave(false);
+              } else if (field === 'emom_interval' || field === 'emom_rounds') {
+                const intSec = Number(ex.emom_interval !== undefined ? ex.emom_interval : 60);
+                const rounds = Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10);
+                ex.timer_minutes = Math.round((intSec * rounds) / 60);
+                triggerAutoSave(false);
+              } else {
+                triggerAutoSave(false);
+              }
+            };
+            inp.addEventListener('input', handler);
+            inp.addEventListener('change', handler);
+          });
+
+          exRow.querySelector(`[data-add-sub-timed-part="${eIdx}"]`)?.addEventListener('click', () => {
+            if (!Array.isArray(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises)) {
+              state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises = [];
+            }
+            state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.push({
+              sets: '',
+              reps: '10',
+              load: '',
+              name: '',
+              video_url: '',
+              notes: ''
+            });
+            renderPartsList();
+            triggerAutoSave(true);
+          });
+
+          exRow.querySelector(`[data-search-timed-sub-part-any="${eIdx}"]`)?.addEventListener('click', () => {
+            openExercisePicker({ type: 'timed_part_sub_add', partIdx: pIdx, exIdx: eIdx }, false);
+          });
+
+          (ex.sub_exercises || []).forEach((sub, sIdx) => {
+            exRow.querySelector(`[data-del-timed-sub-part="${sIdx}"]`)?.addEventListener('click', () => {
+              state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.splice(sIdx, 1);
+              renderPartsList();
+              triggerAutoSave(true);
+            });
+
+            exRow.querySelector(`[data-search-timed-sub-part="${sIdx}"]`)?.addEventListener('click', () => {
+              openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false, sub.name);
+            });
+
+            exRow.querySelector(`[data-play-timed-sub-part="${sIdx}"]`)?.addEventListener('click', () => {
+              const curSub = state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[sIdx];
+              if (curSub?.video_url) {
+                openVideoModal(curSub.name, curSub.video_url);
+              } else {
+                openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false, curSub.name);
+              }
+            });
+
+            exRow.querySelectorAll(`[data-timed-sub-part-f][data-sub-idx="${sIdx}"]`).forEach((inp) => {
+              const handleTimedSubInput = (isImmediate) => {
+                state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[sIdx][inp.dataset.timedSubPartF] = inp.value;
+                if (inp.dataset.timedSubPartF === 'name') {
+                  const subRowEl = inp.closest('.sub-ex-coach-row');
+                  if (subRowEl) {
+                    tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[sIdx], subRowEl, 'video_url');
+                  }
+                }
+                triggerAutoSave(isImmediate);
+              };
+              inp.addEventListener('input', () => handleTimedSubInput(false));
+              inp.addEventListener('change', () => handleTimedSubInput(true));
+              inp.addEventListener('blur', () => {
+                if (inp.dataset.timedSubPartF === 'name') {
+                  const subRowEl = inp.closest('.sub-ex-coach-row');
+                  if (subRowEl) {
+                    tryAutoLinkExercise(state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises[sIdx], subRowEl, 'video_url');
+                  }
+                }
+              });
+            });
+          });
+
+          exWrap.appendChild(exRow);
+          return;
+        }
+
         const hasSubs = ex.sub_exercises.length > 0;
         const exRow = document.createElement('div');
         exRow.className = 'ex-coach-line';
@@ -1105,7 +1610,7 @@ function renderPartsList() {
                   <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
                   <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-part="${subIdx}" title="Ver vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
                 </div>
-                <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+                <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
                   <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; font-size:1rem;">+</button>
                   <button class="btn btn-sm btn-outline" type="button" data-search-sub-part="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
                   <button class="btn btn-danger btn-sm" type="button" data-del-sub-part="${subIdx}" title="Eliminar este ejercicio" style="padding:6px 8px;">✕</button>
@@ -1144,7 +1649,8 @@ function renderPartsList() {
                 🎬
               </button>
             </div>
-            <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+            <div class="row-wrap" style="width:160px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+              <button class="btn btn-sm btn-outline" type="button" data-add-timed-part-ex="${pIdx}" data-ex-idx="${eIdx}" title="Añadir AMRAP, EMOM, TABATA o FOR TIME después de este ejercicio" style="padding:6px 8px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.5);">⏱+</button>
               <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
                 +
               </button>
@@ -1158,6 +1664,14 @@ function renderPartsList() {
           </div>
           ${subHtml}
         `;
+
+        // Botón ⏱+ para añadir AMRAP/EMOM después de este ejercicio en el bloque
+        exRow.querySelector(`[data-add-timed-part-ex="${pIdx}"][data-ex-idx="${eIdx}"]`)?.addEventListener('click', () => {
+          state.currentDay.parts[pIdx].exercises.splice(eIdx + 1, 0, createTimedSectionItem('AMRAP', 10));
+          renderPartsList();
+          triggerAutoSave(true);
+          showToast('⏱ AMRAP añadido después del ejercicio');
+        });
 
         // Add sub-exercise to superserie in part
         exRow.querySelectorAll(`[data-add-sub-part="${eIdx}"]`).forEach((btn) => {
@@ -1364,6 +1878,17 @@ $('btnAddWarmupLine')?.addEventListener('click', () => {
   renderWarmupList();
   triggerAutoSave(true);
 });
+$('btnAddWarmupTimedBlock')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
+  state.currentDay.warmup_exercises.push(createTimedSectionItem('AMRAP', 10));
+  renderWarmupList();
+  triggerAutoSave(true);
+  showToast('⏱ AMRAP añadido al calentamiento');
+});
 $('btnAddWarmupAny')?.addEventListener('click', async () => {
   if (!state.currentDay) {
     showToast('Selecciona primero un día en la planificación.');
@@ -1454,7 +1979,76 @@ function pickExerciseIntoTarget(ex) {
         }
         renderPartsList();
         triggerAutoSave(true);
-      showToast(`✓ Ejercicio de bloque enlazado: "${ex.name}"`);
+        showToast(`✓ Ejercicio de bloque enlazado: "${ex.name}"`);
+      }
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_wu_sub_add') {
+    const parent = (state.currentDay.warmup_exercises || [])[state.pickerTarget.idx];
+    if (parent) {
+      if (!Array.isArray(parent.sub_exercises)) parent.sub_exercises = [];
+      parent.sub_exercises.push({
+        sets: '',
+        reps: '10',
+        name: ex.name,
+        video_url: ex.video_url || '',
+        notes: ex.coaching_cues || ex.description || '',
+      });
+      renderWarmupList();
+      triggerAutoSave(true);
+      showToast(`✓ "${ex.name}" añadido al bloque con crono`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_wu_sub_replace') {
+    const parent = (state.currentDay.warmup_exercises || [])[state.pickerTarget.idx];
+    if (parent && Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+      const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      renderWarmupList();
+      triggerAutoSave(true);
+      showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_part_sub_add') {
+    const part = (state.currentDay.parts || [])[state.pickerTarget.partIdx];
+    if (part && Array.isArray(part.exercises) && part.exercises[state.pickerTarget.exIdx]) {
+      const parent = part.exercises[state.pickerTarget.exIdx];
+      if (!Array.isArray(parent.sub_exercises)) parent.sub_exercises = [];
+      parent.sub_exercises.push({
+        sets: '',
+        reps: '10',
+        load: '',
+        name: ex.name,
+        video_url: ex.video_url || '',
+        notes: ex.coaching_cues || ex.description || '',
+      });
+      renderPartsList();
+      triggerAutoSave(true);
+      showToast(`✓ "${ex.name}" añadido al bloque con crono`);
+    }
+    return;
+  }
+  if (state.pickerTarget.type === 'timed_part_sub_replace') {
+    const part = (state.currentDay.parts || [])[state.pickerTarget.partIdx];
+    if (part && Array.isArray(part.exercises) && part.exercises[state.pickerTarget.exIdx]) {
+      const parent = part.exercises[state.pickerTarget.exIdx];
+      if (Array.isArray(parent.sub_exercises) && parent.sub_exercises[state.pickerTarget.subIdx]) {
+        const cur = parent.sub_exercises[state.pickerTarget.subIdx];
+        cur.name = ex.name;
+        cur.video_url = ex.video_url || '';
+        if (!cur.notes && (ex.coaching_cues || ex.description)) {
+          cur.notes = ex.coaching_cues || ex.description;
+        }
+        renderPartsList();
+        triggerAutoSave(true);
+        showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
       }
     }
     return;

@@ -551,10 +551,41 @@ function renderCurrentDay(resetTimer = true) {
   const wuSpec = getWarmupTimerSpec(day);
   if (wuSpec) currentDaySpecs['wu'] = wuSpec;
 
+  (day.warmup_exercises || []).forEach((item, itemIdx) => {
+    if (item.is_timed_section) {
+      currentDaySpecs[`wu-timed-${itemIdx}`] = {
+        id: `wu-timed-${itemIdx}`,
+        label: item.name || `${item.timer_type || 'AMRAP'} (${item.timer_minutes || 10} min)`,
+        mode: item.timer_type || 'AMRAP',
+        minutes: Number(item.timer_minutes) || 10,
+        workSec: Number(item.tabata_work !== undefined ? item.tabata_work : 20),
+        restSec: Number(item.tabata_rest !== undefined ? item.tabata_rest : 10),
+        tabataRounds: Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8),
+        intervalSec: Number(item.emom_interval !== undefined ? item.emom_interval : 60),
+        rounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10),
+      };
+    }
+  });
+
   const parts = day.parts || [];
   parts.forEach((p, idx) => {
     const pSpec = getPartTimerSpec(p, idx);
     if (pSpec) currentDaySpecs[`part-${idx}`] = pSpec;
+    (p.exercises || []).forEach((ex, exIdx) => {
+      if (ex.is_timed_section) {
+        currentDaySpecs[`part-${idx}-timed-${exIdx}`] = {
+          id: `part-${idx}-timed-${exIdx}`,
+          label: ex.name || `${ex.timer_type || 'AMRAP'} (${ex.timer_minutes || 10} min)`,
+          mode: ex.timer_type || 'AMRAP',
+          minutes: Number(ex.timer_minutes) || 10,
+          workSec: Number(ex.tabata_work !== undefined ? ex.tabata_work : 20),
+          restSec: Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10),
+          tabataRounds: Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8),
+          intervalSec: Number(ex.emom_interval !== undefined ? ex.emom_interval : 60),
+          rounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10),
+        };
+      }
+    });
   });
 
   const wod = day.wod || {};
@@ -742,7 +773,71 @@ function renderCurrentDay(resetTimer = true) {
       wuWrap.appendChild(hdr);
     }
 
-    wu.forEach((item) => {
+    wu.forEach((item, itemIdx) => {
+      // Si es una sección con crono dentro del calentamiento (ej. AMRAP, EMOM, TABATA, FOR TIME)
+      if (item.is_timed_section) {
+        const timedSpec = {
+          id: `wu-timed-${itemIdx}`,
+          label: item.name || `${item.timer_type || 'AMRAP'} (${item.timer_minutes || 10} min)`,
+          mode: item.timer_type || 'AMRAP',
+          minutes: Number(item.timer_minutes) || 10,
+          workSec: Number(item.tabata_work !== undefined ? item.tabata_work : 20),
+          restSec: Number(item.tabata_rest !== undefined ? item.tabata_rest : 10),
+          tabataRounds: Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8),
+          intervalSec: Number(item.emom_interval !== undefined ? item.emom_interval : 60),
+          rounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10),
+        };
+        currentDaySpecs[timedSpec.id] = timedSpec;
+
+        const timedBox = document.createElement('div');
+        timedBox.className = 'timed-section-student-card';
+
+        let subsHtml = '';
+        const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
+        if (subs.length > 0) {
+          subsHtml = `
+            <div class="ex-columns-header" style="margin-top:8px;">
+              <div class="ex-col-cell ex-col-sets">SETS</div>
+              <div class="ex-col-cell ex-col-reps">REPS</div>
+              <div class="ex-col-name">MOVE</div>
+              <div class="ex-col-action no-print">VIDEO</div>
+            </div>
+            ${subs.map((sub) => `
+              <div class="ex-clean-line">
+                <div class="ex-col-cell ex-col-sets">
+                  <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
+                </div>
+                <div class="ex-col-cell ex-col-reps">
+                  <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
+                </div>
+                <div class="ex-col-name">
+                  <strong>${esc(sub.name)}</strong>
+                  ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
+                </div>
+                <div class="ex-col-action">
+                  ${sub.video_url ? `
+                    <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                      🎬 <span class="video-btn-text">Vídeo</span>
+                    </button>
+                  ` : '<span style="display:inline-block; width:100%;"></span>'}
+                </div>
+              </div>
+            `).join('')}
+          `;
+        }
+
+        timedBox.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <span class="timed-section-student-badge">⏱ ${esc(item.name || item.timer_type || 'AMRAP')}</span>
+          </div>
+          ${item.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(item.notes)}</div>` : ''}
+          ${subsHtml}
+          ${renderCronoProLinkHtml(timedSpec)}
+        `;
+        wuWrap.appendChild(timedBox);
+        return;
+      }
+
       const hasSubs = Array.isArray(item.sub_exercises) && item.sub_exercises.length > 0;
       if (!hasSubs) {
         const row = document.createElement('div');
@@ -839,7 +934,72 @@ function renderCurrentDay(resetTimer = true) {
         pWrap.appendChild(hdr);
       }
 
-      (p.exercises || []).forEach((ex) => {
+      (p.exercises || []).forEach((ex, exIdx) => {
+        // Si es una sección con crono dentro del bloque (ej. AMRAP, EMOM, TABATA, FOR TIME)
+        if (ex.is_timed_section) {
+          const timedSpec = {
+            id: `part-${idx}-timed-${exIdx}`,
+            label: ex.name || `${ex.timer_type || 'AMRAP'} (${ex.timer_minutes || 10} min)`,
+            mode: ex.timer_type || 'AMRAP',
+            minutes: Number(ex.timer_minutes) || 10,
+            workSec: Number(ex.tabata_work !== undefined ? ex.tabata_work : 20),
+            restSec: Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10),
+            tabataRounds: Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8),
+            intervalSec: Number(ex.emom_interval !== undefined ? ex.emom_interval : 60),
+            rounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10),
+          };
+          currentDaySpecs[timedSpec.id] = timedSpec;
+
+          const timedBox = document.createElement('div');
+          timedBox.className = 'timed-section-student-card';
+
+          let subsHtml = '';
+          const subs = Array.isArray(ex.sub_exercises) ? ex.sub_exercises : [];
+          if (subs.length > 0) {
+            subsHtml = `
+              <div class="ex-columns-header" style="margin-top:8px;">
+                <div class="ex-col-cell ex-col-sets">SETS</div>
+                <div class="ex-col-cell ex-col-reps">REPS</div>
+                <div class="ex-col-name">MOVE</div>
+                <div class="ex-col-action no-print">VIDEO</div>
+              </div>
+              ${subs.map((sub) => `
+                <div class="ex-clean-line">
+                  <div class="ex-col-cell ex-col-sets">
+                    <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
+                  </div>
+                  <div class="ex-col-cell ex-col-reps">
+                    <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
+                  </div>
+                  <div class="ex-col-name">
+                    <strong>${esc(sub.name)}</strong>
+                    ${sub.load ? `<div class="ex-meta-text">🏋️ Carga: ${esc(sub.load)}</div>` : ''}
+                    ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
+                  </div>
+                  <div class="ex-col-action">
+                    ${sub.video_url ? `
+                      <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                        🎬 <span class="video-btn-text">Vídeo</span>
+                      </button>
+                    ` : '<span style="display:inline-block; width:100%;"></span>'}
+                  </div>
+                </div>
+              `).join('')}
+            `;
+          }
+
+          timedBox.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <span class="timed-section-student-badge">⏱ ${esc(ex.name || ex.timer_type || 'AMRAP')}</span>
+            </div>
+            ${ex.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(ex.notes)}</div>` : ''}
+            ${subsHtml}
+            ${renderCronoProLinkHtml(timedSpec)}
+          `;
+          pWrap.appendChild(timedBox);
+          return;
+        }
+
         const hasSubs = Array.isArray(ex.sub_exercises) && ex.sub_exercises.length > 0;
         const metaParts = [];
         if (ex.load) metaParts.push(`Carga: ${esc(ex.load)}`);
