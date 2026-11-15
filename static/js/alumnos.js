@@ -620,11 +620,57 @@ function renderCurrentDay(resetTimer = true) {
     wuWorkType = esc(warmupType);
   }
 
-  // WOD Final work description line right under WOD FINAL
-  let wodWorkType = esc(wod.type || 'WOD');
-  if (wod.time_cap) {
-    wodWorkType += ` · ${esc(wod.time_cap)}`;
+  // WOD Final summary formatting (SOLO ENCABEZADO WOD FINAL, TITULO DEL WOD Y TIPO, Y RESUMEN)
+  const rawWodTitle = (wod.title || '').trim();
+  let rawWodType = (wod.type || 'WOD').trim();
+  const rawWodTimeCap = (wod.time_cap || '').trim();
+
+  if (rawWodTimeCap && !rawWodType.includes(rawWodTimeCap)) {
+    const uType = rawWodType.toUpperCase();
+    if (uType.includes('AMRAP') && !rawWodType.includes('(')) {
+      rawWodType = `AMRAP (${rawWodTimeCap} min)`;
+    } else if (uType.includes('EMOM') && !rawWodType.includes('(')) {
+      rawWodType = `EMOM (${rawWodTimeCap} min)`;
+    } else if (uType.includes('TABATA') && !rawWodType.includes('(')) {
+      rawWodType = `TABATA (${rawWodTimeCap} min)`;
+    } else if (uType.includes('FOR TIME') && !rawWodType.includes('CAP')) {
+      rawWodType = `FOR TIME (CAP ${rawWodTimeCap} min)`;
+    } else {
+      rawWodType = `${rawWodType} (${rawWodTimeCap})`;
+    }
   }
+
+  let wodHeaderLine = '';
+  if (rawWodTitle && rawWodType && rawWodTitle.toLowerCase() !== rawWodType.toLowerCase()) {
+    if (rawWodTitle.toLowerCase().includes(rawWodType.toLowerCase())) {
+      wodHeaderLine = rawWodTitle;
+    } else {
+      wodHeaderLine = `${rawWodTitle} · ${rawWodType}`;
+    }
+  } else {
+    wodHeaderLine = rawWodTitle || rawWodType;
+  }
+
+  // Limpiar descripciones para que no repitan en la primera línea el título o tipo de WOD
+  let wodDescLines = (wod.description || '').split('\n').map(l => l.trim()).filter(Boolean);
+  if (wodDescLines.length > 0) {
+    const firstLineLow = wodDescLines[0].toLowerCase().replace(/[:\-_*#]/g, '').trim();
+    const tLow = rawWodTitle.toLowerCase().replace(/[:\-_*#]/g, '').trim();
+    const typeLow = rawWodType.toLowerCase().replace(/[:\-_*#]/g, '').trim();
+    if (
+      firstLineLow === tLow ||
+      firstLineLow === typeLow ||
+      (tLow && firstLineLow.startsWith(tLow)) ||
+      (typeLow && firstLineLow.startsWith(typeLow)) ||
+      (firstLineLow.startsWith('amrap') && wodHeaderLine.toLowerCase().includes('amrap')) ||
+      (firstLineLow.startsWith('emom') && wodHeaderLine.toLowerCase().includes('emom')) ||
+      (firstLineLow.startsWith('for time') && wodHeaderLine.toLowerCase().includes('for time')) ||
+      (firstLineLow.startsWith('tabata') && wodHeaderLine.toLowerCase().includes('tabata'))
+    ) {
+      wodDescLines.shift();
+    }
+  }
+  const cleanWodDesc = wodDescLines.join('\n');
 
   let html = `
     <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF - MAX 2 CLEAN LINES) -->
@@ -685,16 +731,13 @@ function renderCurrentDay(resetTimer = true) {
       `;
     }).join('')}
 
-    <!-- 3. WOD FINAL (BANNER AZUL CON LETRAS BLANCAS, DEBAJO EL TIPO DE TRABAJO EN BLANCO) -->
+    <!-- 3. WOD FINAL (SOLO ENCABEZADO WOD FINAL, TITULO DEL WOD Y TIPO, Y RESUMEN) -->
     <div class="card card-session-sheet">
       <div class="section-badge-banner">WOD FINAL</div>
-      <div class="session-subheading">${wodWorkType}</div>
-      ${wod.title ? `<div class="session-body-text" style="font-weight:800; margin-bottom:4px; font-size:1rem;">${esc(wod.title)}</div>` : ''}
-      ${wod.description ? `<div class="wod-pre-clean">${esc(wod.description)}</div>` : '<div class="session-body-text">Sin descripción.</div>'}
-      ${wod.rx_weights ? `<div class="session-body-text"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
-      ${wod.scaled_weights ? `<div class="session-body-text"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
-      ${wod.target_score ? `<div class="session-body-text"><strong>Objetivo:</strong> ${esc(wod.target_score)}</div>` : ''}
-      ${wod.strategy ? `<div class="session-body-text"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
+      <div class="session-subheading" style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">${esc(wodHeaderLine)}</div>
+      ${cleanWodDesc ? `<div class="wod-pre-clean">${esc(cleanWodDesc)}</div>` : '<div class="session-body-text">Sin descripción.</div>'}
+      ${wod.rx_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
+      ${wod.scaled_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:2px;"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
       ${(wod.movements || []).length > 0 ? `
         <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.25); border-radius:8px;">
           <div style="font-size:0.82rem; font-weight:800; color:#ffffff; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>

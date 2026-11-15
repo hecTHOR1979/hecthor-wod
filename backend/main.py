@@ -565,7 +565,8 @@ def generate_wod_endpoint(req: WodGeneratorRequest, _coach=Depends(require_coach
         equipment_available=req.equipment,
         time_minutes=req.time_minutes,
         wod_type=req.wod_type,
-        goal=req.goal or "Híbrido"
+        goal=req.goal or "Híbrido",
+        skills=req.skills or []
     )
     return wod
 

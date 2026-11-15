@@ -70,6 +70,7 @@ class WodGeneratorRequest(BaseModel):
     time_minutes: int = 15
     wod_type: str = "AMRAP"
     goal: Optional[str] = "Híbrido"
+    skills: Optional[List[str]] = []
 
 class CoachAuthRequest(BaseModel):
     password: str

@@ -9,6 +9,27 @@ const EQUIPMENT_LIST = [
   'Anillas', 'Comba / Cuerda', 'Sin material'
 ];
 
+const DEFAULT_SKILLS = [
+  'Double Unders',
+  'Pull-ups',
+  'Chest-to-Bar',
+  'Bar Muscle-ups',
+  'Ring Muscle-ups',
+  'Toes-to-Bar',
+  'Handstand Push-ups (HSPU)',
+  'Handstand Walk',
+  'Pistols',
+  'Rope Climbs',
+  'Snatch',
+  'Clean & Jerk',
+  'Thrusters',
+  'Overhead Squats',
+  'Wall Balls',
+  'Box Jump Overs',
+  'Dumbbell Snatch',
+  'Burpees over Bar'
+];
+
 const state = {
   coachConfigured: true,
   students: [],
@@ -19,6 +40,7 @@ const state = {
   exercises: [],
   warmupTypes: [],
   selectedEquipment: new Set(['Barra olímpica', 'Discos', 'Cajón', 'Sin material']),
+  selectedSkills: new Set(),
   pickerTarget: null, // { type: 'warmup' } | { type: 'part', partIdx: number } | { type: 'wod' }
   pickerGroundOnly: false,
   qrMode: 'student',
@@ -190,6 +212,7 @@ async function init() {
   loadCustomWodTypes();
   loadCustomWodGoals();
   renderEquipmentChips();
+  renderSkillsChips();
   await Promise.all([loadExercises(), loadWarmupTypes(), loadMicrocycles(), loadServerInfo(), loadStudents()]);
 }
 
@@ -2192,6 +2215,54 @@ function renderEquipmentChips() {
   });
 }
 
+function getSkillsList() {
+  let custom = [];
+  try {
+    custom = JSON.parse(localStorage.getItem('hecthor_custom_skills') || '[]');
+  } catch (_) {}
+  const all = [...DEFAULT_SKILLS];
+  custom.forEach((s) => {
+    if (s && !all.includes(s)) all.push(s);
+  });
+  return all;
+}
+
+function renderSkillsChips() {
+  const wrap = $('genSkillsChips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const skills = getSkillsList();
+  skills.forEach((skill) => {
+    const chip = document.createElement('span');
+    chip.className = `chip ${state.selectedSkills && state.selectedSkills.has(skill) ? 'selected' : ''}`;
+    chip.textContent = skill;
+    chip.addEventListener('click', () => {
+      if (!state.selectedSkills) state.selectedSkills = new Set();
+      if (state.selectedSkills.has(skill)) state.selectedSkills.delete(skill);
+      else state.selectedSkills.add(skill);
+      renderSkillsChips();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function addCustomSkill() {
+  const val = ($('newSkillInput')?.value || '').trim();
+  if (!val) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem('hecthor_custom_skills') || '[]');
+    if (!saved.includes(val)) {
+      saved.push(val);
+      localStorage.setItem('hecthor_custom_skills', JSON.stringify(saved));
+    }
+  } catch (_) {}
+  if (!state.selectedSkills) state.selectedSkills = new Set();
+  state.selectedSkills.add(val);
+  if ($('newSkillInput')) $('newSkillInput').value = '';
+  $('newSkillInputBox')?.classList.add('hidden');
+  renderSkillsChips();
+}
+
 function loadCustomWodTypes() {
   try {
     const saved = JSON.parse(localStorage.getItem('hecthor_custom_wod_types') || '[]');
@@ -2695,6 +2766,20 @@ $('newGenGoalInput')?.addEventListener('keydown', (e) => {
   }
 });
 
+$('btnToggleNewSkill')?.addEventListener('click', () => {
+  $('newSkillInputBox')?.classList.toggle('hidden');
+  if (!$('newSkillInputBox')?.classList.contains('hidden')) {
+    $('newSkillInput')?.focus();
+  }
+});
+$('btnSaveNewSkill')?.addEventListener('click', addCustomSkill);
+$('newSkillInput')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addCustomSkill();
+  }
+});
+
 $('btnToggleWodGen').addEventListener('click', () => {
   $('wodGeneratorBox').classList.toggle('hidden');
 });
@@ -2713,6 +2798,7 @@ $('btnRunWodGen').addEventListener('click', async () => {
       method: 'POST',
       body: JSON.stringify({
         equipment: Array.from(state.selectedEquipment),
+        skills: Array.from(state.selectedSkills || []),
         time_minutes: Number($('genTime').value) || 15,
         wod_type: wodType,
         goal: goal,
