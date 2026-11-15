@@ -743,8 +743,15 @@ async function openDayEditor(dayId) {
   const wod = state.currentDay.wod;
   $('wodTitle').value = wod.title || '';
   $('wodType').value = wod.type || 'AMRAP';
-  $('wodTimeCap').value = wod.time_cap || '';
-  delete $('wodTimeCap').dataset.manualEdited;
+  const hasCap = wod.has_time_cap !== undefined ? Boolean(wod.has_time_cap) : Boolean(wod.time_cap && wod.time_cap.trim() !== '');
+  if ($('wodHasTimeCap')) {
+    $('wodHasTimeCap').checked = hasCap;
+  }
+  if ($('wodTimeCap')) {
+    $('wodTimeCap').value = hasCap ? (wod.time_cap || '') : '';
+    $('wodTimeCap').disabled = !hasCap;
+    delete $('wodTimeCap').dataset.manualEdited;
+  }
   $('wodTarget').value = wod.target_score || '';
   $('wodDescription').value = wod.description || '';
   $('wodRx').value = wod.rx_weights || '';
@@ -2670,6 +2677,14 @@ function updateWodTimerUI() {
   $('wodCfgCap')?.classList.toggle('hidden', !isCap);
 
   const sumEl = $('wodTimerSummary');
+  const hasCapChecked = $('wodHasTimeCap') ? $('wodHasTimeCap').checked : Boolean($('wodTimeCap')?.value);
+  if ($('wodTimeCap')) {
+    $('wodTimeCap').disabled = !hasCapChecked;
+    if (!hasCapChecked && !$('wodTimeCap').dataset.manualEdited) {
+      $('wodTimeCap').value = '';
+    }
+  }
+
   if (isSin) {
     if (sumEl) sumEl.textContent = 'Sin crono configurado para el WOD';
   } else if (isTabata) {
@@ -2681,7 +2696,7 @@ function updateWodTimerUI() {
     const s = totalSec % 60;
     const tStr = s > 0 ? `${m}m ${s}s` : `${m} min`;
     if (sumEl) sumEl.innerHTML = `⚡ <strong>${rounds} rondas</strong>: <span style="color:#38bdf8; font-weight:800;">${work}s Trabajo (Azul)</span> / <span style="color:#22c55e; font-weight:800;">${rest}s Descanso (Verde)</span> (Total: ${tStr})`;
-    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+    if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
       $('wodTimeCap').value = `${rounds} rondas · ${work}s/${rest}s (${tStr})`;
     }
   } else if (isEmom) {
@@ -2689,13 +2704,13 @@ function updateWodTimerUI() {
     const rounds = Number($('wodEmomRounds')?.value) || 10;
     const totalM = Math.round((intSec * rounds) / 60);
     if (sumEl) sumEl.innerHTML = `⚡ <strong>EMOM</strong>: Cada ${intSec}s durante ${rounds} intervalos (Total: ${totalM} min)`;
-    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+    if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
       $('wodTimeCap').value = `EMOM ${rounds}' (cada ${intSec}s)`;
     }
   } else if (isCap) {
     const mins = Number($('wodMinutes')?.value) || 12;
     if (sumEl) sumEl.innerHTML = `⚡ Duración / Time Cap: <strong>${mins} minutos</strong>`;
-    if ($('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+    if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
       $('wodTimeCap').value = `${mins} Minutos`;
     }
   } else {
@@ -2718,6 +2733,21 @@ function initCoachWodTimerControls() {
       }
     }
   };
+
+  $('wodHasTimeCap')?.addEventListener('change', (e) => {
+    const isChecked = e.target.checked;
+    if ($('wodTimeCap')) {
+      $('wodTimeCap').disabled = !isChecked;
+      delete $('wodTimeCap').dataset.manualEdited;
+      if (isChecked) {
+        updateWodTimerUI();
+        $('wodTimeCap').focus();
+      } else {
+        $('wodTimeCap').value = '';
+      }
+    }
+    triggerAutoSave(true);
+  });
 
   $('wodType')?.addEventListener('input', () => {
     delete $('wodTimeCap').dataset.manualEdited;
@@ -2959,7 +2989,14 @@ $('btnRunWodGen').addEventListener('click', async () => {
     });
     $('wodTitle').value = wod.title || '';
     $('wodType').value = wod.type || '';
-    $('wodTimeCap').value = wod.time_cap || '';
+    const hasGenCap = Boolean(wod.time_cap && wod.time_cap.trim() !== '');
+    if ($('wodHasTimeCap')) {
+      $('wodHasTimeCap').checked = hasGenCap;
+    }
+    if ($('wodTimeCap')) {
+      $('wodTimeCap').value = hasGenCap ? wod.time_cap : '';
+      $('wodTimeCap').disabled = !hasGenCap;
+    }
     $('wodTarget').value = wod.target_score || '';
     $('wodDescription').value = wod.description || '';
     $('wodRx').value = wod.rx_weights || '';
@@ -3019,7 +3056,8 @@ function buildCurrentDayPayload() {
     wod: {
       title: $('wodTitle')?.value.trim() || '',
       type: $('wodType')?.value.trim() || '',
-      time_cap: $('wodTimeCap')?.value.trim() || '',
+      has_time_cap: $('wodHasTimeCap') ? $('wodHasTimeCap').checked : Boolean($('wodTimeCap')?.value.trim()),
+      time_cap: $('wodHasTimeCap')?.checked ? $('wodTimeCap')?.value.trim() || '' : '',
       target_score: $('wodTarget')?.value.trim() || '',
       description: $('wodDescription')?.value.trim() || '',
       rx_weights: $('wodRx')?.value.trim() || '',
@@ -3423,7 +3461,46 @@ $('newMcGoalInput')?.addEventListener('keydown', (e) => {
   }
 });
 
+let editingMicrocycleId = null;
+
+$('btnEditMicrocycle')?.addEventListener('click', () => {
+  if (!state.currentMicrocycle) {
+    showToast('Selecciona primero un mesociclo para modificar');
+    return;
+  }
+  editingMicrocycleId = state.currentMicrocycle.id;
+  if ($('mcModalTitle')) $('mcModalTitle').textContent = 'Modificar Mesociclo';
+  if ($('btnCreateMicrocycleSubmit')) $('btnCreateMicrocycleSubmit').textContent = 'Guardar Cambios';
+  if ($('mcDurationFields')) $('mcDurationFields').style.display = 'none';
+
+  $('mcName').value = state.currentMicrocycle.name || '';
+  $('mcCode').value = state.currentMicrocycle.access_code || '';
+  $('mcStartDate').value = state.currentMicrocycle.start_date || '';
+  $('mcDesc').value = state.currentMicrocycle.description || '';
+  
+  const g = state.currentMicrocycle.primary_goal || 'Fuerza';
+  const sel = $('mcGoal');
+  if (sel) {
+    if (!Array.from(sel.options).some((o) => o.value === g)) {
+      const opt = document.createElement('option');
+      opt.value = g;
+      opt.textContent = g;
+      sel.appendChild(opt);
+    }
+    sel.value = g;
+  }
+  $('newMcGoalBox')?.classList.add('hidden');
+  openModal('microcycleModal');
+});
+
 $('btnNewMicrocycle').addEventListener('click', () => {
+  editingMicrocycleId = null;
+  if ($('mcModalTitle')) $('mcModalTitle').textContent = 'Crear Nuevo Mesociclo';
+  if ($('btnCreateMicrocycleSubmit')) $('btnCreateMicrocycleSubmit').textContent = 'Crear Mesociclo';
+  if ($('mcDurationFields')) $('mcDurationFields').style.display = 'grid';
+
+  $('mcName').value = '';
+  $('mcDesc').value = '';
   $('mcCode').value = 'CF' + Math.floor(1000 + Math.random() * 9000);
   $('mcStartDate').value = getDefaultMondayIso();
   $('newMcGoalBox')?.classList.add('hidden');
@@ -3433,8 +3510,8 @@ $('btnNewMicrocycle').addEventListener('click', () => {
 $('btnCreateMicrocycleSubmit').addEventListener('click', async () => {
   const name = $('mcName').value.trim();
   const code = $('mcCode').value.trim().toUpperCase();
-  if (!name || !code) {
-    showToast('Introduce nombre y código de acceso');
+  if (!name) {
+    showToast('Introduce el nombre del mesociclo');
     return;
   }
   let primaryGoal = $('mcGoal').value;
@@ -3442,23 +3519,43 @@ $('btnCreateMicrocycleSubmit').addEventListener('click', async () => {
     primaryGoal = ($('newMcGoalInput')?.value || '').trim() || 'Fuerza';
   }
   try {
-    const res = await api('/api/microcycles', {
-      method: 'POST',
-      body: JSON.stringify({
-        name,
-        weeks_count: Number($('mcWeeks').value) || 4,
-        days_per_week: Number($('mcDays').value) || 5,
-        primary_goal: primaryGoal,
-        description: $('mcDesc').value.trim(),
-        access_code: code,
-        start_date: $('mcStartDate').value || getDefaultMondayIso(),
-      }),
-    });
-    closeModal('microcycleModal');
-    $('mcName').value = '';
-    $('mcDesc').value = '';
-    await loadMicrocycles(res.id);
-    showToast('Mesociclo creado');
+    if (editingMicrocycleId) {
+      await api(`/api/microcycles/${editingMicrocycleId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name,
+          primary_goal: primaryGoal,
+          description: $('mcDesc').value.trim(),
+          access_code: code || state.currentMicrocycle?.access_code || 'CF2026',
+          start_date: $('mcStartDate').value || getDefaultMondayIso(),
+        }),
+      });
+      closeModal('microcycleModal');
+      await loadMicrocycles(editingMicrocycleId);
+      showToast('Mesociclo actualizado correctamente');
+    } else {
+      if (!code) {
+        showToast('Introduce el código de acceso');
+        return;
+      }
+      const res = await api('/api/microcycles', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          weeks_count: Number($('mcWeeks').value) || 4,
+          days_per_week: Number($('mcDays').value) || 5,
+          primary_goal: primaryGoal,
+          description: $('mcDesc').value.trim(),
+          access_code: code,
+          start_date: $('mcStartDate').value || getDefaultMondayIso(),
+        }),
+      });
+      closeModal('microcycleModal');
+      $('mcName').value = '';
+      $('mcDesc').value = '';
+      await loadMicrocycles(res.id);
+      showToast('Mesociclo creado');
+    }
   } catch (err) {
     showToast(err.message);
   }

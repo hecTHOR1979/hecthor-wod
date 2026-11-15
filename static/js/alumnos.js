@@ -620,25 +620,11 @@ function renderCurrentDay(resetTimer = true) {
     wuWorkType = esc(warmupType);
   }
 
-  // WOD Final summary formatting (SOLO ENCABEZADO WOD FINAL, TITULO DEL WOD Y TIPO, Y RESUMEN)
+  // WOD Final summary formatting (SOLO ENCABEZADO WOD FINAL, TITULO Y FORMATO, Y CAP SOLO SI EL COACH LO SELECCIONA)
   const rawWodTitle = (wod.title || '').trim();
   let rawWodType = (wod.type || 'WOD').trim();
-  const rawWodTimeCap = (wod.time_cap || '').trim();
-
-  if (rawWodTimeCap && !rawWodType.includes(rawWodTimeCap)) {
-    const uType = rawWodType.toUpperCase();
-    if (uType.includes('AMRAP') && !rawWodType.includes('(')) {
-      rawWodType = `AMRAP (${rawWodTimeCap} min)`;
-    } else if (uType.includes('EMOM') && !rawWodType.includes('(')) {
-      rawWodType = `EMOM (${rawWodTimeCap} min)`;
-    } else if (uType.includes('TABATA') && !rawWodType.includes('(')) {
-      rawWodType = `TABATA (${rawWodTimeCap} min)`;
-    } else if (uType.includes('FOR TIME') && !rawWodType.includes('CAP')) {
-      rawWodType = `FOR TIME (CAP ${rawWodTimeCap} min)`;
-    } else {
-      rawWodType = `${rawWodType} (${rawWodTimeCap})`;
-    }
-  }
+  const hasTimeCap = wod.has_time_cap !== false && wod.has_time_cap !== 0 && Boolean(wod.time_cap && wod.time_cap.trim());
+  const rawWodTimeCap = hasTimeCap ? wod.time_cap.trim() : '';
 
   let wodHeaderLine = '';
   if (rawWodTitle && rawWodType && rawWodTitle.toLowerCase() !== rawWodType.toLowerCase()) {
@@ -648,7 +634,15 @@ function renderCurrentDay(resetTimer = true) {
       wodHeaderLine = `${rawWodTitle} · ${rawWodType}`;
     }
   } else {
-    wodHeaderLine = rawWodTitle || rawWodType;
+    wodHeaderLine = rawWodTitle || rawWodType || 'WOD';
+  }
+
+  // El CAP solo sale en el encabezado si fue seleccionado por el coach
+  if (rawWodTimeCap) {
+    const cleanCap = rawWodTimeCap.replace(/^CAP\s*:?\s*/i, '').trim();
+    if (!wodHeaderLine.toUpperCase().includes('CAP') && !wodHeaderLine.includes(cleanCap)) {
+      wodHeaderLine += ` (CAP: ${cleanCap})`;
+    }
   }
 
   // Limpiar descripciones para que no repitan en la primera línea el título o tipo de WOD

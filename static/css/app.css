@@ -361,11 +361,14 @@ body.alumnos-page .brand {
   padding: 4px 6px !important;
   border-radius: 6px !important;
   font-weight: 900 !important;
-  font-size: 0.88rem !important;
+  font-size: 0.84rem !important;
   color: #ffffff !important;
   background: #0284c7 !important;
   border: 1.5px solid #38bdf8 !important;
   text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   box-sizing: border-box !important;
 }
 
@@ -427,36 +430,43 @@ body.alumnos-page .brand {
 
 .card-session-sheet .ex-col-sets,
 .card-session-sheet .ex-col-sets-wu,
-.card-session-sheet .ex-col-sets-pt {
-  flex: 0 0 62px !important;
-  width: 62px !important;
-  min-width: 62px !important;
-  max-width: 62px !important;
+.card-session-sheet .ex-col-sets-pt,
+.ex-col-sets {
+  flex: 0 0 78px !important;
+  width: 78px !important;
+  min-width: 78px !important;
+  max-width: 78px !important;
   text-align: center !important;
+  box-sizing: border-box !important;
 }
 
 .card-session-sheet .ex-col-reps,
 .card-session-sheet .ex-col-reps-wu,
-.card-session-sheet .ex-col-reps-pt {
-  flex: 0 0 62px !important;
-  width: 62px !important;
-  min-width: 62px !important;
-  max-width: 62px !important;
+.card-session-sheet .ex-col-reps-pt,
+.ex-col-reps {
+  flex: 0 0 78px !important;
+  width: 78px !important;
+  min-width: 78px !important;
+  max-width: 78px !important;
   text-align: center !important;
+  box-sizing: border-box !important;
 }
 
-.card-session-sheet .ex-col-name {
-  flex: 1 1 auto !important;
+.card-session-sheet .ex-col-name,
+.ex-col-name {
+  flex: 1 1 0 !important;
   min-width: 0 !important;
   color: #ffffff !important;
   word-break: break-word !important;
+  box-sizing: border-box !important;
 }
 
 .card-session-sheet .ex-col-name strong {
   color: #ffffff !important;
 }
 
-.card-session-sheet .ex-col-action {
+.card-session-sheet .ex-col-action,
+.ex-col-action {
   flex: 0 0 74px !important;
   width: 74px !important;
   min-width: 74px !important;
@@ -1187,24 +1197,32 @@ textarea.input {
     font-size: 0.72rem !important;
   }
   .card-session-sheet .ex-col-sets,
+  .card-session-sheet .ex-col-sets,
   .card-session-sheet .ex-col-sets-wu,
   .card-session-sheet .ex-col-sets-pt,
+  .ex-col-sets,
   .ex-col-sets-wu,
   .ex-col-sets-pt {
-    flex: 0 0 52px !important;
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
+    flex: 0 0 70px !important;
+    width: 70px !important;
+    min-width: 70px !important;
+    max-width: 70px !important;
   }
   .card-session-sheet .ex-col-reps,
   .card-session-sheet .ex-col-reps-wu,
   .card-session-sheet .ex-col-reps-pt,
+  .ex-col-reps,
   .ex-col-reps-wu,
   .ex-col-reps-pt {
-    flex: 0 0 52px !important;
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
+    flex: 0 0 70px !important;
+    width: 70px !important;
+    min-width: 70px !important;
+    max-width: 70px !important;
+  }
+  .card-session-sheet .ex-col-name,
+  .ex-col-name {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
   }
   .card-session-sheet .ex-col-action,
   .ex-col-action {
@@ -1213,9 +1231,10 @@ textarea.input {
     min-width: 64px !important;
     max-width: 64px !important;
   }
-  .card-session-sheet .clean-pill-val {
-    font-size: 0.82rem !important;
-    padding: 3px 2px !important;
+  .card-session-sheet .clean-pill-val,
+  .clean-pill-val {
+    font-size: 0.8rem !important;
+    padding: 3px 3px !important;
   }
   .btn-video-sym {
     padding: 3px 5px !important;
@@ -1793,6 +1812,16 @@ textarea.input {
     line-height: 1.2 !important;
   }
 
+  .ex-col-sets,
+  .ex-col-reps {
+    flex: 0 0 68px !important;
+    width: 68px !important;
+    min-width: 68px !important;
+    max-width: 68px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
   /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF */
   .clean-pill-val,
   body.alumnos-page .clean-pill-val,
@@ -1803,13 +1832,15 @@ textarea.input {
     color: #000000 !important;
     border: 1.2px solid #0284c7 !important;
     font-weight: 900 !important;
-    font-size: 8.5pt !important;
-    padding: 2px 6px !important;
-    min-width: 32px !important;
-    border-radius: 4px !important;
+    font-size: 8pt !important;
+    padding: 2px 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    white-space: nowrap !important;
+    border-radius: 4px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
