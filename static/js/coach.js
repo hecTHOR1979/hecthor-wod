@@ -659,11 +659,11 @@ function renderWarmupList() {
   const hdr = document.createElement('div');
   hdr.style.cssText = 'display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;';
   hdr.innerHTML = `
-    <div style="width:75px; text-align:center;">Rondas</div>
-    <div style="width:85px; text-align:center;">Repes / T</div>
-    <div style="flex:1; min-width:140px;">Nombre del ejercicio</div>
-    <div style="flex:1.2; min-width:160px;">URL Vídeo</div>
-    <div style="width:130px; text-align:right;">Acciones</div>
+    <div style="width:75px; text-align:center;">SETS</div>
+    <div style="width:85px; text-align:center;">REPS</div>
+    <div style="flex:1; min-width:140px;">MOVE</div>
+    <div style="flex:1.2; min-width:160px;">VIDEO</div>
+    <div style="width:130px; text-align:right;">ACCIONES</div>
   `;
   list.appendChild(hdr);
 
@@ -687,13 +687,13 @@ function renderWarmupList() {
               <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
             </div>
             <div style="width:85px; flex-shrink:0;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="Repes / T" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 12 / 30s)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
             </div>
             <div style="flex:1; min-width:140px;">
-              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wu-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(sub.name || '')}" autocomplete="off" />
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-wu-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
             </div>
             <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
-              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo explicativo..." value="${esc(sub.video_url || '')}" />
+              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
               <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wu="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
             </div>
             <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
@@ -713,18 +713,18 @@ function renderWarmupList() {
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
         <div style="width:75px; flex-shrink:0;">
           ${hasSubs 
-            ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="Rnd" value="${esc(item.sets || '')}" title="Rondas o Series" /></div>`
-            : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas o Series (ej: 3 rondas)" />`
+            ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="SETS" value="${esc(item.sets || '')}" title="SETS (Rondas o Series)" /></div>`
+            : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="SETS" value="${esc(item.sets || '')}" title="SETS (Rondas o Series)" />`
           }
         </div>
         <div style="width:85px; flex-shrink:0;">
-          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="REPS" value="${esc(item.reps || '')}" title="REPS (Repeticiones o Tiempo)" />
         </div>
         <div style="flex:1; min-width:140px;">
-          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(item.name || '')}" autocomplete="off" />
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
         </div>
         <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
-          <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wu-field="video_url" placeholder="URL vídeo explicativo..." value="${esc(item.video_url || '')}" />
+          <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wu-field="video_url" placeholder="VIDEO (URL vídeo...)" value="${esc(item.video_url || '')}" />
           <button class="btn btn-sm ${item.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play="${idx}" title="${item.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
             🎬
           </button>
@@ -1062,13 +1062,13 @@ function renderPartsList() {
       const hdr = document.createElement('div');
       hdr.style.cssText = 'display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;';
       hdr.innerHTML = `
-        <div style="width:65px; text-align:center;">Series</div>
-        <div style="width:75px; text-align:center;">Repes</div>
-        <div style="width:80px; text-align:center;">Carga</div>
-        <div style="width:65px; text-align:center;">Desc.</div>
-        <div style="flex:1; min-width:130px;">Nombre del ejercicio</div>
-        <div style="flex:1.2; min-width:150px;">URL Vídeo</div>
-        <div style="width:130px; text-align:right;">Acciones</div>
+        <div style="width:65px; text-align:center;">SETS</div>
+        <div style="width:75px; text-align:center;">REPS</div>
+        <div style="width:80px; text-align:center;">CARGA</div>
+        <div style="width:65px; text-align:center;">DESC.</div>
+        <div style="flex:1; min-width:130px;">MOVE</div>
+        <div style="flex:1.2; min-width:150px;">VIDEO</div>
+        <div style="width:130px; text-align:right;">ACCIONES</div>
       `;
       exWrap.appendChild(hdr);
 
@@ -1092,17 +1092,17 @@ function renderPartsList() {
                   <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
                 </div>
                 <div style="width:75px; flex-shrink:0;">
-                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="Repes" value="${esc(sub.reps || '')}" title="Repeticiones" />
+                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="REPS (Repeticiones)" />
                 </div>
                 <div style="width:80px; flex-shrink:0;">
-                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="load" data-sub-idx="${subIdx}" placeholder="Carga/%" value="${esc(sub.load || '')}" title="Carga o %RM" />
+                  <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="load" data-sub-idx="${subIdx}" placeholder="CARGA" value="${esc(sub.load || '')}" title="CARGA o %RM" />
                 </div>
                 <div style="width:65px; flex-shrink:0;"></div>
                 <div style="flex:1; min-width:130px;">
-                  <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(sub.name || '')}" autocomplete="off" />
+                  <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
                 </div>
                 <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
-                  <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo..." value="${esc(sub.video_url || '')}" />
+                  <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
                   <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-part="${subIdx}" title="Ver vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
                 </div>
                 <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
@@ -1122,24 +1122,24 @@ function renderPartsList() {
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
             <div style="width:65px; flex-shrink:0;">
               ${hasSubs
-                ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 5px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="Ser" value="${esc(ex.sets || '')}" title="Series" /></div>`
-                : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series del bloque (ej: 4)" />`
+                ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 5px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="SETS" value="${esc(ex.sets || '')}" title="SETS (Series)" /></div>`
+                : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="SETS" value="${esc(ex.sets || '')}" title="SETS (Series del bloque)" />`
               }
             </div>
             <div style="width:75px; flex-shrink:0;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="Repes" value="${esc(ex.reps || '')}" title="Repeticiones (ej: 5 o 8-10)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="REPS" value="${esc(ex.reps || '')}" title="REPS (Repeticiones)" />
             </div>
             <div style="width:80px; flex-shrink:0;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="load" placeholder="Carga/%" value="${esc(ex.load || '')}" title="Carga o %RM (ej: 80 kg o 75%)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="load" placeholder="CARGA" value="${esc(ex.load || '')}" title="CARGA o %RM" />
             </div>
             <div style="width:65px; flex-shrink:0;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="Desc." value="${esc(ex.rest || '')}" title="Descanso (ej: 90s)" />
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="DESC." value="${esc(ex.rest || '')}" title="DESC. (Descanso)" />
             </div>
             <div style="flex:1; min-width:130px;">
-              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(ex.name || '')}" autocomplete="off" />
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(ex.name || '')}" autocomplete="off" />
             </div>
             <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
-              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-ex-f="video_url" placeholder="URL vídeo..." value="${esc(ex.video_url || '')}" />
+              <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-ex-f="video_url" placeholder="VIDEO (URL vídeo...)" value="${esc(ex.video_url || '')}" />
               <button class="btn btn-sm ${ex.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-ex title="${ex.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">
                 🎬
               </button>

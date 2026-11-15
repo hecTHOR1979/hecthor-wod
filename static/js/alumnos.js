@@ -638,12 +638,12 @@ function renderCurrentDay(resetTimer = true) {
             <div class="ex-clean-list stu-part-ex" data-part-idx="${idx}"></div>
           ` : ''}
           ${p.has_score ? `
-            <div class="block-score-box no-print" style="margin-top:12px; background:#f0fdf4; border:1.5px dashed #16a34a; border-radius:8px; padding:10px 14px;">
-              <div style="font-size:0.85rem; font-weight:800; color:#15803d; text-transform:uppercase; margin-bottom:6px;">
+            <div class="block-score-box no-print" style="margin-top:12px; background:rgba(34,197,94,0.08); border:1.5px dashed rgba(34,197,94,0.4); border-radius:8px; padding:10px 14px;">
+              <div style="font-size:0.85rem; font-weight:800; color:#4ade80; text-transform:uppercase; margin-bottom:6px;">
                 🏆 Registrar mi resultado en este bloque (${esc(blockTitle)})
               </div>
               <div class="row-wrap" style="gap:8px;">
-                <input class="input" style="flex:1; min-width:180px; color:#000000; background:#ffffff; border-color:#cbd5e1;" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
+                <input class="input" style="flex:1; min-width:180px; color:#ffffff; background:#0b111e; border-color:rgba(255,255,255,0.15);" data-block-score-input="${idx}" placeholder="Ej: 5x5 con 100 kg / Carga o marca alcanzada..." />
                 <button class="btn btn-primary btn-sm" data-block-score-btn="${idx}" data-part-title="${esc(blockTitle)}">Guardar Marca</button>
               </div>
               <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px;"></div>
@@ -654,7 +654,7 @@ function renderCurrentDay(resetTimer = true) {
       `;
     }).join('')}
 
-    <!-- 3. WOD FINAL (BANNER AZUL CON LETRAS NEGRAS, DEBAJO EL TIPO DE TRABAJO EN NEGRO) -->
+    <!-- 3. WOD FINAL (BANNER AZUL CON LETRAS BLANCAS, DEBAJO EL TIPO DE TRABAJO EN BLANCO) -->
     <div class="card card-session-sheet">
       <div class="section-badge-banner">WOD FINAL</div>
       <div class="session-subheading">${wodWorkType}</div>
@@ -665,8 +665,8 @@ function renderCurrentDay(resetTimer = true) {
       ${wod.target_score ? `<div class="session-body-text"><strong>Objetivo:</strong> ${esc(wod.target_score)}</div>` : ''}
       ${wod.strategy ? `<div class="session-body-text"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
       ${(wod.movements || []).length > 0 ? `
-        <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px;">
-          <div style="font-size:0.82rem; font-weight:800; color:#0369a1; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>
+        <div class="wod-videos-box no-print" style="margin-top:10px; padding:8px 12px; background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.3); border-radius:8px;">
+          <div style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:6px;">🎬 Vídeos de movimientos del WOD</div>
           <div id="stuWodMovements"></div>
         </div>
       ` : ''}
@@ -756,7 +756,7 @@ function renderCurrentDay(resetTimer = true) {
           </div>
           <div class="ex-col-name">
             <strong>${esc(item.name)}</strong>
-            ${item.notes ? `<div style="font-size:0.82rem; color:#475569; margin-top:2px;">${esc(item.notes)}</div>` : ''}
+            ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
           </div>
           <div class="ex-col-action">
             ${item.video_url ? `
@@ -770,7 +770,6 @@ function renderCurrentDay(resetTimer = true) {
       } else {
         const box = document.createElement('div');
         box.className = 'ex-group-card';
-        box.style.cssText = 'border:1.5px solid #cbd5e1; border-radius:8px; padding:6px; margin-bottom:8px; background:#f8fafc;';
         
         let subHtml = `
           <div class="ex-clean-line" style="margin-bottom:4px;">
@@ -782,7 +781,7 @@ function renderCurrentDay(resetTimer = true) {
             </div>
             <div class="ex-col-name">
               <strong>${esc(item.name)}</strong>
-              ${item.notes ? `<div style="font-size:0.82rem; color:#475569; margin-top:2px;">${esc(item.notes)}</div>` : ''}
+              ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
             </div>
             <div class="ex-col-action">
               ${item.video_url ? `
@@ -798,14 +797,14 @@ function renderCurrentDay(resetTimer = true) {
           subHtml += `
             <div class="ex-clean-line" style="margin-bottom:4px;">
               <div class="ex-col-cell ex-col-sets">
-                <span class="clean-pill-val" style="background:#e0f2fe; border-color:#7dd3fc; color:#0369a1;">+</span>
+                <span class="clean-pill-val superserie-plus">+</span>
               </div>
               <div class="ex-col-cell ex-col-reps">
                 <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
               </div>
               <div class="ex-col-name">
                 <strong>${esc(sub.name)}</strong>
-                ${sub.notes ? `<div style="font-size:0.82rem; color:#475569; margin-top:2px;">${esc(sub.notes)}</div>` : ''}
+                ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
               </div>
               <div class="ex-col-action">
                 ${sub.video_url ? `
@@ -845,8 +844,8 @@ function renderCurrentDay(resetTimer = true) {
         const metaParts = [];
         if (ex.load) metaParts.push(`Carga: ${esc(ex.load)}`);
         if (ex.rest) metaParts.push(`Descanso: ${esc(ex.rest)}`);
-        const metaHtml = metaParts.length > 0 ? `<div style="font-size:0.82rem; color:#475569; margin-top:2px; font-weight:600;">🏋️ ${metaParts.join(' · ')}</div>` : '';
-        const notesHtml = ex.notes ? `<div style="font-size:0.8rem; color:#64748b; margin-top:2px;">${esc(ex.notes)}</div>` : '';
+        const metaHtml = metaParts.length > 0 ? `<div class="ex-meta-text">🏋️ ${metaParts.join(' · ')}</div>` : '';
+        const notesHtml = ex.notes ? `<div class="ex-notes-text">${esc(ex.notes)}</div>` : '';
 
         if (!hasSubs) {
           const row = document.createElement('div');
@@ -875,7 +874,6 @@ function renderCurrentDay(resetTimer = true) {
         } else {
           const box = document.createElement('div');
           box.className = 'ex-group-card';
-          box.style.cssText = 'border:1.5px solid #cbd5e1; border-radius:8px; padding:6px; margin-bottom:8px; background:#f8fafc;';
           
           let subHtml = `
             <div class="ex-clean-line" style="margin-bottom:4px;">
@@ -904,13 +902,13 @@ function renderCurrentDay(resetTimer = true) {
             const subMeta = [];
             if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
             if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
-            const subMetaHtml = subMeta.length > 0 ? `<div style="font-size:0.82rem; color:#475569; margin-top:2px; font-weight:600;">🏋️ ${subMeta.join(' · ')}</div>` : '';
-            const subNotesHtml = sub.notes ? `<div style="font-size:0.8rem; color:#64748b; margin-top:2px;">${esc(sub.notes)}</div>` : '';
+            const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
+            const subNotesHtml = sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : '';
 
             subHtml += `
               <div class="ex-clean-line" style="margin-bottom:4px;">
                 <div class="ex-col-cell ex-col-sets">
-                  <span class="clean-pill-val" style="background:#e0f2fe; border-color:#7dd3fc; color:#0369a1;">+</span>
+                  <span class="clean-pill-val superserie-plus">+</span>
                 </div>
                 <div class="ex-col-cell ex-col-reps">
                   <span class="clean-pill-val">${esc(sub.reps || '-')}</span>

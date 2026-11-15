@@ -285,7 +285,7 @@ body.alumnos-page .brand {
 
 .card-session-sheet {
   background: var(--bg-card, #151923) !important;
-  color: var(--text, #f3f5f8) !important;
+  color: #ffffff !important;
   border: 1px solid rgba(56, 189, 248, 0.28) !important;
   border-radius: 12px !important;
   padding: 14px 16px !important;
@@ -293,9 +293,9 @@ body.alumnos-page .brand {
   margin-bottom: 12px !important;
 }
 
-/* SESSION HEADERS (MAX 2 CLEAN LINES) */
+/* SESSION HEADERS (MAX 2 CLEAN LINES - TODAS LAS LETRAS EN BLANCO EN LA APP) */
 .session-main-header {
-  color: #38bdf8 !important;
+  color: #ffffff !important;
   font-size: clamp(1.02rem, 3.8vw, 1.25rem) !important;
   font-weight: 900 !important;
   margin: 0 0 4px 0 !important;
@@ -307,7 +307,7 @@ body.alumnos-page .brand {
 }
 
 .session-sub-header {
-  color: #f8fafc !important;
+  color: #ffffff !important;
   font-size: clamp(0.82rem, 3.2vw, 1.02rem) !important;
   font-weight: 800 !important;
   margin: 0 !important;
@@ -317,16 +317,25 @@ body.alumnos-page .brand {
 }
 
 .session-subheading {
-  color: #38bdf8 !important;
+  color: #ffffff !important;
   font-size: 0.98rem !important;
   font-weight: 800 !important;
   margin: 2px 0 8px 0 !important;
 }
 
 .session-body-text {
-  color: #cbd5e1 !important;
+  color: #ffffff !important;
   font-size: 0.9rem !important;
   line-height: 1.4 !important;
+}
+
+.wod-pre-clean {
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
+  white-space: pre-wrap !important;
+  margin: 6px 0 !important;
 }
 
 /* SECTION BADGE BANNER: AZUL CON LETRAS BLANCAS */
@@ -353,17 +362,45 @@ body.alumnos-page .brand {
   border-radius: 6px !important;
   font-weight: 800 !important;
   font-size: 0.88rem !important;
-  color: #38bdf8 !important;
+  color: #ffffff !important;
   background: #0c121e !important;
-  border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+  border: 1.5px solid #38bdf8 !important;
   text-align: center !important;
   box-sizing: border-box !important;
+}
+
+.superserie-plus {
+  background: rgba(56, 189, 248, 0.25) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+
+.ex-group-card {
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  border-radius: 8px !important;
+  padding: 6px !important;
+  margin-bottom: 8px !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+
+.ex-meta-text {
+  font-size: 0.82rem !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  margin-top: 2px !important;
+}
+
+.ex-notes-text {
+  font-size: 0.8rem !important;
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+  margin-top: 2px !important;
 }
 
 .card-session-sheet .ex-clean-line {
   background: #0c121e !important;
   border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  color: #f8fafc !important;
+  color: #ffffff !important;
   display: flex !important;
   align-items: center !important;
   flex-wrap: nowrap !important;
@@ -383,7 +420,7 @@ body.alumnos-page .brand {
   margin-bottom: 4px !important;
   font-size: 0.8rem !important;
   font-weight: 900 !important;
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px !important;
 }
@@ -1610,6 +1647,13 @@ textarea.input {
   .session-subheading,
   .session-body-text,
   .wod-pre-clean,
+  .ex-meta-text,
+  .ex-notes-text,
+  .ex-clean-line,
+  .ex-columns-header,
+  .ex-col-name,
+  .ex-col-cell,
+  .card-session-sheet *,
   p, div, span, strong {
     color: #000000 !important;
     font-size: 11pt !important;
