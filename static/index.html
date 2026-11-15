@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=28" />
+  <link rel="stylesheet" href="/static/css/app.css?v=29" />
 </head>
 <body>
   <header class="topbar">
@@ -360,11 +360,21 @@
             </div>
           </div>
 
-          <div style="margin-top:10px; margin-bottom:12px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:6px; padding:8px 12px;">
+          <div style="margin-top:10px; margin-bottom:12px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:6px; padding:10px 14px;">
             <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; color:var(--accent); font-size:0.88rem; margin:0;">
               <input type="checkbox" id="wodHasScore" style="width:18px; height:18px; accent-color:var(--accent);" checked />
               🏆 Permitir a los alumnos registrar marca / resultado en este WOD
             </label>
+            <div id="wodScoreConfigWrap" style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,107,53,0.25); display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+              <label for="wodScoreType" style="font-size:0.82rem; font-weight:800; color:var(--text-main);">Métrica que debe registrar el alumno:</label>
+              <select id="wodScoreType" class="input" style="width:auto; min-width:200px; padding:5px 10px; font-weight:700;">
+                <option value="REPS">REPS (Total de repeticiones)</option>
+                <option value="TIEMPO">TIEMPO (Tiempo empleado en terminar)</option>
+                <option value="RONDAS + REPS">RONDAS + REPS (Rondas y repeticiones)</option>
+                <option value="PESO / CARGA">PESO / CARGA (Kg / Peso alcanzado)</option>
+                <option value="LIBRE">LIBRE (Cualquier formato de texto)</option>
+              </select>
+            </div>
           </div>
 
           <!-- CONFIGURACIÓN ESPECÍFICA DEL CRONO DEL WOD (SOLO COACH) -->
@@ -798,6 +808,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=28"></script>
+  <script type="module" src="/static/js/coach.js?v=29"></script>
 </body>
 </html>

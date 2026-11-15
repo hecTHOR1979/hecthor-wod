@@ -724,12 +724,11 @@ textarea.input {
 .ex-clean-line {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  padding: 8px 12px;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
@@ -738,10 +737,56 @@ textarea.input {
   background: rgba(15, 23, 42, 0.55);
 }
 
+/* Explicit vertical column alignment */
+.ex-columns-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ex-col-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ex-col-sets-wu { width: 85px; min-width: 85px; max-width: 85px; }
+.ex-col-reps-wu { width: 90px; min-width: 90px; max-width: 90px; }
+
+.ex-col-sets-pt { width: 70px; min-width: 70px; max-width: 70px; }
+.ex-col-reps-pt { width: 75px; min-width: 75px; max-width: 75px; }
+.ex-col-load-pt { width: 80px; min-width: 80px; max-width: 80px; }
+.ex-col-rest-pt { width: 75px; min-width: 75px; max-width: 75px; }
+
+.ex-col-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ex-col-action {
+  width: 95px;
+  min-width: 95px;
+  max-width: 95px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .ex-clean-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
 }
@@ -751,7 +796,6 @@ textarea.input {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  flex-wrap: wrap;
 }
 
 .ex-clean-title {
@@ -1210,9 +1254,23 @@ textarea.input {
 
   .print-header-brand {
     display: block !important;
-    margin-bottom: 16px !important;
-    padding-bottom: 10px !important;
+    margin-bottom: 14px !important;
+    padding-bottom: 8px !important;
     border-bottom: 2px solid #0284c7 !important;
+  }
+
+  .ex-clean-line {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    padding: 6px 10px !important;
+    page-break-inside: avoid;
+  }
+
+  .ex-columns-header {
+    color: #0284c7 !important;
+    font-weight: 900 !important;
+    padding: 2px 10px !important;
   }
 
   .card, .item-box {

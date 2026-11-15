@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=28" />
+  <link rel="stylesheet" href="/static/css/app.css?v=29" />
 </head>
 <body>
   <header class="topbar">
@@ -113,26 +113,32 @@
 
       <!-- LOG RESULT CARD -->
       <div class="card" id="studentLogCard">
-        <h2 class="section-title" style="margin-bottom:10px;">🏆 Registrar mi Resultado</h2>
+        <div class="row-between" style="align-items:flex-start; margin-bottom:12px;">
+          <div>
+            <h2 class="section-title" style="margin:0 0 4px;">🏆 Registrar mi Resultado en el WOD</h2>
+            <div id="logScoreSubInfo" class="muted" style="font-size:0.85rem;">Introduce tus datos de la sesión de hoy</div>
+          </div>
+          <span class="badge badge-accent" id="logScoreTypeBadge">Métrica: REPS</span>
+        </div>
         <div class="grid-2">
           <div class="field">
             <label for="logName">Tu nombre</label>
             <input id="logName" class="input" placeholder="Ej: Laura M." />
           </div>
           <div class="field">
-            <label for="logScore">Marca / Tiempo / Rondas</label>
-            <input id="logScore" class="input" placeholder="Ej: 4 rondas + 12 reps / 11:45" />
+            <label for="logScore" id="logScoreLabel">Marca / Tiempo / Rondas</label>
+            <input id="logScore" class="input" style="font-weight:700; font-size:1.02rem;" placeholder="Ej: 4 rondas + 12 reps / 11:45" />
           </div>
           <div class="field">
-            <label for="logRx">Categoría</label>
-            <select id="logRx" class="input">
-              <option value="Rx">Rx</option>
-              <option value="Scaled">Scaled (Escalado)</option>
+            <label for="logRx">Categoría de realización</label>
+            <select id="logRx" class="input" style="font-weight:700;">
+              <option value="Rx">⚡ Rx (Movimientos y cargas oficiales)</option>
+              <option value="Scaled">🔄 Scaled / Escalado (Adaptado)</option>
             </select>
           </div>
           <div class="field">
-            <label for="logWeights">Pesos utilizados</label>
-            <input id="logWeights" class="input" placeholder="Ej: 35 kg" />
+            <label for="logWeights">Pesos o adaptaciones utilizadas</label>
+            <input id="logWeights" class="input" placeholder="Ej: Barra con 40 kg / Ring Rows..." />
           </div>
         </div>
         <div class="field">
@@ -209,6 +215,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=28"></script>
+  <script type="module" src="/static/js/alumnos.js?v=29"></script>
 </body>
 </html>

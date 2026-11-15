@@ -518,7 +518,17 @@ async function openDayEditor(dayId) {
   if ($('wodEmomInterval')) $('wodEmomInterval').value = wod.emom_interval || 60;
   if ($('wodEmomRounds')) $('wodEmomRounds').value = wod.emom_rounds || 10;
   if ($('wodMinutes')) $('wodMinutes').value = wod.minutes || 12;
-  if ($('wodHasScore')) $('wodHasScore').checked = wod.has_score !== undefined ? Boolean(wod.has_score) : true;
+  if ($('wodHasScore')) {
+    const hasScore = wod.has_score !== undefined ? Boolean(wod.has_score) : true;
+    $('wodHasScore').checked = hasScore;
+    $('wodScoreConfigWrap')?.classList.toggle('hidden', !hasScore);
+  }
+  if ($('wodScoreType')) {
+    const rawType = (wod.type || '').toUpperCase();
+    const defaultScore = rawType.includes('TIME') ? 'TIEMPO' : (rawType.includes('AMRAP') ? 'RONDAS + REPS' : (rawType.includes('EMOM') ? 'REPS' : 'REPS'));
+    $('wodScoreType').value = wod.score_type || defaultScore;
+    delete $('wodScoreType').dataset.manualEdited;
+  }
   updateWodTimerUI();
 
   renderWarmupList();
@@ -582,6 +592,18 @@ function renderWarmupList() {
     return;
   }
   list.innerHTML = '';
+
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;';
+  hdr.innerHTML = `
+    <div style="width:75px; text-align:center;">Rondas</div>
+    <div style="width:85px; text-align:center;">Repes / T</div>
+    <div style="flex:1; min-width:140px;">Nombre del ejercicio</div>
+    <div style="flex:1.2; min-width:160px;">URL Vídeo</div>
+    <div style="width:130px; text-align:right;">Acciones</div>
+  `;
+  list.appendChild(hdr);
+
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
     const hasSubs = item.sub_exercises.length > 0;
@@ -598,8 +620,10 @@ function renderWarmupList() {
       subHtml += `
         <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-            <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">+ ${subIdx + 2}</span>
-            <div style="width:85px;">
+            <div style="width:75px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+              <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+            </div>
+            <div style="width:85px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="Repes / T" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 12 / 30s)" />
             </div>
             <div style="flex:1; min-width:140px;">
@@ -609,7 +633,7 @@ function renderWarmupList() {
               <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-wu-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo explicativo..." value="${esc(sub.video_url || '')}" />
               <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-wu="${subIdx}" title="${sub.video_url ? 'Ver vídeo explicativo' : 'Buscar vídeo'}" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
             </div>
-            <div class="row-wrap" style="gap:4px;">
+            <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
               <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
               <button class="btn btn-sm btn-outline" type="button" data-search-sub-wu="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
               <button class="btn btn-danger btn-sm" type="button" data-del-sub-wu="${subIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
@@ -624,11 +648,13 @@ function renderWarmupList() {
 
     row.innerHTML = `
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-        ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
-        <div style="width:70px;">
-          <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas o Series (ej: 3 rondas)" />
+        <div style="width:75px; flex-shrink:0;">
+          ${hasSubs 
+            ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="Rnd" value="${esc(item.sets || '')}" title="Rondas o Series" /></div>`
+            : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-wu-field="sets" placeholder="Rondas" value="${esc(item.sets || '')}" title="Rondas o Series (ej: 3 rondas)" />`
+          }
         </div>
-        <div style="width:85px;">
+        <div style="width:85px; flex-shrink:0;">
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="Repes / T" value="${esc(item.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
         </div>
         <div style="flex:1; min-width:140px;">
@@ -640,7 +666,7 @@ function renderWarmupList() {
             🎬
           </button>
         </div>
-        <div class="row-wrap" style="gap:4px;">
+        <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
           <button class="btn btn-sm btn-outline" type="button" data-add-sub-wu="${idx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
             +
           </button>
@@ -969,6 +995,20 @@ function renderPartsList() {
       exWrap.innerHTML = '<p class="muted" style="font-size:0.85rem; margin:6px 0;">Sin ejercicios añadidos. Pulsa "+ Añadir línea" o "📚 Biblioteca".</p>';
     } else {
       exWrap.innerHTML = '';
+
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex; align-items:center; gap:6px; padding:4px 10px; font-size:0.75rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;';
+      hdr.innerHTML = `
+        <div style="width:65px; text-align:center;">Series</div>
+        <div style="width:75px; text-align:center;">Repes</div>
+        <div style="width:80px; text-align:center;">Carga</div>
+        <div style="width:65px; text-align:center;">Desc.</div>
+        <div style="flex:1; min-width:130px;">Nombre del ejercicio</div>
+        <div style="flex:1.2; min-width:150px;">URL Vídeo</div>
+        <div style="width:130px; text-align:right;">Acciones</div>
+      `;
+      exWrap.appendChild(hdr);
+
       partExercises.forEach((ex, eIdx) => {
         if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
         const hasSubs = ex.sub_exercises.length > 0;
@@ -985,13 +1025,16 @@ function renderPartsList() {
           subHtml += `
             <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
               <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-                <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">+ ${subIdx + 2}</span>
-                <div style="width:70px;">
+                <div style="width:65px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                  <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+                </div>
+                <div style="width:75px; flex-shrink:0;">
                   <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="Repes" value="${esc(sub.reps || '')}" title="Repeticiones" />
                 </div>
-                <div style="width:80px;">
+                <div style="width:80px; flex-shrink:0;">
                   <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="load" data-sub-idx="${subIdx}" placeholder="Carga/%" value="${esc(sub.load || '')}" title="Carga o %RM" />
                 </div>
+                <div style="width:65px; flex-shrink:0;"></div>
                 <div style="flex:1; min-width:130px;">
                   <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sub-part-f="name" data-sub-idx="${subIdx}" list="libraryExercisesDatalist" placeholder="Nombre del ejercicio..." value="${esc(sub.name || '')}" autocomplete="off" />
                 </div>
@@ -999,7 +1042,7 @@ function renderPartsList() {
                   <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sub-part-f="video_url" data-sub-idx="${subIdx}" placeholder="URL vídeo..." value="${esc(sub.video_url || '')}" />
                   <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-play-sub-part="${subIdx}" title="Ver vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
                 </div>
-                <div class="row-wrap" style="gap:4px;">
+                <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
                   <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; font-size:1rem;">+</button>
                   <button class="btn btn-sm btn-outline" type="button" data-search-sub-part="${subIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
                   <button class="btn btn-danger btn-sm" type="button" data-del-sub-part="${subIdx}" title="Eliminar este ejercicio" style="padding:6px 8px;">✕</button>
@@ -1014,17 +1057,19 @@ function renderPartsList() {
 
         exRow.innerHTML = `
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
-            ${hasSubs ? `<span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:3px 6px;">1</span>` : ''}
-            <div style="width:60px;">
-              <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series del bloque (ej: 4)" />
+            <div style="width:65px; flex-shrink:0;">
+              ${hasSubs
+                ? `<div style="display:flex; align-items:center; gap:4px;"><span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 5px;">1</span><input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="Ser" value="${esc(ex.sets || '')}" title="Series" /></div>`
+                : `<input class="input" style="padding:6px; font-size:0.85rem; width:100%;" data-ex-f="sets" placeholder="Series" value="${esc(ex.sets || '')}" title="Series del bloque (ej: 4)" />`
+              }
             </div>
-            <div style="width:70px;">
+            <div style="width:75px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="reps" placeholder="Repes" value="${esc(ex.reps || '')}" title="Repeticiones (ej: 5 o 8-10)" />
             </div>
-            <div style="width:80px;">
+            <div style="width:80px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="load" placeholder="Carga/%" value="${esc(ex.load || '')}" title="Carga o %RM (ej: 80 kg o 75%)" />
             </div>
-            <div style="width:65px;">
+            <div style="width:65px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="Desc." value="${esc(ex.rest || '')}" title="Descanso (ej: 90s)" />
             </div>
             <div style="flex:1; min-width:130px;">
@@ -1036,7 +1081,7 @@ function renderPartsList() {
                 🎬
               </button>
             </div>
-            <div class="row-wrap" style="gap:4px;">
+            <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
               <button class="btn btn-sm btn-outline" type="button" data-add-sub-part="${eIdx}" title="Añadir otro ejercicio dentro de este bloque (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">
                 +
               </button>
@@ -1803,13 +1848,38 @@ function updateWodTimerUI() {
 }
 
 function initCoachWodTimerControls() {
+  const updateScoreTypeSuggestion = () => {
+    const rawType = ($('wodType')?.value || '').toUpperCase();
+    if ($('wodScoreType') && !$('wodScoreType').dataset.manualEdited) {
+      if (rawType.includes('TIME') || rawType.includes('CHIPPER')) {
+        $('wodScoreType').value = 'TIEMPO';
+      } else if (rawType.includes('AMRAP')) {
+        $('wodScoreType').value = 'RONDAS + REPS';
+      } else if (rawType.includes('EMOM')) {
+        $('wodScoreType').value = 'REPS';
+      } else if (rawType.includes('PESO') || rawType.includes('CARGA') || rawType.includes('1RM')) {
+        $('wodScoreType').value = 'PESO / CARGA';
+      }
+    }
+  };
+
   $('wodType')?.addEventListener('input', () => {
     delete $('wodTimeCap').dataset.manualEdited;
     updateWodTimerUI();
+    updateScoreTypeSuggestion();
   });
   $('wodType')?.addEventListener('change', () => {
     delete $('wodTimeCap').dataset.manualEdited;
     updateWodTimerUI();
+    updateScoreTypeSuggestion();
+  });
+  $('wodHasScore')?.addEventListener('change', () => {
+    $('wodScoreConfigWrap')?.classList.toggle('hidden', !$('wodHasScore').checked);
+    triggerAutoSave(true);
+  });
+  $('wodScoreType')?.addEventListener('change', () => {
+    $('wodScoreType').dataset.manualEdited = 'true';
+    triggerAutoSave(true);
   });
   $('wodTimeCap')?.addEventListener('input', () => {
     $('wodTimeCap').dataset.manualEdited = 'true';
@@ -2081,6 +2151,7 @@ function buildCurrentDayPayload() {
       scaled_weights: $('wodScaled')?.value.trim() || '',
       strategy: $('wodStrategy')?.value.trim() || '',
       has_score: $('wodHasScore')?.checked !== undefined ? $('wodHasScore').checked : true,
+      score_type: $('wodScoreType')?.value || 'LIBRE',
       equipment: Array.from(state.selectedEquipment || []),
       movements: state.currentDay.wod?.movements || [],
       tabata_work: Number($('wodTabataWork')?.value) || 20,
