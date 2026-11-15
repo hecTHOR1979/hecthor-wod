@@ -1779,17 +1779,7 @@ function initCoachWarmupTimerControls() {
     updateWarmupTimerUI();
   });
 
-  // Presets Tabata for Warm Up
-  document.querySelectorAll('.coach-warmup-tabata-preset').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if ($('warmupTabataWork')) $('warmupTabataWork').value = btn.dataset.work;
-      if ($('warmupTabataRest')) $('warmupTabataRest').value = btn.dataset.rest;
-      if ($('warmupTabataRounds')) $('warmupTabataRounds').value = btn.dataset.rounds;
-      updateWarmupTimerUI();
-    });
-  });
-
-  // EMOM steppers and presets for Warm Up
+  // EMOM steppers for Warm Up
   $('btnCoachDecWarmupEmomInt')?.addEventListener('click', () => {
     const cur = Number($('warmupEmomInterval')?.value) || 60;
     if ($('warmupEmomInterval')) $('warmupEmomInterval').value = Math.max(10, cur - 15);
@@ -1810,13 +1800,6 @@ function initCoachWarmupTimerControls() {
     if ($('warmupEmomRounds')) $('warmupEmomRounds').value = Math.min(60, cur + 1);
     updateWarmupTimerUI();
   });
-  document.querySelectorAll('.coach-warmup-emom-preset').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if ($('warmupEmomInterval')) $('warmupEmomInterval').value = btn.dataset.interval;
-      if ($('warmupEmomRounds')) $('warmupEmomRounds').value = btn.dataset.rounds;
-      updateWarmupTimerUI();
-    });
-  });
 
   // Mins steppers for Warm Up
   $('btnCoachDecWarmupMins')?.addEventListener('click', () => {
@@ -1828,14 +1811,6 @@ function initCoachWarmupTimerControls() {
     const cur = Number($('warmupTimerMinutes')?.value) || 8;
     if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = Math.min(60, cur + 1);
     updateWarmupTimerUI();
-  });
-
-  // Quick minutes for AMRAP / FOR TIME in Warm Up
-  document.querySelectorAll('[data-set-coach-warmup-mins]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if ($('warmupTimerMinutes')) $('warmupTimerMinutes').value = btn.dataset.setCoachWarmupMins;
-      updateWarmupTimerUI();
-    });
   });
 
   ['warmupTabataWork', 'warmupTabataRest', 'warmupTabataRounds', 'warmupEmomInterval', 'warmupEmomRounds', 'warmupTimerMinutes'].forEach((id) => {
@@ -1986,16 +1961,7 @@ function initCoachWodTimerControls() {
     updateWodTimerUI();
   });
 
-  // Presets
-  document.querySelectorAll('.coach-tabata-preset').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if ($('wodTabataWork')) $('wodTabataWork').value = btn.dataset.work;
-      if ($('wodTabataRest')) $('wodTabataRest').value = btn.dataset.rest;
-      if ($('wodTabataRounds')) $('wodTabataRounds').value = btn.dataset.rounds;
-      delete $('wodTimeCap').dataset.manualEdited;
-      updateWodTimerUI();
-    });
-  });
+
 
   // WOD EMOM steppers and presets
   $('btnCoachDecEmomInt')?.addEventListener('click', () => {
@@ -2022,14 +1988,7 @@ function initCoachWodTimerControls() {
     delete $('wodTimeCap').dataset.manualEdited;
     updateWodTimerUI();
   });
-  document.querySelectorAll('.coach-emom-preset').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if ($('wodEmomInterval')) $('wodEmomInterval').value = btn.dataset.interval;
-      if ($('wodEmomRounds')) $('wodEmomRounds').value = btn.dataset.rounds;
-      delete $('wodTimeCap').dataset.manualEdited;
-      updateWodTimerUI();
-    });
-  });
+
 
   // WOD Mins steppers
   $('btnCoachDecWodMins')?.addEventListener('click', () => {
@@ -2057,14 +2016,7 @@ function initCoachWodTimerControls() {
     });
   });
 
-  document.querySelectorAll('[data-set-coach-mins]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const mins = Number(btn.dataset.setCoachMins) || 12;
-      if ($('wodMinutes')) $('wodMinutes').value = mins;
-      delete $('wodTimeCap').dataset.manualEdited;
-      updateWodTimerUI();
-    });
-  });
+
 
   $('btnLaunchWodCronoPro')?.addEventListener('click', () => {
     const rawType = ($('wodType')?.value || '').toUpperCase();

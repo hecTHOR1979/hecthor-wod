@@ -1031,11 +1031,19 @@ def auto_restore_backup(_coach=Depends(require_coach)):
 
 @app.get("/manifest.json")
 def serve_manifest():
-    return FileResponse(os.path.join(STATIC_DIR, "manifest.json"), media_type="application/manifest+json")
+    return FileResponse(
+        os.path.join(STATIC_DIR, "manifest.json"),
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/sw.js")
 def serve_sw():
-    return FileResponse(os.path.join(STATIC_DIR, "sw.js"), media_type="application/javascript")
+    return FileResponse(
+        os.path.join(STATIC_DIR, "sw.js"),
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 @app.get("/icon.svg")
 def serve_icon():
