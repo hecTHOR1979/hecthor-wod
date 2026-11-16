@@ -1,8 +1,8 @@
 {
   "id": "/alumnos",
-  "name": "hecTHOR WOD",
-  "short_name": "hecTHOR WOD",
-  "description": "hecTHOR WOD - Planificador de entrenamientos CrossFit, movilidad GROUND, cronómetro y portal de alumnos.",
+  "name": "THR Plan",
+  "short_name": "THR Plan",
+  "description": "THR Plan - Planificador de entrenamientos CrossFit, bloques de fuerza, movilidad GROUND, cronómetro y portal de alumnos.",
   "start_url": "/alumnos",
   "scope": "/",
   "display": "fullscreen",

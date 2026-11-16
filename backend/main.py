@@ -32,7 +32,7 @@ from .wod_generator import generate_custom_wod
 # Initialize DB on startup
 init_db()
 
-app = FastAPI(title="hecTHOR WOD API", version="1.0.0")
+app = FastAPI(title="THR Plan API", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
@@ -945,7 +945,7 @@ def export_database_backup(_coach=Depends(require_coach)):
     return {
         "version": 1,
         "exported_at": _dt.now().isoformat(),
-        "app": "hecTHOR WOD",
+        "app": "THR Plan",
         "microcycles": microcycles,
         "days": days,
         "exercises": exercises,

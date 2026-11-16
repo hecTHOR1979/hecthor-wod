@@ -785,7 +785,7 @@ function renderCurrentDay(resetTimer = true) {
   $('btnPrintDayPdf')?.addEventListener('click', () => {
     const prevTitle = document.title;
     const cleanDayTitle = (day.title || `Dia ${day.day_number}`).replace(/[/\\?%*:|"<>]/g, '-');
-    document.title = `Microciclo ${day.week_number} - Día ${day.day_number} - ${cleanDayTitle}`;
+    document.title = `THR Plan - Semana ${day.week_number} / Día ${day.day_number} - ${cleanDayTitle}`;
     window.print();
     setTimeout(() => {
       document.title = prevTitle;
