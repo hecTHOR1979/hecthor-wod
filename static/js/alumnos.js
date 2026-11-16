@@ -637,7 +637,7 @@ function renderCurrentDay(resetTimer = true) {
 
   const rawMcName = (state.microcycle?.name || '').trim();
   const rawMcGoal = (state.microcycle?.primary_goal || '').trim();
-  let mcActiveTitle = rawMcName ? `MESOCICLO ACTIVO: ${rawMcName}` : 'MESOCICLO ACTIVO';
+  let mcActiveTitle = rawMcName || 'MESOCICLO';
   if (rawMcGoal && !mcActiveTitle.toLowerCase().includes(rawMcGoal.toLowerCase())) {
     mcActiveTitle += ` (${rawMcGoal})`;
   }
