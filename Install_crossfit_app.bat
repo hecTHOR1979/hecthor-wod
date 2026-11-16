@@ -1,9 +1,9 @@
 @echo off
-title hecTHOR WOD - Servidor
+title THR Plan - Servidor
 cd /d "%~dp0"
 
 echo ============================================================
-echo   HECTHOR WOD - INICIANDO APP
+echo   THR PLAN - INICIANDO APP
 echo ============================================================
 echo.
 
