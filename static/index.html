@@ -255,75 +255,11 @@
           <div id="partsList"></div>
         </div>
 
-        <!-- 3. WOD & GENERATOR -->
+        <!-- 3. WOD & GENERATOR (MANUAL PREFERENTE) -->
         <div class="item-box item-box-celeste">
           <div class="section-header">
-            <span class="badge badge-celeste-matte">WOD FINAL &amp; GENERADOR AUTOMÁTICO</span>
-            <button class="btn btn-orange btn-sm" id="btnToggleWodGen">⚡ Generador de WOD</button>
-          </div>
-
-          <div id="wodGeneratorBox" class="item-box hidden" style="background: rgba(255,107,53,0.06);">
-            <div class="field">
-              <label>Material disponible (pulsa para seleccionar)</label>
-              <div id="genEquipmentChips" class="chip-group"></div>
-            </div>
-            <div class="field" style="margin-top:8px;">
-              <div class="row-between" style="align-items:center; margin-bottom:4px;">
-                <label style="font-weight:700; color:#38bdf8; font-size:0.85rem; margin:0;">🎯 Skills / Habilidades técnicas (pulsa para incluir en el WOD)</label>
-                <button class="btn btn-sm btn-outline" id="btnToggleNewSkill" type="button" style="font-size:0.75rem; padding:2px 8px; border-color:#38bdf8; color:#38bdf8; font-weight:800;">+ Añadir nueva skill</button>
-              </div>
-              <div id="newSkillInputBox" class="row-wrap hidden" style="margin-bottom:8px; gap:6px;">
-                <input id="newSkillInput" class="input" style="flex:1; padding:5px 8px; font-size:0.85rem;" placeholder="Ej: Handstand Walk / Pegboard / Overhead Squats..." />
-                <button class="btn btn-primary btn-sm" id="btnSaveNewSkill" type="button" style="font-size:0.82rem; font-weight:800;">Guardar Skill</button>
-              </div>
-              <div id="genSkillsChips" class="chip-group"></div>
-            </div>
-            <div class="grid-2">
-              <div class="field">
-                <label for="genWodType">Tipo de WOD</label>
-                <div class="row-wrap">
-                  <select id="genWodType" class="input" style="flex:1;">
-                    <option value="AMRAP">AMRAP</option>
-                    <option value="EMOM">EMOM</option>
-                    <option value="FOR TIME">FOR TIME</option>
-                    <option value="TABATA">TABATA</option>
-                    <option value="CHIPPER">CHIPPER</option>
-                    <option value="ENDURANCE">ENDURANCE</option>
-                    <option value="__new__">+ Añadir nuevo estilo...</option>
-                  </select>
-                  <button class="btn btn-sm" id="btnNewWodType" type="button" title="Añadir nuevo estilo de WOD">+</button>
-                </div>
-                <div id="newWodTypeBox" class="row-wrap hidden" style="margin-top:6px;">
-                  <input id="newWodTypeInput" class="input" style="flex:1;" placeholder="Ej: INTERVALS / DEATH BY..." />
-                  <button class="btn btn-primary btn-sm" id="btnSaveWodType" type="button">Añadir</button>
-                </div>
-              </div>
-              <div class="field">
-                <label for="genTime">Tiempo (minutos)</label>
-                <input id="genTime" type="number" min="4" max="60" value="15" class="input" />
-              </div>
-              <div class="field">
-                <label for="genGoal">Objetivo</label>
-                <div class="row-wrap">
-                  <select id="genGoal" class="input" style="flex:1;">
-                    <option value="Híbrido">Híbrido</option>
-                    <option value="Fuerza">Fuerza</option>
-                    <option value="Fondo / Engine">Fondo / Engine</option>
-                    <option value="Halterofilia">Halterofilia</option>
-                    <option value="Gimnásticos">Gimnásticos</option>
-                    <option value="__new__">+ Añadir nuevo objetivo...</option>
-                  </select>
-                  <button class="btn btn-sm" id="btnNewGenGoal" type="button" title="Añadir nuevo objetivo de WOD">+</button>
-                </div>
-                <div id="newGenGoalBox" class="row-wrap hidden" style="margin-top:6px;">
-                  <input id="newGenGoalInput" class="input" style="flex:1;" placeholder="Ej: Resistencia muscular / Agilidad..." />
-                  <button class="btn btn-primary btn-sm" id="btnSaveGenGoal" type="button">Añadir</button>
-                </div>
-              </div>
-              <div class="field" style="justify-content:flex-end;">
-                <button class="btn btn-primary" id="btnRunWodGen">🎲 Generar WOD ahora</button>
-              </div>
-            </div>
+            <span class="badge badge-celeste-matte">WOD FINAL (MANUAL)</span>
+            <button class="btn btn-orange btn-sm" id="btnToggleWodGen" type="button">⚡ Generador automático de WOD (Opcional)</button>
           </div>
 
           <div class="grid-2">
@@ -357,6 +293,34 @@
               <label for="wodTarget">Objetivo / Marca esperada</label>
               <input id="wodTarget" class="input" placeholder="Ej: 4-5 rondas o < 12 min" />
             </div>
+          </div>
+
+          <!-- LISTA DE EJERCICIOS DEL WOD MANUAL (PREVALECE ANTE CUALQUIER GENERACIÓN AUTOMÁTICA) -->
+          <div class="item-box" style="margin-top:10px; margin-bottom:12px; background: var(--bg-elev); border: 1px solid rgba(255,107,53,0.3);">
+            <div class="section-header" style="margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <span class="badge badge-orange" style="font-weight:900;">🏋️ EJERCICIOS DEL WOD FINAL (MANUAL)</span>
+              <div class="row-wrap" style="gap:6px;">
+                <button class="btn btn-primary btn-sm" id="btnAddWodExercise" type="button" style="font-weight:800;">+ Añadir Ejercicio</button>
+                <button class="btn btn-outline btn-sm" id="btnAddWodExerciseLib" type="button" style="font-weight:700;">📚 Biblioteca</button>
+                <button class="btn btn-outline btn-sm" id="btnAddWodTimedSection" type="button" style="font-weight:700; border-color:#f59e0b; color:#f59e0b;" title="Añadir un bloque con crono (AMRAP, EMOM, TABATA, FOR TIME) dentro del WOD">⏱ + Añadir bloque con crono</button>
+              </div>
+            </div>
+            <div id="wodExercisesList"></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="wodRx">Pesos Rx</label>
+              <input id="wodRx" class="input" placeholder="Ej: Chicos 43 kg / Chicas 30 kg" />
+            </div>
+            <div class="field">
+              <label for="wodScaled">Opciones Escaladas (Scaled)</label>
+              <input id="wodScaled" class="input" placeholder="Alternativa de carga o movimiento" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="wodStrategy">Estrategia recomendada</label>
+            <input id="wodStrategy" class="input" placeholder="Cómo partir las series, ritmo recomendado..." />
           </div>
 
           <div style="margin-top:10px; margin-bottom:12px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:6px; padding:10px 14px;">
@@ -450,35 +414,79 @@
               </div>
             </div>
           </div>
+
           <div class="field">
-            <label for="wodDescription">Descripción del WOD</label>
-            <textarea id="wodDescription" class="input" placeholder="Movimientos, repeticiones y esquema..."></textarea>
-          </div>
-          <div class="grid-2">
-            <div class="field">
-              <label for="wodRx">Pesos Rx</label>
-              <input id="wodRx" class="input" placeholder="Ej: Chicos 43 kg / Chicas 30 kg" />
-            </div>
-            <div class="field">
-              <label for="wodScaled">Opciones Escaladas (Scaled)</label>
-              <input id="wodScaled" class="input" placeholder="Alternativa de carga o movimiento" />
-            </div>
-          </div>
-          <div class="field">
-            <label for="wodStrategy">Estrategia recomendada</label>
-            <input id="wodStrategy" class="input" placeholder="Cómo partir las series, ritmo recomendado..." />
+            <label for="wodDescription">Descripción del WOD (Opcional - solo se muestra si NO hay ejercicios manuales)</label>
+            <textarea id="wodDescription" class="input" placeholder="Si hay ejercicios manuales arriba, prevalecen y la versión automática no aparecerá..."></textarea>
           </div>
 
-          <div class="item-box" style="margin-top:12px; background: var(--bg-elev); border: 1px solid rgba(255,107,53,0.3);">
-            <div class="section-header" style="margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-              <span class="badge badge-orange" style="font-weight:900;">🏋️ EJERCICIOS DEL WOD FINAL</span>
-              <div class="row-wrap" style="gap:6px;">
-                <button class="btn btn-primary btn-sm" id="btnAddWodExercise" type="button" style="font-weight:800;">+ Añadir Ejercicio</button>
-                <button class="btn btn-outline btn-sm" id="btnAddWodExerciseLib" type="button" style="font-weight:700;">📚 Biblioteca</button>
-                <button class="btn btn-outline btn-sm" id="btnAddWodTimedSection" type="button" style="font-weight:700; border-color:#f59e0b; color:#f59e0b;" title="Añadir un bloque con crono (AMRAP, EMOM, TABATA, FOR TIME) dentro del WOD">⏱ + Añadir bloque con crono</button>
+          <!-- GENERADOR AUTOMÁTICO DE WOD (HERRAMIENTA SECUNDARIA / OPCIONAL) -->
+          <div id="wodGeneratorBox" class="item-box hidden" style="background: rgba(255,107,53,0.06); margin-top:12px; border:1px solid rgba(255,107,53,0.3);">
+            <div class="row-between" style="align-items:center; margin-bottom:8px;">
+              <span class="badge badge-orange" style="font-weight:900;">⚡ GENERADOR AUTOMÁTICO DE WOD (OPCIONAL)</span>
+              <span class="muted" style="font-size:0.8rem;">Los ejercicios manuales arriba prevalecen siempre</span>
+            </div>
+            <div class="field">
+              <label>Material disponible (pulsa para seleccionar)</label>
+              <div id="genEquipmentChips" class="chip-group"></div>
+            </div>
+            <div class="field" style="margin-top:8px;">
+              <div class="row-between" style="align-items:center; margin-bottom:4px;">
+                <label style="font-weight:700; color:#38bdf8; font-size:0.85rem; margin:0;">🎯 Skills / Habilidades técnicas (pulsa para incluir en el WOD)</label>
+                <button class="btn btn-sm btn-outline" id="btnToggleNewSkill" type="button" style="font-size:0.75rem; padding:2px 8px; border-color:#38bdf8; color:#38bdf8; font-weight:800;">+ Añadir nueva skill</button>
+              </div>
+              <div id="newSkillInputBox" class="row-wrap hidden" style="margin-bottom:8px; gap:6px;">
+                <input id="newSkillInput" class="input" style="flex:1; padding:5px 8px; font-size:0.85rem;" placeholder="Ej: Handstand Walk / Pegboard / Overhead Squats..." />
+                <button class="btn btn-primary btn-sm" id="btnSaveNewSkill" type="button" style="font-size:0.82rem; font-weight:800;">Guardar Skill</button>
+              </div>
+              <div id="genSkillsChips" class="chip-group"></div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="genWodType">Tipo de WOD</label>
+                <div class="row-wrap">
+                  <select id="genWodType" class="input" style="flex:1;">
+                    <option value="AMRAP">AMRAP</option>
+                    <option value="EMOM">EMOM</option>
+                    <option value="FOR TIME">FOR TIME</option>
+                    <option value="TABATA">TABATA</option>
+                    <option value="CHIPPER">CHIPPER</option>
+                    <option value="ENDURANCE">ENDURANCE</option>
+                    <option value="__new__">+ Añadir nuevo estilo...</option>
+                  </select>
+                  <button class="btn btn-sm" id="btnNewWodType" type="button" title="Añadir nuevo estilo de WOD">+</button>
+                </div>
+                <div id="newWodTypeBox" class="row-wrap hidden" style="margin-top:6px;">
+                  <input id="newWodTypeInput" class="input" style="flex:1;" placeholder="Ej: INTERVALS / DEATH BY..." />
+                  <button class="btn btn-primary btn-sm" id="btnSaveWodType" type="button">Añadir</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="genTime">Tiempo (minutos)</label>
+                <input id="genTime" type="number" min="4" max="60" value="15" class="input" />
+              </div>
+              <div class="field">
+                <label for="genGoal">Objetivo</label>
+                <div class="row-wrap">
+                  <select id="genGoal" class="input" style="flex:1;">
+                    <option value="Híbrido">Híbrido</option>
+                    <option value="Fuerza">Fuerza</option>
+                    <option value="Fondo / Engine">Fondo / Engine</option>
+                    <option value="Halterofilia">Halterofilia</option>
+                    <option value="Gimnásticos">Gimnásticos</option>
+                    <option value="__new__">+ Añadir nuevo objetivo...</option>
+                  </select>
+                  <button class="btn btn-sm" id="btnNewGenGoal" type="button" title="Añadir nuevo objetivo de WOD">+</button>
+                </div>
+                <div id="newGenGoalBox" class="row-wrap hidden" style="margin-top:6px;">
+                  <input id="newGenGoalInput" class="input" style="flex:1;" placeholder="Ej: Resistencia muscular / Agilidad..." />
+                  <button class="btn btn-primary btn-sm" id="btnSaveGenGoal" type="button">Añadir</button>
+                </div>
+              </div>
+              <div class="field" style="justify-content:flex-end;">
+                <button class="btn btn-primary" id="btnRunWodGen">🎲 Generar WOD ahora</button>
               </div>
             </div>
-            <div id="wodExercisesList"></div>
           </div>
         </div>
 
@@ -836,6 +844,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=47"></script>
+  <script type="module" src="/static/js/coach.js?v=49"></script>
 </body>
 </html>

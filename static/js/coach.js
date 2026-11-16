@@ -3484,6 +3484,7 @@ $('btnToggleWodGen').addEventListener('click', () => {
 
 $('btnRunWodGen').addEventListener('click', async () => {
   try {
+    const existingManualEx = state.currentDay?.wod?.exercises || [];
     let wodType = $('genWodType').value;
     if (wodType === '__new__') {
       wodType = $('newWodTypeInput')?.value.trim() || 'AMRAP';
@@ -3513,12 +3514,13 @@ $('btnRunWodGen').addEventListener('click', async () => {
       $('wodTimeCap').disabled = !hasGenCap;
     }
     $('wodTarget').value = wod.target_score || '';
-    $('wodDescription').value = wod.description || '';
+    if (existingManualEx.length === 0) {
+      $('wodDescription').value = wod.description || '';
+    }
     $('wodRx').value = wod.rx_weights || '';
     $('wodScaled').value = wod.scaled_weights || '';
     $('wodStrategy').value = wod.strategy || '';
     // Si ya existen ejercicios manuales definidos por el coach en el WOD, estos PREVALECEN
-    const existingManualEx = state.currentDay.wod?.exercises || [];
     if (existingManualEx.length > 0) {
       state.currentDay.wod.exercises = existingManualEx;
       renderWodExercisesList();
