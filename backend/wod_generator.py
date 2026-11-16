@@ -387,40 +387,40 @@ def generate_custom_wod(
     selected_moves = []
     used_names = set()
 
-    # 1. Si el usuario seleccionó skills técnicas, priorizarlas e incluirlas
+    # 1. Si el usuario seleccionó skills técnicas, se limita exclusivamente a ellas
     active_skills = [s.strip() for s in (skills or []) if s and s.strip()]
-    for skill_name in active_skills:
-        s_lower = skill_name.lower()
-        matched = None
-        for m in available_moves:
-            if m["name"] in used_names:
-                continue
-            m_skills = [sk.lower() for sk in m.get("skills", [])]
-            if s_lower in m["name"].lower() or any(s_lower in sk for sk in m_skills):
-                matched = m
-                break
-        if matched:
-            selected_moves.append(matched)
-            used_names.add(matched["name"])
-        else:
-            # Skill custom añadida por el usuario no en la lista de movimientos: inyectarla directamente
-            custom_move = {
-                "name": skill_name,
-                "equipment": ["Sin material"],
-                "category": "metcon",
-                "skills": [skill_name],
-                "rx_m": "Rx",
-                "rx_f": "Rx",
-                "reps_amrap": 10,
-                "reps_emom": 8,
-                "reps_ft": 15
-            }
-            selected_moves.append(custom_move)
-            used_names.add(skill_name)
-
-    # 2. Completar con movimientos variados (weightlifting, gymnastics, mono)
-    target_count = 3 if time_minutes >= 12 else 2
-    if len(selected_moves) < target_count:
+    if active_skills:
+        for skill_name in active_skills:
+            s_lower = skill_name.lower()
+            matched = None
+            for m in available_moves:
+                if m["name"] in used_names:
+                    continue
+                m_skills = [sk.lower() for sk in m.get("skills", [])]
+                if s_lower in m["name"].lower() or any(s_lower in sk for sk in m_skills):
+                    matched = m
+                    break
+            if matched:
+                selected_moves.append(matched)
+                used_names.add(matched["name"])
+            else:
+                # Skill custom añadida por el usuario no en la lista de movimientos: inyectarla directamente
+                custom_move = {
+                    "name": skill_name,
+                    "equipment": ["Sin material"],
+                    "category": "metcon",
+                    "skills": [skill_name],
+                    "rx_m": "Rx",
+                    "rx_f": "Rx",
+                    "reps_amrap": 10,
+                    "reps_emom": 8,
+                    "reps_ft": 15
+                }
+                selected_moves.append(custom_move)
+                used_names.add(skill_name)
+    else:
+        # 2. Si no se seleccionaron skills específicas, autocompletar con movimientos variados (weightlifting, gymnastics, mono)
+        target_count = 3 if time_minutes >= 12 else 2
         shuffled = list(available_moves)
         random.shuffle(shuffled)
         for m in shuffled:

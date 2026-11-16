@@ -1260,6 +1260,15 @@ textarea.input {
   margin-bottom: 8px;
 }
 
+/* Individual Exercise card in Student view - separated box */
+.ex-item-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
 /* Timed section card in Student view */
 .timed-section-student-card {
   background: rgba(2, 132, 199, 0.08);
@@ -1622,7 +1631,7 @@ textarea.input {
    ========================================================================== */
 @media print {
   @page {
-    size: A4 portrait;
+    size: auto;
     margin: 8mm 10mm 8mm 10mm;
   }
 
@@ -1673,8 +1682,8 @@ textarea.input {
   body {
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 9.5pt !important;
-    line-height: 1.25 !important;
+    font-size: 12pt !important;
+    line-height: 1.3 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1702,6 +1711,7 @@ textarea.input {
     background: #ffffff !important;
     border: 1px solid #000000 !important;
     color: #000000 !important;
+    font-size: 12pt !important;
     padding: 3px 6px !important;
     margin-bottom: 2px !important;
     border-radius: 4px !important;
@@ -1711,28 +1721,28 @@ textarea.input {
   .ex-columns-header {
     color: #000000 !important;
     font-weight: 900 !important;
-    font-size: 8pt !important;
+    font-size: 12pt !important;
     padding: 1px 6px !important;
     margin-bottom: 2px !important;
   }
 
   .ex-col-cell {
     color: #000000 !important;
-    font-size: 8.5pt !important;
+    font-size: 12pt !important;
   }
 
   .ex-col-name {
     color: #000000 !important;
-    font-size: 9pt !important;
+    font-size: 12pt !important;
     font-weight: 700 !important;
   }
 
   .ex-notes-text {
-    font-size: 8pt !important;
+    font-size: 11pt !important;
     margin-top: 1px !important;
   }
 
-  .card, .item-box, .card-session-sheet {
+  .card, .item-box, .card-session-sheet, .ex-item-card, .timed-section-student-card, .ex-group-card {
     background: #ffffff !important;
     color: #000000 !important;
     border: 1.2px solid #000000 !important;
@@ -1748,32 +1758,29 @@ textarea.input {
     padding: 6px 9px !important;
   }
 
-  /* Headings strictly black (#000000) and underlined in print - Compact */
+  /* Encabezados en LETRA 14 y subrayados */
   .session-section-title,
   .session-main-header,
   body.alumnos-page .session-main-header,
-  h1.session-main-header {
+  h1.session-main-header,
+  .session-sub-header,
+  body.alumnos-page .session-sub-header,
+  h2.session-sub-header,
+  .section-badge-banner,
+  body.alumnos-page .section-badge-banner,
+  .session-subheading,
+  body.alumnos-page .session-subheading,
+  .timed-section-student-badge,
+  body.alumnos-page .timed-section-student-badge,
+  .section-title,
+  h1, h2, h3 {
     color: #000000 !important;
-    font-size: 13pt !important;
+    font-size: 14pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
     text-underline-offset: 3px !important;
     text-decoration-thickness: 1.5px !important;
     margin: 0 0 3px 0 !important;
-    text-transform: uppercase !important;
-    display: block !important;
-    line-height: 1.15 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .session-sub-header,
-  body.alumnos-page .session-sub-header,
-  h2.session-sub-header {
-    color: #000000 !important;
-    font-size: 10pt !important;
-    font-weight: 800 !important;
-    margin: 0 0 2px 0 !important;
     text-transform: uppercase !important;
     display: block !important;
     line-height: 1.2 !important;
@@ -1788,41 +1795,12 @@ textarea.input {
     display: none !important;
   }
 
-  .section-badge-banner,
-  body.alumnos-page .section-badge-banner {
-    display: block !important;
-    background: transparent !important;
-    color: #000000 !important;
-    border: none !important;
-    font-size: 11pt !important;
-    font-weight: 900 !important;
-    text-decoration: underline !important;
-    text-underline-offset: 3px !important;
-    text-decoration-thickness: 1.5px !important;
-    padding: 0 !important;
-    margin-bottom: 2px !important;
-    text-transform: uppercase !important;
-    line-height: 1.2 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .session-subheading,
-  body.alumnos-page .session-subheading {
-    color: #000000 !important;
-    font-size: 9.5pt !important;
-    font-weight: 800 !important;
-    margin: 2px 0 3px 0 !important;
-    display: block !important;
-    line-height: 1.2 !important;
-  }
-
   .ex-col-sets,
   .ex-col-reps {
-    flex: 0 0 68px !important;
-    width: 68px !important;
-    min-width: 68px !important;
-    max-width: 68px !important;
+    flex: 0 0 76px !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    max-width: 76px !important;
     text-align: center !important;
     box-sizing: border-box !important;
   }
@@ -1855,7 +1833,7 @@ textarea.input {
     padding-right: 4px !important;
   }
 
-  /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF */
+  /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF - Letra 12pt */
   .clean-pill-val,
   body.alumnos-page .clean-pill-val,
   .ex-col-sets .clean-pill-val,
@@ -1865,7 +1843,7 @@ textarea.input {
     color: #000000 !important;
     border: 1.2px solid #0284c7 !important;
     font-weight: 900 !important;
-    font-size: 8pt !important;
+    font-size: 12pt !important;
     padding: 2px 4px !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -1878,13 +1856,14 @@ textarea.input {
     print-color-adjust: exact !important;
   }
 
-  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF */
+  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF - Letra 12pt */
   .ex-clean-line,
   body.alumnos-page .ex-clean-line {
     background: #ffffff !important;
     background-color: #ffffff !important;
     border: 1px solid #000000 !important;
     color: #000000 !important;
+    font-size: 12pt !important;
     padding: 3px 6px !important;
     margin-bottom: 2px !important;
     border-radius: 4px !important;
@@ -1898,16 +1877,17 @@ textarea.input {
   body.alumnos-page .ex-col-name,
   body.alumnos-page .ex-col-name strong {
     color: #000000 !important;
+    font-size: 12pt !important;
     background: transparent !important;
   }
 
   /* Secciones con Crono dentro de Warm Up o Bloques en PDF */
   .timed-section-student-card,
   body.alumnos-page .timed-section-student-card {
-    background: #f8fafc !important;
-    border: 1px solid #0284c7 !important;
+    background: #ffffff !important;
+    border: 1.2px solid #000000 !important;
     color: #000000 !important;
-    padding: 4px 6px !important;
+    padding: 5px 8px !important;
     margin: 4px 0 !important;
     border-radius: 5px !important;
     page-break-inside: avoid;
@@ -1920,9 +1900,11 @@ textarea.input {
     background: transparent !important;
     color: #000000 !important;
     border: none !important;
-    border-bottom: 1.5px solid #000000 !important;
-    font-size: 9pt !important;
+    font-size: 14pt !important;
     font-weight: 900 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+    text-decoration-thickness: 1.5px !important;
     padding: 0 0 1px 0 !important;
     display: inline-block !important;
     text-transform: uppercase !important;
@@ -1932,29 +1914,24 @@ textarea.input {
 
   .wod-pre-clean {
     color: #000000 !important;
-    font-size: 9.5pt !important;
+    font-size: 12pt !important;
     line-height: 1.3 !important;
     margin: 3px 0 !important;
     white-space: pre-wrap !important;
   }
 
-  /* All body, subheadings and notes strictly black (#000000) in print */
+  /* Lo demás en letra 12pt y estrictamente negro */
   *,
   body,
   p,
   div,
   span,
   strong,
-  h1,
-  h2,
-  h3,
-  h4,
   label,
   small,
   em,
   b,
   a,
-  .session-subheading,
   .session-body-text,
   .wod-pre-clean,
   .ex-meta-text,
@@ -1964,11 +1941,12 @@ textarea.input {
   .ex-col-name,
   .ex-col-cell,
   .card-session-sheet *,
-  .badge,
-  .section-title,
   .muted,
   .text-muted {
+    font-size: 12pt;
     color: #000000 !important;
+    text-shadow: none !important;
+  }
     text-shadow: none !important;
   }
 

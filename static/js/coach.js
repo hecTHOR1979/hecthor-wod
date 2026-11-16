@@ -1344,8 +1344,8 @@ function renderPartsList() {
       <div class="row-between" style="margin-bottom:8px;">
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
         <div class="row-wrap" style="gap:6px;">
-          <button class="btn btn-primary btn-sm" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
-          <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir AMRAP / EMOM</button>
+          <button class="btn btn-primary btn-sm" type="button" data-add-part-line="${pIdx}">+ Añadir ejercicio</button>
+          <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir bloque con crono</button>
           <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           <button class="btn btn-danger btn-sm" type="button" data-del-part="${pIdx}">Eliminar bloque</button>
         </div>
@@ -1375,16 +1375,16 @@ function renderPartsList() {
         <div class="row-between" style="margin-bottom:6px; align-items:center;">
           <span style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">📋 Ejercicios del bloque</span>
           <div class="row-wrap" style="gap:6px;">
-            <button class="btn btn-sm btn-primary" type="button" data-add-part-line="${pIdx}">+ Añadir línea</button>
-            <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir AMRAP / EMOM</button>
+            <button class="btn btn-sm btn-primary" type="button" data-add-part-line="${pIdx}">+ Añadir ejercicio</button>
+            <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir bloque con crono</button>
             <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           </div>
         </div>
         <div data-part-ex-list="${pIdx}"></div>
       </div>
 
-      <!-- CRONO DEL BLOQUE (AL FINAL DEL BLOQUE) -->
-      <div style="margin-top:14px; padding-top:10px; border-top:1px solid rgba(2,132,199,0.25);">
+      <!-- CRONO DEL BLOQUE (OCULTO - SE UTILIZAN BLOQUES CON CRONO MODULARES) -->
+      <div style="display:none;" aria-hidden="true">
         <div class="row-between" style="margin-bottom:8px; align-items:center;">
           <label style="color:#38bdf8; font-weight:800; font-size:0.85rem; margin:0;">⏱ Formato de crono del bloque (al final)</label>
           ${normalizedTimer !== 'SIN CRONO' ? `<button class="btn btn-sm btn-outline" type="button" data-launch-part-crono="${pIdx}" title="Probar en Crono Oficial">⚡ Crono Oficial ↗</button>` : ''}

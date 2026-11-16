@@ -599,26 +599,18 @@ function renderCurrentDay(resetTimer = true) {
     }
   }
 
-  const cleanMcTitleStr = cleanMesocycleTitle(state.microcycle);
+  const rawMcName = (state.microcycle?.name || '').trim();
+  const rawMcGoal = (state.microcycle?.primary_goal || '').trim();
+  let mcActiveTitle = rawMcName ? `MESOCICLO ACTIVO: ${rawMcName}` : 'MESOCICLO ACTIVO';
+  if (rawMcGoal && !mcActiveTitle.toLowerCase().includes(rawMcGoal.toLowerCase())) {
+    mcActiveTitle += ` (${rawMcGoal})`;
+  }
   const weekDateRangeStr = formatWeekDateRange(state.microcycle, day.week_number);
   const dateRangeLong = weekDateRangeStr ? ` · SEMANA del ${weekDateRangeStr}` : '';
   const dateRangeShort = weekDateRangeStr ? ` · S. del ${weekDateRangeStr}` : '';
 
-  // Warmup work description line right under WARM UP
-  let wuWorkType = '';
-  if (wuSpec) {
-    if (wuSpec.mode === 'TABATA') {
-      wuWorkType = `TABATA (${wuSpec.tabataRounds || 8} rondas · ${wuSpec.workSec || 20}s Trabajo / ${wuSpec.restSec !== undefined ? wuSpec.restSec : 10}s Descanso)`;
-    } else if (wuSpec.mode === 'EMOM') {
-      wuWorkType = `EMOM (${wuSpec.rounds || 8} rondas · cada ${wuSpec.intervalSec || 60}s)`;
-    } else if (wuSpec.mode === 'FOR TIME') {
-      wuWorkType = `FOR TIME (Cap: ${wuSpec.minutes || 8} min)`;
-    } else {
-      wuWorkType = `${esc(wuSpec.mode)} (${wuSpec.minutes || 8} min)`;
-    }
-  } else {
-    wuWorkType = esc(warmupType);
-  }
+  // Warmup work description line right under WARM UP: SOLO el tipo de Warm Up, nunca el crono
+  const wuWorkType = esc(warmupType || 'Calentamiento General');
 
   // WOD Final summary formatting (SOLO ENCABEZADO WOD FINAL, TITULO Y FORMATO, Y CAP SOLO SI EL COACH LO SELECCIONA)
   const rawWodTitle = (wod.title || '').trim();
@@ -674,11 +666,11 @@ function renderCurrentDay(resetTimer = true) {
     <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF - MAX 2 CLEAN LINES) -->
     <div class="card card-session-sheet session-header-card">
       <h1 class="session-main-header">
-        ${esc(cleanMcTitleStr)}
+        ${esc(mcActiveTitle)}
       </h1>
       <h2 class="session-sub-header">
-        <span class="sub-header-desktop">MICROCICLO ${day.week_number} · DÍA ${day.day_number}${esc(dateRangeLong)}</span>
-        <span class="sub-header-mobile">MICROCICLO ${day.week_number} · D ${day.day_number}${esc(dateRangeShort)}</span>
+        <span class="sub-header-desktop">SEMANA ${day.week_number} / DÍA ${day.day_number}${esc(dateRangeLong)}</span>
+        <span class="sub-header-mobile">SEMANA ${day.week_number} / D ${day.day_number}${esc(dateRangeShort)}</span>
       </h2>
       ${day.coaching_tips ? `<div class="session-body-text" style="margin-top:8px; font-size:0.9rem;">💡 <strong>Consejo del Coach:</strong> ${esc(day.coaching_tips)}</div>` : ''}
       <div class="session-header-actions no-print" style="margin-top:10px; display:flex; justify-content:flex-end;">
@@ -696,7 +688,6 @@ function renderCurrentDay(resetTimer = true) {
       ${wu.length === 0 ? '<div class="session-body-text">Sin movimientos listados en el calentamiento.</div>' : `
         <div class="ex-clean-list" id="stuWarmupList"></div>
       `}
-      ${wuSpec ? renderCronoProLinkHtml(wuSpec) : ''}
     </div>
 
     <!-- 2. BLOQUES (BANNER AZUL CON LETRAS NEGRAS, DEBAJO EL TÍTULO DEL BLOQUE EN NEGRO) -->
@@ -704,6 +695,7 @@ function renderCurrentDay(resetTimer = true) {
       const pSpec = currentDaySpecs[`part-${idx}`];
       const blockTitle = p.title || `Trabajo Bloque ${idx + 1}`;
       const blockSub = `${esc(blockTitle)}${p.type ? ' · ' + esc(p.type) : ''}`;
+      const hasTimedSectionsInside = (p.exercises || []).some(e => e.is_timed_section);
       return `
         <div class="card card-session-sheet">
           <div class="section-badge-banner">BLOQUE ${idx + 1}</div>
@@ -724,7 +716,7 @@ function renderCurrentDay(resetTimer = true) {
               <div data-block-score-status="${idx}" style="font-size:0.82rem; margin-top:4px; color:#ffffff;"></div>
             </div>
           ` : ''}
-          ${pSpec ? renderCronoProLinkHtml(pSpec) : ''}
+          ${pSpec && !hasTimedSectionsInside ? renderCronoProLinkHtml(pSpec) : ''}
         </div>
       `;
     }).join('')}
@@ -800,18 +792,8 @@ function renderCurrentDay(resetTimer = true) {
   // Función unificada para renderizar listas de ejercicios con la misma estructura (SETS | REPS | MOVE | VIDEO)
   function renderStudentExerciseRows(targetWrap, exercises, prefix = 'ex') {
     if (!targetWrap || !Array.isArray(exercises) || exercises.length === 0) return;
-    const hdr = document.createElement('div');
-    hdr.className = 'ex-columns-header';
-    hdr.innerHTML = `
-      <div class="ex-col-cell ex-col-sets">SETS</div>
-      <div class="ex-col-cell ex-col-reps">REPS</div>
-      <div class="ex-col-name">MOVE</div>
-      <div class="ex-col-action no-print">VIDEO</div>
-    `;
-    targetWrap.appendChild(hdr);
-
     exercises.forEach((item, itemIdx) => {
-      // Bloques con cronómetro incrustados (AMRAP, EMOM, TABATA, FOR TIME)
+      // 1. Bloques con cronómetro incrustados (AMRAP, EMOM, TABATA, FOR TIME) en su propio cuadro
       if (item.is_timed_section) {
         const timedSpec = {
           id: `${prefix}-timed-${itemIdx}`,
@@ -828,6 +810,19 @@ function renderCurrentDay(resetTimer = true) {
 
         const timedBox = document.createElement('div');
         timedBox.className = 'timed-section-student-card';
+
+        let timedTitle = (item.name || '').trim();
+        if (!timedTitle) {
+          if (timedSpec.mode === 'TABATA') {
+            timedTitle = `TABATA (${timedSpec.tabataRounds} rondas · ${timedSpec.workSec}s / ${timedSpec.restSec}s)`;
+          } else if (timedSpec.mode === 'EMOM') {
+            timedTitle = `EMOM (${timedSpec.rounds} rondas · cada ${timedSpec.intervalSec}s)`;
+          } else if (timedSpec.mode === 'FOR TIME') {
+            timedTitle = `FOR TIME (Cap: ${timedSpec.minutes} min)`;
+          } else {
+            timedTitle = `${timedSpec.mode} (${timedSpec.minutes} min)`;
+          }
+        }
 
         let subsHtml = '';
         const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
@@ -871,8 +866,8 @@ function renderCurrentDay(resetTimer = true) {
         }
 
         timedBox.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-            <span class="timed-section-student-badge">⏱ ${esc(item.name || item.timer_type || 'AMRAP')}</span>
+          <div class="timed-section-student-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <span class="timed-section-student-badge">⏱ ${esc(timedTitle)}</span>
           </div>
           ${item.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(item.notes)}</div>` : ''}
           ${subsHtml}
@@ -882,6 +877,7 @@ function renderCurrentDay(resetTimer = true) {
         return;
       }
 
+      // 2. Ejercicio individual en su propio cuadro / tarjeta separada
       const hasSubs = Array.isArray(item.sub_exercises) && item.sub_exercises.length > 0;
       const meta = [];
       if (item.load) meta.push(`Carga: ${esc(item.load)}`);
@@ -889,33 +885,48 @@ function renderCurrentDay(resetTimer = true) {
       const metaHtml = meta.length > 0 ? `<div class="ex-meta-text">🏋️ ${meta.join(' · ')}</div>` : '';
 
       if (!hasSubs) {
-        const row = document.createElement('div');
-        row.className = 'ex-clean-line';
-        row.innerHTML = `
-          <div class="ex-col-cell ex-col-sets">
-            <span class="clean-pill-val">${cleanSetsVal(item.sets) || '-'}</span>
+        const card = document.createElement('div');
+        card.className = 'ex-item-card';
+        card.innerHTML = `
+          <div class="ex-columns-header">
+            <div class="ex-col-cell ex-col-sets">SETS</div>
+            <div class="ex-col-cell ex-col-reps">REPS</div>
+            <div class="ex-col-name">MOVE</div>
+            <div class="ex-col-action no-print">VIDEO</div>
           </div>
-          <div class="ex-col-cell ex-col-reps">
-            <span class="clean-pill-val">${esc(item.reps || '-')}</span>
-          </div>
-          <div class="ex-col-name">
-            <strong>${esc(item.name)}</strong>
-            ${metaHtml}
-            ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
-          </div>
-          <div class="ex-col-action no-print">
-            ${item.video_url ? `
-              <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
-                🎬 <span class="video-btn-text">Vídeo</span>
-              </button>
-            ` : '<span style="display:inline-block; width:100%;"></span>'}
+          <div class="ex-clean-line">
+            <div class="ex-col-cell ex-col-sets">
+              <span class="clean-pill-val">${cleanSetsVal(item.sets) || '-'}</span>
+            </div>
+            <div class="ex-col-cell ex-col-reps">
+              <span class="clean-pill-val">${esc(item.reps || '-')}</span>
+            </div>
+            <div class="ex-col-name">
+              <strong>${esc(item.name)}</strong>
+              ${metaHtml}
+              ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
+            </div>
+            <div class="ex-col-action no-print">
+              ${item.video_url ? `
+                <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
+                  🎬 <span class="video-btn-text">Vídeo</span>
+                </button>
+              ` : '<span style="display:inline-block; width:100%;"></span>'}
+            </div>
           </div>
         `;
-        targetWrap.appendChild(row);
+        targetWrap.appendChild(card);
       } else {
+        // 3. Ejercicio multi-parte / superserie en su propio cuadro
         const box = document.createElement('div');
         box.className = 'ex-group-card';
         let subHtml = `
+          <div class="ex-columns-header">
+            <div class="ex-col-cell ex-col-sets">SETS</div>
+            <div class="ex-col-cell ex-col-reps">REPS</div>
+            <div class="ex-col-name">MOVE</div>
+            <div class="ex-col-action no-print">VIDEO</div>
+          </div>
           <div class="ex-clean-line" style="margin-bottom:4px;">
             <div class="ex-col-cell ex-col-sets">
               <span class="clean-pill-val">${cleanSetsVal(item.sets) || '1'}</span>
