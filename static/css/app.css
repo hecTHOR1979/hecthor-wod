@@ -1631,11 +1631,22 @@ textarea.input {
    ========================================================================== */
 @media print {
   @page {
-    size: auto;
-    margin: 5mm 8mm 5mm 8mm;
+    size: A4 portrait;
+    margin: 5mm 7mm 5mm 7mm;
   }
 
-  /* Hide all interactive app bars, floating clocks, timers, buttons and controls */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    line-height: 1.14 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ocultar barras de navegación, botones, cronómetros interactivos, modales y vídeos */
   .topbar,
   .bottom-nav,
   #studentBottomNav,
@@ -1675,26 +1686,7 @@ textarea.input {
   .crono-pro-iframe,
   .block-score-box,
   #studentLogCard,
-  .card:has(#logName) {
-    display: none !important;
-  }
-
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.18 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .app-shell {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* No mostrar hecTHOR WOD ni barras de marca en el PDF */
+  .card:has(#logName),
   .print-header-brand,
   .brand,
   .brand-logo,
@@ -1703,94 +1695,69 @@ textarea.input {
     display: none !important;
   }
 
-  .ex-clean-list {
-    margin: 1px 0 !important;
+  .app-shell {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  .ex-clean-line {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-    padding: 2px 5px !important;
-    margin-bottom: 2px !important;
-    border-radius: 3px !important;
-    page-break-inside: avoid;
-  }
-
-  .ex-columns-header {
-    color: #000000 !important;
-    font-weight: 900 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-    padding: 1px 5px !important;
-    margin-bottom: 1px !important;
-  }
-
-  .ex-col-cell {
-    color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-  }
-
-  .ex-col-name {
-    color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-    font-weight: 700 !important;
-  }
-
-  .ex-notes-text {
-    font-size: 11pt !important;
-    line-height: 1.15 !important;
-    margin-top: 1px !important;
-  }
-
-  .card, .item-box, .card-session-sheet, .ex-item-card, .timed-section-student-card, .ex-group-card {
+  /* Tarjetas de bloque y contenedores compactos */
+  .card,
+  .item-box,
+  .card-session-sheet,
+  .ex-item-card,
+  .timed-section-student-card,
+  .ex-group-card {
     background: #ffffff !important;
     color: #000000 !important;
     border: 1.2px solid #000000 !important;
-    border-radius: 4px !important;
+    border-radius: 3px !important;
     box-shadow: none !important;
-    margin-bottom: 4px !important;
-    padding: 4px 6px !important;
-    page-break-inside: avoid;
+    margin-bottom: 3px !important;
+    padding: 3px 5px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .session-header-card {
-    margin-bottom: 4px !important;
-    padding: 4px 6px !important;
+    margin-bottom: 3px !important;
+    padding: 3px 5px !important;
   }
 
-  /* Encabezados en LETRA 14 y subrayados - Líneas juntas */
+  /* Encabezados principales en LETRA 11.5pt SUBRAYADA Y COMPACTA PARA A4 */
   .session-section-title,
   .session-main-header,
   body.alumnos-page .session-main-header,
   h1.session-main-header,
-  .session-sub-header,
-  body.alumnos-page .session-sub-header,
-  h2.session-sub-header,
   .section-badge-banner,
   body.alumnos-page .section-badge-banner,
-  .session-subheading,
-  body.alumnos-page .session-subheading,
-  .timed-section-student-badge,
-  body.alumnos-page .timed-section-student-badge,
   .section-title,
   h1, h2, h3 {
     color: #000000 !important;
-    font-size: 14pt !important;
+    font-size: 11.5pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
-    text-underline-offset: 2.5px !important;
-    text-decoration-thickness: 1.5px !important;
-    margin: 0 0 2px 0 !important;
+    text-underline-offset: 2px !important;
+    text-decoration-thickness: 1.3px !important;
+    margin: 0 0 1.5px 0 !important;
     text-transform: uppercase !important;
     display: block !important;
-    line-height: 1.15 !important;
+    line-height: 1.14 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  /* Subencabezados de bloque en letra 10.5pt */
+  .session-subheading,
+  body.alumnos-page .session-subheading,
+  .session-sub-header,
+  body.alumnos-page .session-sub-header,
+  h2.session-sub-header {
+    color: #000000 !important;
+    font-size: 10.5pt !important;
+    font-weight: 800 !important;
+    line-height: 1.14 !important;
+    margin: 0 0 2px 0 !important;
   }
 
   .sub-header-desktop {
@@ -1800,33 +1767,52 @@ textarea.input {
     display: none !important;
   }
 
-  .ex-col-sets,
-  .ex-col-reps {
-    flex: 0 0 76px !important;
-    width: 76px !important;
-    min-width: 76px !important;
-    max-width: 76px !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
+  .ex-clean-list {
+    margin: 1px 0 !important;
   }
 
-  /* Ocultar completamente la columna de VIDEO en el PDF */
-  .ex-col-action,
-  .card-session-sheet .ex-col-action,
-  .ex-col-action.no-print,
-  .btn-video-sym,
-  .video-btn-text,
-  [data-video-btn],
-  .wod-videos-box,
-  #stuWodMovements {
-    display: none !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    flex: 0 0 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
+  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS - Letra 10pt compacta */
+  .ex-clean-line,
+  body.alumnos-page .ex-clean-line {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    line-height: 1.12 !important;
+    padding: 1.5px 4px !important;
+    margin-bottom: 1.5px !important;
+    border-radius: 3px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Cabecera de columnas (SETS, REPS, MOVE) */
+  .ex-columns-header {
+    color: #000000 !important;
+    font-weight: 800 !important;
+    font-size: 8.5pt !important;
+    line-height: 1.1 !important;
+    padding: 1px 4px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .ex-col-cell {
+    color: #000000 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.12 !important;
+  }
+
+  .ex-col-sets,
+  .ex-col-reps {
+    flex: 0 0 62px !important;
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
   }
 
   /* El ejercicio ocupa todo el ancho restante tras quitar VIDEO en el PDF */
@@ -1838,7 +1824,18 @@ textarea.input {
     padding-right: 4px !important;
   }
 
-  /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF - Letra 12pt */
+  .ex-col-name,
+  .ex-col-name strong,
+  body.alumnos-page .ex-col-name,
+  body.alumnos-page .ex-col-name strong {
+    color: #000000 !important;
+    font-size: 10pt !important;
+    line-height: 1.12 !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+  }
+
+  /* Relleno de las casillas de SETS y REPS en AZUL con letras NEGRAS en el PDF - Letra 9.5pt */
   .clean-pill-val,
   body.alumnos-page .clean-pill-val,
   .ex-col-sets .clean-pill-val,
@@ -1848,8 +1845,8 @@ textarea.input {
     color: #000000 !important;
     border: 1.2px solid #0284c7 !important;
     font-weight: 900 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.12 !important;
     padding: 1px 3px !important;
     width: 100% !important;
     box-sizing: border-box !important;
@@ -1862,43 +1859,32 @@ textarea.input {
     print-color-adjust: exact !important;
   }
 
-  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF - Letra 12pt compacta */
-  .ex-clean-line,
-  body.alumnos-page .ex-clean-line {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    border: 1px solid #000000 !important;
+  /* Metas y notas de ejercicios en letra 8.5pt */
+  .ex-meta-text {
+    font-size: 8.5pt !important;
+    line-height: 1.12 !important;
+    margin-top: 1px !important;
     color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-    padding: 2px 5px !important;
-    margin-bottom: 2px !important;
-    border-radius: 3px !important;
-    page-break-inside: avoid;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  .ex-col-name,
-  .ex-col-name strong,
-  body.alumnos-page .ex-col-name,
-  body.alumnos-page .ex-col-name strong {
+  .ex-notes-text {
+    font-size: 8.5pt !important;
+    line-height: 1.12 !important;
+    margin-top: 1px !important;
     color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.15 !important;
-    background: transparent !important;
   }
 
-  /* Secciones con Crono dentro de Warm Up o Bloques en PDF */
+  /* Bloques con Crono dentro de Warm Up o Bloques en PDF */
   .timed-section-student-card,
   body.alumnos-page .timed-section-student-card {
     background: #ffffff !important;
     border: 1.2px solid #000000 !important;
     color: #000000 !important;
-    padding: 3px 6px !important;
-    margin: 3px 0 !important;
-    border-radius: 4px !important;
-    page-break-inside: avoid;
+    padding: 2.5px 5px !important;
+    margin: 2px 0 !important;
+    border-radius: 3px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1908,29 +1894,28 @@ textarea.input {
     background: transparent !important;
     color: #000000 !important;
     border: none !important;
-    font-size: 14pt !important;
+    font-size: 10.5pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
-    text-underline-offset: 2.5px !important;
-    text-decoration-thickness: 1.5px !important;
+    text-underline-offset: 2px !important;
+    text-decoration-thickness: 1.3px !important;
     padding: 0 0 1px 0 !important;
     display: inline-block !important;
     text-transform: uppercase !important;
-    line-height: 1.15 !important;
+    line-height: 1.14 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   .wod-pre-clean {
     color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.18 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.14 !important;
     margin: 2px 0 !important;
     white-space: pre-wrap !important;
   }
 
-  /* Lo demás en letra 12pt y líneas compactas */
-  *,
+  /* Texto base para cuerpo y párrafos en PDF */
   body,
   p,
   div,
@@ -1942,21 +1927,12 @@ textarea.input {
   b,
   a,
   .session-body-text,
-  .wod-pre-clean,
-  .ex-meta-text,
-  .ex-notes-text,
-  .ex-clean-line,
-  .ex-columns-header,
-  .ex-col-name,
-  .ex-col-cell,
   .card-session-sheet *,
   .muted,
   .text-muted {
-    font-size: 12pt;
-    line-height: 1.18 !important;
+    font-size: 9.5pt;
+    line-height: 1.14 !important;
     color: #000000 !important;
-    text-shadow: none !important;
-  }
     text-shadow: none !important;
   }
 
@@ -1975,55 +1951,9 @@ textarea.input {
     border: 1px solid #000000 !important;
   }
 
-  .section-title, h1, h2, h3 {
-    color: #000000 !important;
-  }
-
-  .ex-table {
-    border: 1px solid #000000 !important;
-    border-radius: 6px !important;
-  }
-
-  .ex-table-head {
-    background: #f1f5f9 !important;
-    color: #000000 !important;
-    border-bottom: 2px solid #000000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .ex-table-row {
-    background: #ffffff !important;
-    border-bottom: 1px solid #000000 !important;
-    color: #000000 !important;
-  }
-
-  .ex-cell-num {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
-  }
-
-  .ex-cell-reps, .ex-cell-sets {
-    color: #000000 !important;
-  }
-
   .ex-video-link {
     color: #000000 !important;
     text-decoration: none !important;
     pointer-events: none !important;
-  }
-
-  .wod-pre {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
-    white-space: pre-wrap !important;
-    padding: 10px !important;
-    border-radius: 6px !important;
-  }
-
-  .muted, .text-muted {
-    color: #000000 !important;
   }
 }
