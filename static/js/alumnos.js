@@ -380,9 +380,13 @@ let currentDaySpecs = {};
 
 function getWarmupTimerSpec(day) {
   const wt = day.warmup_timer || {};
-  const rawType = (wt.type || day.warmup_type || '').toUpperCase();
+  const rawType = (wt.type || '').toUpperCase();
   const mode = getTimedBlockMode(rawType);
   if (!mode || rawType.includes('SIN CRONO')) return null;
+
+  // Si el calentamiento ya cuenta con bloques con crono modulares (is_timed_section), no aplicar crono global
+  const hasModularTimedSections = (day.warmup_exercises || []).some(x => x && x.is_timed_section);
+  if (hasModularTimedSections) return null;
 
   let workSec = wt.tabata_work !== undefined && wt.tabata_work !== '' ? Number(wt.tabata_work) : 20;
   let restSec = wt.tabata_rest !== undefined && wt.tabata_rest !== '' ? Number(wt.tabata_rest) : 10;
@@ -660,6 +664,17 @@ function renderCurrentDay(resetTimer = true) {
       wodDescLines.shift();
     }
   }
+
+  // PREVALENCIA DEL WOD MANUAL:
+  // Si existen ejercicios manuales definidos en el WOD, estos prevalecen sobre el generador de WODs.
+  // Filtramos cualquier línea de viñeta o listado de ejercicios del texto autogenerado para no duplicar.
+  if (wodExercises.length > 0 && wodDescLines.length > 0) {
+    wodDescLines = wodDescLines.filter((l) => {
+      const isBullet = /^[-*•–—]\s+/.test(l);
+      const isNumbered = /^\d+[\.\-\)]\s+/.test(l);
+      return !isBullet && !isNumbered;
+    });
+  }
   const cleanWodDesc = wodDescLines.join('\n');
 
   let html = `
@@ -789,10 +804,13 @@ function renderCurrentDay(resetTimer = true) {
     }, 1500);
   });
 
-  // Función unificada para renderizar listas de ejercicios con la misma estructura (SETS | REPS | MOVE | VIDEO)
+  // Función unificada para renderizar listas de ejercicios con orden numerado (SETS | REPS | MOVE | VIDEO)
   function renderStudentExerciseRows(targetWrap, exercises, prefix = 'ex') {
     if (!targetWrap || !Array.isArray(exercises) || exercises.length === 0) return;
     exercises.forEach((item, itemIdx) => {
+      const orderNum = itemIdx + 1;
+      const orderPrefix = `${orderNum}.- `;
+
       // 1. Bloques con cronómetro incrustados (AMRAP, EMOM, TABATA, FOR TIME) en su propio cuadro
       if (item.is_timed_section) {
         const timedSpec = {
@@ -823,6 +841,8 @@ function renderCurrentDay(resetTimer = true) {
             timedTitle = `${timedSpec.mode} (${timedSpec.minutes} min)`;
           }
         }
+        const hasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(timedTitle);
+        const displayTimedTitle = hasOrder ? timedTitle : `${orderPrefix}${timedTitle}`;
 
         let subsHtml = '';
         const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
@@ -834,11 +854,14 @@ function renderCurrentDay(resetTimer = true) {
               <div class="ex-col-name">MOVE</div>
               <div class="ex-col-action no-print">VIDEO</div>
             </div>
-            ${subs.map((sub) => {
+            ${subs.map((sub, sIdx) => {
               const subMeta = [];
               if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
               if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
               const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
+              const subRaw = (sub.name || '').trim();
+              const subHasNum = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(subRaw);
+              const subDisplay = subHasNum ? subRaw : `${orderNum}.${sIdx + 1}.- ${subRaw}`;
               return `
                 <div class="ex-clean-line">
                   <div class="ex-col-cell ex-col-sets">
@@ -848,7 +871,7 @@ function renderCurrentDay(resetTimer = true) {
                     <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
                   </div>
                   <div class="ex-col-name">
-                    <strong>${esc(sub.name)}</strong>
+                    ${buildExerciseNameHtml(subDisplay, sub.video_url)}
                     ${subMetaHtml}
                     ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
                   </div>
@@ -867,7 +890,7 @@ function renderCurrentDay(resetTimer = true) {
 
         timedBox.innerHTML = `
           <div class="timed-section-student-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-            <span class="timed-section-student-badge">⏱ ${esc(timedTitle)}</span>
+            <span class="timed-section-student-badge">⏱ ${esc(displayTimedTitle)}</span>
           </div>
           ${item.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(item.notes)}</div>` : ''}
           ${subsHtml}
@@ -883,6 +906,10 @@ function renderCurrentDay(resetTimer = true) {
       if (item.load) meta.push(`Carga: ${esc(item.load)}`);
       if (item.rest) meta.push(`Descanso: ${esc(item.rest)}`);
       const metaHtml = meta.length > 0 ? `<div class="ex-meta-text">🏋️ ${meta.join(' · ')}</div>` : '';
+
+      const rawName = (item.name || '').trim();
+      const hasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(rawName);
+      const displayName = hasOrder ? rawName : `${orderPrefix}${rawName}`;
 
       if (!hasSubs) {
         const card = document.createElement('div');
@@ -902,7 +929,7 @@ function renderCurrentDay(resetTimer = true) {
               <span class="clean-pill-val">${esc(item.reps || '-')}</span>
             </div>
             <div class="ex-col-name">
-              <strong>${esc(item.name)}</strong>
+              ${buildExerciseNameHtml(displayName, item.video_url)}
               ${metaHtml}
               ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
             </div>
@@ -935,7 +962,7 @@ function renderCurrentDay(resetTimer = true) {
               <span class="clean-pill-val">${esc(item.reps || '-')}</span>
             </div>
             <div class="ex-col-name">
-              <strong>${esc(item.name)}</strong>
+              ${buildExerciseNameHtml(displayName, item.video_url)}
               ${metaHtml}
               ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
             </div>
@@ -953,6 +980,9 @@ function renderCurrentDay(resetTimer = true) {
           if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
           if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
           const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
+          const subRaw = (sub.name || '').trim();
+          const subHasNum = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(subRaw);
+          const subDisplay = subHasNum ? subRaw : `${orderNum}.${String.fromCharCode(66 + sIdx)}.- ${subRaw}`;
           subHtml += `
             <div class="ex-clean-line" style="margin-top:4px;">
               <div class="ex-col-cell ex-col-sets">
@@ -962,7 +992,7 @@ function renderCurrentDay(resetTimer = true) {
                 <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
               </div>
               <div class="ex-col-name">
-                <strong>${esc(sub.name)}</strong>
+                ${buildExerciseNameHtml(subDisplay, sub.video_url)}
                 ${subMetaHtml}
                 ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
               </div>

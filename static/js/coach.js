@@ -934,7 +934,7 @@ function renderWarmupList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN CALENTAMIENTO</span>
+            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${idx + 1}.- CRONO EN CALENTAMIENTO</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-wu-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -1175,7 +1175,7 @@ function renderWarmupList() {
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wu-field="reps" placeholder="REPS" value="${esc(item.reps || '')}" title="REPS (Repeticiones o Tiempo)" />
         </div>
         <div style="flex:1; min-width:140px;">
-          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-field="name" list="libraryExercisesDatalist" placeholder="${idx + 1}.- MOVE (ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
         </div>
         <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
           <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wu-field="video_url" placeholder="VIDEO (URL vídeo...)" value="${esc(item.video_url || '')}" />
@@ -1593,7 +1593,7 @@ function renderPartsList() {
           exRow.innerHTML = `
             <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN BLOQUE</span>
+                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${eIdx + 1}.- CRONO EN BLOQUE</span>
                 <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-part-timed-field="timer_type">
                   ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>
@@ -1846,7 +1846,7 @@ function renderPartsList() {
               <input class="input" style="padding:6px; font-size:0.85rem;" data-ex-f="rest" placeholder="DESC." value="${esc(ex.rest || '')}" title="DESC. (Descanso)" />
             </div>
             <div style="flex:1; min-width:130px;">
-              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(ex.name || '')}" autocomplete="off" />
+              <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-ex-f="name" list="libraryExercisesDatalist" placeholder="${eIdx + 1}.- MOVE (ejercicio...)" value="${esc(ex.name || '')}" autocomplete="off" />
             </div>
             <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
               <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-ex-f="video_url" placeholder="VIDEO (URL vídeo...)" value="${esc(ex.video_url || '')}" />
@@ -2060,7 +2060,7 @@ function renderWodExercisesList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ CRONO EN WOD</span>
+            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${idx + 1}.- CRONO EN WOD</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#f59e0b; background:#0c121e; border-color:#f59e0b;" data-wod-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -2301,7 +2301,7 @@ function renderWodExercisesList() {
           <input class="input" style="padding:6px; font-size:0.85rem;" data-wod-field="reps" placeholder="REPS" value="${esc(item.reps || '')}" title="REPS (Repeticiones o Tiempo)" />
         </div>
         <div style="flex:1; min-width:140px;">
-          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wod-field="name" list="libraryExercisesDatalist" placeholder="MOVE (nombre del ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wod-field="name" list="libraryExercisesDatalist" placeholder="${idx + 1}.- MOVE (nombre del ejercicio...)" value="${esc(item.name || '')}" autocomplete="off" />
         </div>
         <div style="flex:1.2; min-width:160px; display:flex; align-items:center; gap:4px;">
           <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-wod-field="video_url" placeholder="VIDEO (URL vídeo YouTube...)" value="${esc(item.video_url || '')}" />
@@ -3517,13 +3517,23 @@ $('btnRunWodGen').addEventListener('click', async () => {
     $('wodRx').value = wod.rx_weights || '';
     $('wodScaled').value = wod.scaled_weights || '';
     $('wodStrategy').value = wod.strategy || '';
-    if (Array.isArray(wod.exercises) && wod.exercises.length > 0) {
+    // Si ya existen ejercicios manuales definidos por el coach en el WOD, estos PREVALECEN
+    const existingManualEx = state.currentDay.wod?.exercises || [];
+    if (existingManualEx.length > 0) {
+      state.currentDay.wod.exercises = existingManualEx;
+      renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast('WOD generado. Se mantienen tus ejercicios manuales como prioritarios.');
+    } else if (Array.isArray(wod.exercises) && wod.exercises.length > 0) {
       if (!state.currentDay.wod) state.currentDay.wod = {};
       state.currentDay.wod.exercises = wod.exercises;
       renderWodExercisesList();
+      triggerAutoSave(true);
+      showToast('WOD generado y cargado en la sesión.');
+    } else {
+      triggerAutoSave(true);
+      showToast('WOD generado y cargado en la sesión.');
     }
-    triggerAutoSave(true);
-    showToast('WOD generado y cargado en la sesión.');
   } catch (err) {
     showToast(err.message);
   }
@@ -3564,7 +3574,7 @@ function buildCurrentDayPayload() {
     warmup_type: $('warmupTypeSelect')?.value || 'Movilidad GROUND',
     warmup_notes: $('warmupNotes')?.value.trim() || '',
     warmup_timer: {
-      type: $('warmupTimerType')?.value || 'SIN CRONO',
+      type: 'SIN CRONO',
       minutes: Number($('warmupTimerMinutes')?.value) || 8,
       tabata_work: Number($('warmupTabataWork')?.value) || 20,
       tabata_rest: $('warmupTabataRest') && $('warmupTabataRest').value !== '' ? Number($('warmupTabataRest').value) : 10,

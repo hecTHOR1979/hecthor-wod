@@ -1632,7 +1632,7 @@ textarea.input {
 @media print {
   @page {
     size: auto;
-    margin: 8mm 10mm 8mm 10mm;
+    margin: 5mm 8mm 5mm 8mm;
   }
 
   /* Hide all interactive app bars, floating clocks, timers, buttons and controls */
@@ -1683,7 +1683,7 @@ textarea.input {
     background: #ffffff !important;
     color: #000000 !important;
     font-size: 12pt !important;
-    line-height: 1.3 !important;
+    line-height: 1.18 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1704,7 +1704,7 @@ textarea.input {
   }
 
   .ex-clean-list {
-    margin: 2px 0 !important;
+    margin: 1px 0 !important;
   }
 
   .ex-clean-line {
@@ -1712,9 +1712,10 @@ textarea.input {
     border: 1px solid #000000 !important;
     color: #000000 !important;
     font-size: 12pt !important;
-    padding: 3px 6px !important;
+    line-height: 1.15 !important;
+    padding: 2px 5px !important;
     margin-bottom: 2px !important;
-    border-radius: 4px !important;
+    border-radius: 3px !important;
     page-break-inside: avoid;
   }
 
@@ -1722,23 +1723,27 @@ textarea.input {
     color: #000000 !important;
     font-weight: 900 !important;
     font-size: 12pt !important;
-    padding: 1px 6px !important;
-    margin-bottom: 2px !important;
+    line-height: 1.15 !important;
+    padding: 1px 5px !important;
+    margin-bottom: 1px !important;
   }
 
   .ex-col-cell {
     color: #000000 !important;
     font-size: 12pt !important;
+    line-height: 1.15 !important;
   }
 
   .ex-col-name {
     color: #000000 !important;
     font-size: 12pt !important;
+    line-height: 1.15 !important;
     font-weight: 700 !important;
   }
 
   .ex-notes-text {
     font-size: 11pt !important;
+    line-height: 1.15 !important;
     margin-top: 1px !important;
   }
 
@@ -1746,19 +1751,19 @@ textarea.input {
     background: #ffffff !important;
     color: #000000 !important;
     border: 1.2px solid #000000 !important;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     box-shadow: none !important;
-    margin-bottom: 6px !important;
-    padding: 6px 9px !important;
+    margin-bottom: 4px !important;
+    padding: 4px 6px !important;
     page-break-inside: avoid;
   }
 
   .session-header-card {
-    margin-bottom: 6px !important;
-    padding: 6px 9px !important;
+    margin-bottom: 4px !important;
+    padding: 4px 6px !important;
   }
 
-  /* Encabezados en LETRA 14 y subrayados */
+  /* Encabezados en LETRA 14 y subrayados - Líneas juntas */
   .session-section-title,
   .session-main-header,
   body.alumnos-page .session-main-header,
@@ -1778,12 +1783,12 @@ textarea.input {
     font-size: 14pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
-    text-underline-offset: 3px !important;
+    text-underline-offset: 2.5px !important;
     text-decoration-thickness: 1.5px !important;
-    margin: 0 0 3px 0 !important;
+    margin: 0 0 2px 0 !important;
     text-transform: uppercase !important;
     display: block !important;
-    line-height: 1.2 !important;
+    line-height: 1.15 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1844,19 +1849,20 @@ textarea.input {
     border: 1.2px solid #0284c7 !important;
     font-weight: 900 !important;
     font-size: 12pt !important;
-    padding: 2px 4px !important;
+    line-height: 1.15 !important;
+    padding: 1px 3px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     white-space: nowrap !important;
-    border-radius: 4px !important;
+    border-radius: 3px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF - Letra 12pt */
+  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS en el PDF - Letra 12pt compacta */
   .ex-clean-line,
   body.alumnos-page .ex-clean-line {
     background: #ffffff !important;
@@ -1864,9 +1870,10 @@ textarea.input {
     border: 1px solid #000000 !important;
     color: #000000 !important;
     font-size: 12pt !important;
-    padding: 3px 6px !important;
+    line-height: 1.15 !important;
+    padding: 2px 5px !important;
     margin-bottom: 2px !important;
-    border-radius: 4px !important;
+    border-radius: 3px !important;
     page-break-inside: avoid;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -1878,6 +1885,7 @@ textarea.input {
   body.alumnos-page .ex-col-name strong {
     color: #000000 !important;
     font-size: 12pt !important;
+    line-height: 1.15 !important;
     background: transparent !important;
   }
 
@@ -1887,9 +1895,9 @@ textarea.input {
     background: #ffffff !important;
     border: 1.2px solid #000000 !important;
     color: #000000 !important;
-    padding: 5px 8px !important;
-    margin: 4px 0 !important;
-    border-radius: 5px !important;
+    padding: 3px 6px !important;
+    margin: 3px 0 !important;
+    border-radius: 4px !important;
     page-break-inside: avoid;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -1903,11 +1911,12 @@ textarea.input {
     font-size: 14pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
-    text-underline-offset: 3px !important;
+    text-underline-offset: 2.5px !important;
     text-decoration-thickness: 1.5px !important;
     padding: 0 0 1px 0 !important;
     display: inline-block !important;
     text-transform: uppercase !important;
+    line-height: 1.15 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1915,12 +1924,12 @@ textarea.input {
   .wod-pre-clean {
     color: #000000 !important;
     font-size: 12pt !important;
-    line-height: 1.3 !important;
-    margin: 3px 0 !important;
+    line-height: 1.18 !important;
+    margin: 2px 0 !important;
     white-space: pre-wrap !important;
   }
 
-  /* Lo demás en letra 12pt y estrictamente negro */
+  /* Lo demás en letra 12pt y líneas compactas */
   *,
   body,
   p,
@@ -1944,6 +1953,7 @@ textarea.input {
   .muted,
   .text-muted {
     font-size: 12pt;
+    line-height: 1.18 !important;
     color: #000000 !important;
     text-shadow: none !important;
   }
