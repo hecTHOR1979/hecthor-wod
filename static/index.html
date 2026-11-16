@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=48" />
+  <link rel="stylesheet" href="/static/css/app.css?v=50" />
 </head>
 <body>
   <header class="topbar">
@@ -415,9 +415,8 @@
             </div>
           </div>
 
-          <div class="field">
-            <label for="wodDescription">Descripción del WOD (Opcional - solo se muestra si NO hay ejercicios manuales)</label>
-            <textarea id="wodDescription" class="input" placeholder="Si hay ejercicios manuales arriba, prevalecen y la versión automática no aparecerá..."></textarea>
+          <div class="field" style="display:none;" aria-hidden="true">
+            <textarea id="wodDescription" class="input"></textarea>
           </div>
 
           <!-- GENERADOR AUTOMÁTICO DE WOD (HERRAMIENTA SECUNDARIA / OPCIONAL) -->
@@ -844,6 +843,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=49"></script>
+  <script type="module" src="/static/js/coach.js?v=50"></script>
 </body>
 </html>

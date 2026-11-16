@@ -645,38 +645,6 @@ function renderCurrentDay(resetTimer = true) {
     ? wod.exercises
     : (Array.isArray(wod.movements) ? wod.movements : []);
 
-  // Limpiar descripciones para que no repitan en la primera línea el título o tipo de WOD
-  let wodDescLines = (wod.description || '').split('\n').map(l => l.trim()).filter(Boolean);
-  if (wodDescLines.length > 0) {
-    const firstLineLow = wodDescLines[0].toLowerCase().replace(/[:\-_*#]/g, '').trim();
-    const tLow = rawWodTitle.toLowerCase().replace(/[:\-_*#]/g, '').trim();
-    const typeLow = rawWodType.toLowerCase().replace(/[:\-_*#]/g, '').trim();
-    if (
-      firstLineLow === tLow ||
-      firstLineLow === typeLow ||
-      (tLow && firstLineLow.startsWith(tLow)) ||
-      (typeLow && firstLineLow.startsWith(typeLow)) ||
-      (firstLineLow.startsWith('amrap') && wodHeaderLine.toLowerCase().includes('amrap')) ||
-      (firstLineLow.startsWith('emom') && wodHeaderLine.toLowerCase().includes('emom')) ||
-      (firstLineLow.startsWith('for time') && wodHeaderLine.toLowerCase().includes('for time')) ||
-      (firstLineLow.startsWith('tabata') && wodHeaderLine.toLowerCase().includes('tabata'))
-    ) {
-      wodDescLines.shift();
-    }
-  }
-
-  // PREVALENCIA DEL WOD MANUAL:
-  // Si existen ejercicios manuales definidos en el WOD, estos prevalecen sobre el generador de WODs.
-  // Filtramos cualquier línea de viñeta o listado de ejercicios del texto autogenerado para no duplicar.
-  if (wodExercises.length > 0 && wodDescLines.length > 0) {
-    wodDescLines = wodDescLines.filter((l) => {
-      const isBullet = /^[-*•–—]\s+/.test(l);
-      const isNumbered = /^\d+[\.\-\)]\s+/.test(l);
-      return !isBullet && !isNumbered;
-    });
-  }
-  const cleanWodDesc = wodDescLines.join('\n');
-
   let html = `
     <!-- HEADER BLOCK (APPEARS EXACTLY ONCE IN SCREEN AND PDF - MAX 2 CLEAN LINES) -->
     <div class="card card-session-sheet session-header-card">
@@ -736,17 +704,13 @@ function renderCurrentDay(resetTimer = true) {
       `;
     }).join('')}
 
-    <!-- 3. WOD FINAL (PREVALECE EL WOD MANUAL SOBRE EL AUTOMÁTICO) -->
+    <!-- 3. WOD FINAL (SOLO EJERCICIOS MANUALES - EL WOD GENERADO AUTOMÁTICAMENTE NUNCA APARECE) -->
     <div class="card card-session-sheet">
       <div class="section-badge-banner">WOD FINAL</div>
       <div class="session-subheading" style="font-size:1.05rem; font-weight:800; margin-bottom:6px;">${esc(wodHeaderLine)}</div>
       ${wodExercises.length > 0 ? `
-        <!-- WOD MANUAL: Prevalece de forma absoluta sobre la automática. La automática NO aparece. -->
         <div class="ex-clean-list" id="stuWodList" style="margin-top:6px; margin-bottom:6px;"></div>
-      ` : (cleanWodDesc ? `
-        <!-- WOD AUTOMÁTICO: Solo aparece si NO se han añadido ejercicios manuales -->
-        <div class="wod-pre-clean">${esc(cleanWodDesc)}</div>
-      ` : '<div class="session-body-text">Sin ejercicios ni descripción añadida en el WOD.</div>')}
+      ` : '<div class="session-body-text">Sin ejercicios configurados en el WOD.</div>'}
       ${wod.rx_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
       ${wod.scaled_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:2px;"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
       ${wod.strategy ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}

@@ -3514,9 +3514,7 @@ $('btnRunWodGen').addEventListener('click', async () => {
       $('wodTimeCap').disabled = !hasGenCap;
     }
     $('wodTarget').value = wod.target_score || '';
-    if (existingManualEx.length === 0) {
-      $('wodDescription').value = wod.description || '';
-    }
+    $('wodDescription').value = '';
     $('wodRx').value = wod.rx_weights || '';
     $('wodScaled').value = wod.scaled_weights || '';
     $('wodStrategy').value = wod.strategy || '';
@@ -3592,7 +3590,7 @@ function buildCurrentDayPayload() {
       has_time_cap: $('wodHasTimeCap') ? $('wodHasTimeCap').checked : Boolean($('wodTimeCap')?.value.trim()),
       time_cap: $('wodHasTimeCap')?.checked ? $('wodTimeCap')?.value.trim() || '' : '',
       target_score: $('wodTarget')?.value.trim() || '',
-      description: $('wodDescription')?.value.trim() || '',
+      description: '',
       rx_weights: $('wodRx')?.value.trim() || '',
       scaled_weights: $('wodScaled')?.value.trim() || '',
       strategy: $('wodStrategy')?.value.trim() || '',
