@@ -848,6 +848,10 @@ async function openDayEditor(dayId) {
   }
   updateWodTimerUI();
 
+  // Ocultar recuadro de recomendación del generador al cambiar de día
+  $('wodGenRecommendationBox')?.classList.add('hidden');
+  state.lastGeneratedWodRecommendation = null;
+
   renderWarmupList();
   renderPartsList();
   renderWodExercisesList();
@@ -3533,7 +3537,6 @@ $('btnToggleWodGen').addEventListener('click', () => {
 
 $('btnRunWodGen').addEventListener('click', async () => {
   try {
-    const existingManualEx = state.currentDay?.wod?.exercises || [];
     let wodType = $('genWodType').value;
     if (wodType === '__new__') {
       wodType = $('newWodTypeInput')?.value.trim() || 'AMRAP';
@@ -3552,40 +3555,75 @@ $('btnRunWodGen').addEventListener('click', async () => {
         goal: goal,
       }),
     });
-    $('wodTitle').value = wod.title || '';
-    $('wodType').value = wod.type || '';
-    const hasGenCap = Boolean(wod.time_cap && wod.time_cap.trim() !== '');
-    if ($('wodHasTimeCap')) {
-      $('wodHasTimeCap').checked = hasGenCap;
+
+    // Guardar la recomendación generada en memoria (SOLO para consulta del coach)
+    state.lastGeneratedWodRecommendation = wod;
+
+    // Renderizar propuesta en el área de recomendación (NO toca la sesión actual ni el perfil del alumno)
+    const recBox = $('wodGenRecommendationBox');
+    const recContent = $('wodGenRecommendationContent');
+    if (recBox && recContent) {
+      recBox.classList.remove('hidden');
+      const exRows = (wod.exercises || []).map((e, idx) => `
+        <div style="padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="color:#ffffff;">${idx + 1}.- ${esc(e.name || 'Ejercicio')}</strong>
+            ${e.reps ? `<span style="color:#38bdf8; font-weight:700; margin-left:8px;">(${esc(e.reps)} reps)</span>` : ''}
+            ${e.notes ? `<div class="muted" style="font-size:0.8rem; margin-top:2px;">${esc(e.notes)}</div>` : ''}
+          </div>
+          ${e.video_url ? `<a href="${esc(e.video_url)}" target="_blank" rel="noopener" style="font-size:0.75rem; color:#f97316; font-weight:700;">▶ Vídeo</a>` : ''}
+        </div>
+      `).join('');
+
+      recContent.innerHTML = `
+        <div style="margin-bottom:8px;">
+          <div style="font-size:1.05rem; font-weight:900; color:#ffffff;">
+            🎯 ${esc(wod.title || 'Propuesta de WOD')} <span style="font-size:0.85rem; color:#f97316; font-weight:700;">· ${esc(wod.type || wodType)}${wod.time_cap ? ` (CAP: ${esc(wod.time_cap)})` : ''}</span>
+          </div>
+        </div>
+        ${exRows ? `<div style="margin:8px 0; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 12px;">${exRows}</div>` : ''}
+        ${wod.rx_weights ? `<div style="font-size:0.83rem; color:#cbd5e1; margin-top:4px;"><strong>Rx sugerido:</strong> ${esc(wod.rx_weights)}</div>` : ''}
+        ${wod.scaled_weights ? `<div style="font-size:0.83rem; color:#cbd5e1; margin-top:2px;"><strong>Escalado sugerido:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
+        ${wod.strategy ? `<div style="font-size:0.83rem; color:#cbd5e1; margin-top:4px;"><strong>Estrategia sugerida:</strong> ${esc(wod.strategy)}</div>` : ''}
+        <div class="muted" style="font-size:0.78rem; margin-top:8px; font-style:italic;">
+          ℹ️ Esta propuesta es SOLO una recomendación para el coach. NO modifica tu sesión ni se muestra en el perfil del alumno. Tu WOD se introduce siempre de forma manual.
+        </div>
+      `;
     }
-    if ($('wodTimeCap')) {
-      $('wodTimeCap').value = hasGenCap ? wod.time_cap : '';
-      $('wodTimeCap').disabled = !hasGenCap;
-    }
-    $('wodTarget').value = wod.target_score || '';
-    $('wodDescription').value = '';
-    $('wodRx').value = wod.rx_weights || '';
-    $('wodScaled').value = wod.scaled_weights || '';
-    $('wodStrategy').value = wod.strategy || '';
-    // Si ya existen ejercicios manuales definidos por el coach en el WOD, estos PREVALECEN
-    if (existingManualEx.length > 0) {
-      state.currentDay.wod.exercises = existingManualEx;
-      renderWodExercisesList();
-      triggerAutoSave(true);
-      showToast('WOD generado. Se mantienen tus ejercicios manuales como prioritarios.');
-    } else if (Array.isArray(wod.exercises) && wod.exercises.length > 0) {
-      if (!state.currentDay.wod) state.currentDay.wod = {};
-      state.currentDay.wod.exercises = wod.exercises;
-      renderWodExercisesList();
-      triggerAutoSave(true);
-      showToast('WOD generado y cargado en la sesión.');
-    } else {
-      triggerAutoSave(true);
-      showToast('WOD generado y cargado en la sesión.');
-    }
+    showToast('💡 Recomendación generada para tu consulta (no se añade al alumno).');
   } catch (err) {
     showToast(err.message);
   }
+});
+
+// Botón explícito para que el coach elija copiar la propuesta a su WOD manual si le convence
+$('btnApplyWodGenToManual')?.addEventListener('click', () => {
+  const wod = state.lastGeneratedWodRecommendation;
+  if (!wod) {
+    showToast('Genera primero una recomendación para poder usarla.');
+    return;
+  }
+  if (!confirm('¿Copiar esta propuesta a tu WOD manual? Podrás editar o eliminar cualquier ejercicio con total libertad.')) return;
+
+  $('wodTitle').value = wod.title || '';
+  $('wodType').value = wod.type || 'AMRAP';
+  const hasGenCap = Boolean(wod.time_cap && wod.time_cap.trim() !== '');
+  if ($('wodHasTimeCap')) $('wodHasTimeCap').checked = hasGenCap;
+  if ($('wodTimeCap')) {
+    $('wodTimeCap').value = hasGenCap ? wod.time_cap : '';
+    $('wodTimeCap').disabled = !hasGenCap;
+  }
+  $('wodTarget').value = wod.target_score || '';
+  $('wodRx').value = wod.rx_weights || '';
+  $('wodScaled').value = wod.scaled_weights || '';
+  $('wodStrategy').value = wod.strategy || '';
+
+  if (!state.currentDay.wod) state.currentDay.wod = {};
+  state.currentDay.wod.exercises = Array.isArray(wod.exercises) ? JSON.parse(JSON.stringify(wod.exercises)) : [];
+  state.currentDay.wod.is_manual = true;
+  renderWodExercisesList();
+  triggerAutoSave(true);
+  showToast('✓ Propuesta copiada a tu WOD manual. Puedes modificarla como desees.');
 });
 
 // ================= AUTOGUARDADO AUTOMÁTICO =================

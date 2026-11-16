@@ -599,6 +599,18 @@ def seed_sample_microcycle(conn):
     ))
     microcycle_id = cursor.lastrowid
 
+    empty_manual_wod = json.dumps({
+        "title": "",
+        "type": "WOD",
+        "time_cap": "",
+        "has_time_cap": False,
+        "exercises": [],
+        "rx_weights": "",
+        "scaled_weights": "",
+        "strategy": "",
+        "is_manual": True
+    })
+
     # Seed Days for Week 1 (5 days)
     sample_days_week1 = [
         {
@@ -663,17 +675,7 @@ def seed_sample_microcycle(conn):
                     ]
                 }
             ]),
-            "wod": json.dumps({
-                "title": "WOD: 'Fire Breather'",
-                "type": "AMRAP",
-                "time_cap": "12 Minutos",
-                "equipment": ["Barra olímpica", "Discos", "Remo", "Cajón"],
-                "description": "AMRAP 12 Minutos:\n- 12 Thrusters (43 kg / 30 kg)\n- 15 Box Jump Overs (24\" / 20\")\n- 18 Cal Row",
-                "rx_weights": "Chicos: 43 kg (95 lb) / Chicas: 30 kg (65 lb) - Cajón 24\" / 20\"",
-                "scaled_weights": "Thrusters con 30 kg / 20 kg o Dumbbells 12.5 kg - Step ups en cajón",
-                "target_score": "4 a 5 rondas completas",
-                "strategy": "Empezar a ritmo conservador de 80%. Los thrusters deben salir en 1 o 2 series máximo (ej: 7+5 o unbrokens). No acelerar en el remo, mantener paso sostenido."
-            }),
+            "wod": empty_manual_wod,
             "coaching_tips": "El foco del día es la consistencia en el Back Squat. En el WOD, vigilar que los atletas rompan el paralelo en todos los thrusters."
         },
         {
@@ -730,17 +732,7 @@ def seed_sample_microcycle(conn):
                     ]
                 }
             ]),
-            "wod": json.dumps({
-                "title": "WOD: 'Helena Reimagined'",
-                "type": "For Time",
-                "time_cap": "14 Minutos",
-                "equipment": ["Barra de dominadas", "Kettlebells", "EcoBike"],
-                "description": "3 Rondas por tiempo:\n- 15 Cal EcoBike\n- 21 Kettlebell Swings Americanos (24 kg / 16 kg)\n- 12 Chest-to-Bar Pull-ups (o Bar Muscle-ups según nivel)",
-                "rx_weights": "KB: 24 kg chicos / 16 kg chicas - C2B Pull-ups",
-                "scaled_weights": "KB: 16 kg / 12 kg - Kipping Pull-ups o Jumping Pull-ups",
-                "target_score": "Sub 10:30 min",
-                "strategy": "Mantener cadencia constante en la EcoBike sin quemar piernas en la primera ronda. Swings unbroken."
-            }),
+            "wod": empty_manual_wod,
             "coaching_tips": "En el complejo de arrancada, corregir que la barra no se separe del cuerpo tras el salto."
         },
         {
@@ -782,17 +774,7 @@ def seed_sample_microcycle(conn):
                     ]
                 }
             ]),
-            "wod": json.dumps({
-                "title": "WOD: 'Death by Intervals'",
-                "type": "EMOM",
-                "time_cap": "16 Minutos",
-                "equipment": ["Mancuernas", "Balón medicinal", "Barra de dominadas"],
-                "description": "EMOM 16 Minutos (4 Rondas de 4 estaciones):\n- Minuto 1: 15 Wall Ball Shots (9 kg / 6 kg)\n- Minuto 2: 12 Burpees over dumbbell\n- Minuto 3: 14 Dumbbell Snatches alternos (22.5 kg / 15 kg)\n- Minuto 4: Descanso",
-                "rx_weights": "Balón: 9 kg (20 lb) / 6 kg (14 lb) - DB: 22.5 kg / 15 kg",
-                "scaled_weights": "Balón: 6 kg / 4 kg - DB: 15 kg / 10 kg",
-                "target_score": "Completar todas las estaciones en menos de 45 segundos por minuto.",
-                "strategy": "Trabajar a ritmo alto durante 40-42 segundos y usar los 18-20 restantes para cambiar de estación."
-            }),
+            "wod": empty_manual_wod,
             "coaching_tips": "El peso muerto no debe convertirse en un levantamiento con la espalda redonda. Bloquear dorsales."
         },
         {
@@ -850,17 +832,7 @@ def seed_sample_microcycle(conn):
                     ]
                 }
             ]),
-            "wod": json.dumps({
-                "title": "WOD: 'Chipper Sprint'",
-                "type": "Chipper",
-                "time_cap": "15 Minutos",
-                "equipment": ["Barra de dominadas", "Barra olímpica", "Discos", "Comba / Cuerda"],
-                "description": "Por tiempo (Chipper):\n- 60 Double Unders\n- 30 Power Cleans (50 kg / 35 kg)\n- 30 Pull-ups\n- 30 Push Jerks (50 kg / 35 kg)\n- 60 Double Unders",
-                "rx_weights": "Barra: 50 kg chicos / 35 kg chicas",
-                "scaled_weights": "Barra: 35 kg / 25 kg - Dominadas con goma o Jumping - 90 saltos simples",
-                "target_score": "10:00 a 13:00 min",
-                "strategy": "Dividir los Power Cleans en series de 10-10-10 o 15-15. No fatigarse en el primer set de double unders."
-            }),
+            "wod": empty_manual_wod,
             "coaching_tips": "En el push jerk, insistir en el bloqueo de rodillas al recibir la barra."
         },
         {
@@ -902,17 +874,7 @@ def seed_sample_microcycle(conn):
                     ]
                 }
             ]),
-            "wod": json.dumps({
-                "title": "WOD: 'The Long Haul'",
-                "type": "AMRAP",
-                "time_cap": "20 Minutos",
-                "equipment": ["Remo", "Mancuernas", "Cajón", "Barra de dominadas"],
-                "description": "AMRAP 20 Minutos por parejas o individual:\n- 20 Cal Row\n- 15 Dumbbell Hang Clean & Jerk (2x 15 kg / 2x 10 kg)\n- 15 Burpee Box Jump Overs (24\" / 20\")\n- 10 Toes to Bar",
-                "rx_weights": "Mancuernas dobles 15 kg / 10 kg - Cajón 24\"/20\"",
-                "scaled_weights": "Mancuernas 10 kg / 7.5 kg - Step over en cajón - Knee raises",
-                "target_score": "5 rondas + 10 cal",
-                "strategy": "Mantener ritmo de crucero durante los 20 minutos sin paradas largas. Tomar aire en las transiciones."
-            }),
+            "wod": empty_manual_wod,
             "coaching_tips": "Cuidar la posición del rack en la sentadilla frontal: codos paralelos al suelo."
         }
     ]
@@ -956,17 +918,7 @@ def seed_sample_microcycle(conn):
                     "exercises": []
                 }
             ])
-            wod = json.dumps({
-                "title": f"WOD Semana {w} Día {d}",
-                "type": "AMRAP",
-                "time_cap": "15 Minutos",
-                "equipment": ["Barra olímpica", "Cajón", "Comba / Cuerda"],
-                "description": "WOD configurable con el generador de WODs o de forma personalizada.",
-                "rx_weights": "Estándar Rx",
-                "scaled_weights": "Opciones escaladas",
-                "target_score": "-",
-                "strategy": "-"
-            })
+            wod = empty_manual_wod
             cursor.execute("""
             INSERT INTO days (microcycle_id, week_number, day_number, title, warmup_notes, warmup_exercises, parts, wod, coaching_tips)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

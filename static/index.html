@@ -419,11 +419,11 @@
             <textarea id="wodDescription" class="input"></textarea>
           </div>
 
-          <!-- GENERADOR AUTOMÁTICO DE WOD (HERRAMIENTA SECUNDARIA / OPCIONAL) -->
+          <!-- GENERADOR AUTOMÁTICO DE WOD (HERRAMIENTA SECUNDARIA / OPCIONAL - SOLO RECOMENDACIÓN) -->
           <div id="wodGeneratorBox" class="item-box hidden" style="background: rgba(255,107,53,0.06); margin-top:12px; border:1px solid rgba(255,107,53,0.3);">
             <div class="row-between" style="align-items:center; margin-bottom:8px;">
-              <span class="badge badge-orange" style="font-weight:900;">⚡ GENERADOR AUTOMÁTICO DE WOD (OPCIONAL)</span>
-              <span class="muted" style="font-size:0.8rem;">Los ejercicios manuales arriba prevalecen siempre</span>
+              <span class="badge badge-orange" style="font-weight:900;">⚡ GENERADOR DE WOD (SOLO RECOMENDACIÓN / CONSULTA)</span>
+              <span class="muted" style="font-size:0.8rem;">Herramienta de inspiración para el coach. NO se publica en el alumno salvo que tú decidas aplicarla.</span>
             </div>
             <div class="field">
               <label>Material disponible (pulsa para seleccionar)</label>
@@ -484,6 +484,23 @@
               </div>
               <div class="field" style="justify-content:flex-end;">
                 <button class="btn btn-primary" id="btnRunWodGen">🎲 Generar WOD ahora</button>
+              </div>
+            </div>
+
+            <!-- ÁREA DE PROPUESTA / RECOMENDACIÓN GENERADA (SOLO CONSULTA DEL COACH) -->
+            <div id="wodGenRecommendationBox" class="hidden" style="margin-top:14px; padding:14px; background:#0b1329; border:1.5px dashed #f97316; border-radius:8px;">
+              <div class="row-between" style="align-items:center; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:6px;">
+                <span style="font-weight:900; color:#f97316; font-size:0.92rem; display:inline-flex; align-items:center; gap:6px;">
+                  💡 PROPUESTA / RECOMENDACIÓN GENERADA
+                </span>
+                <span class="badge" style="background:rgba(249,115,22,0.15); color:#f97316; border:1px solid #f97316; font-size:0.75rem;">SOLO CONSULTA COACH</span>
+              </div>
+              <div id="wodGenRecommendationContent" style="font-size:0.9rem; color:#e2e8f0; line-height:1.5;"></div>
+              <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end; align-items:center; flex-wrap:wrap;">
+                <span class="muted" style="font-size:0.78rem;">Esta recomendación no se publica en el perfil del alumno salvo que pulses el botón siguiente.</span>
+                <button type="button" class="btn btn-sm btn-outline" id="btnApplyWodGenToManual" style="border-color:#f97316; color:#f97316; font-weight:800; display:inline-flex; align-items:center; gap:6px;">
+                  📋 Usar esta propuesta en mi WOD manual
+                </button>
               </div>
             </div>
           </div>
@@ -843,6 +860,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=51"></script>
+  <script type="module" src="/static/js/coach.js?v=52"></script>
 </body>
 </html>
