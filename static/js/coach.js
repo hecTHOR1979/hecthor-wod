@@ -595,16 +595,65 @@ function renderMicrocycleMeta() {
   const mc = state.currentMicrocycle;
   if (!mc) return;
   const startVal = (mc.start_date || '').trim() || getDefaultMondayIso(mc.created_at || '');
+
+  const standardGoals = [
+    'Fuerza & Halterofilia',
+    'Fuerza',
+    'Fondo / Engine',
+    'Movilidad & GROUND',
+    'Halterofilia',
+    'Gimnásticos & Metcon',
+    'Híbrido Completo',
+  ];
+  if (mc.primary_goal && !standardGoals.includes(mc.primary_goal)) {
+    standardGoals.unshift(mc.primary_goal);
+  }
+
   $('microcycleMeta').innerHTML = `
-    <span class="badge badge-accent">Objetivo: ${esc(mc.primary_goal)}</span>
-    <span class="badge">${mc.weeks_count} Semanas · ${mc.days_per_week} días/sem</span>
-    <span class="badge badge-blue">Código: <strong>${esc(mc.access_code)}</strong></span>
-    <label class="row-wrap" style="gap:6px; font-size:0.82rem; color:var(--text-muted);">
-      Inicio Sem. 1:
-      <input id="editMcStartDate" type="date" class="input" style="width:auto; padding:4px 8px; font-size:0.82rem;" value="${esc(startVal)}" />
-    </label>
-    ${mc.description ? `<span class="muted">${esc(mc.description)}</span>` : ''}
+    <div class="row-wrap" style="gap:8px; align-items:center; flex-wrap:wrap;">
+      <div class="row-wrap" style="gap:6px; align-items:center; background:rgba(2,132,199,0.12); border:1.2px solid #0284c7; border-radius:6px; padding:3px 8px;">
+        <label for="editMcGoalSelect" style="font-size:0.8rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin:0;">🎯 Objetivo:</label>
+        <select id="editMcGoalSelect" class="input" style="width:auto; padding:3px 6px; font-size:0.85rem; font-weight:800; color:#38bdf8; background:#0c121e; border:none; cursor:pointer;" title="Modificar el objetivo del mesociclo">
+          ${standardGoals.map((g) => `<option value="${esc(g)}" ${g === mc.primary_goal ? 'selected' : ''}>${esc(g)}</option>`).join('')}
+          <option value="__custom__">✏️ Escribir otro objetivo...</option>
+        </select>
+      </div>
+      <span class="badge">${mc.weeks_count} Semanas · ${mc.days_per_week} días/sem</span>
+      <span class="badge badge-blue">Código: <strong>${esc(mc.access_code)}</strong></span>
+      <label class="row-wrap" style="gap:6px; font-size:0.82rem; color:var(--text-muted); align-items:center;">
+        Inicio Sem. 1:
+        <input id="editMcStartDate" type="date" class="input" style="width:auto; padding:3px 8px; font-size:0.82rem;" value="${esc(startVal)}" />
+      </label>
+      ${mc.description ? `<span class="muted" style="font-size:0.85rem;">${esc(mc.description)}</span>` : ''}
+    </div>
   `;
+
+  $('editMcGoalSelect')?.addEventListener('change', async (e) => {
+    let nextGoal = e.target.value;
+    if (nextGoal === '__custom__') {
+      const custom = window.prompt('Introduce el nuevo objetivo para este mesociclo:', mc.primary_goal || '');
+      if (!custom || !custom.trim()) {
+        e.target.value = mc.primary_goal;
+        return;
+      }
+      nextGoal = custom.trim();
+    }
+    try {
+      await api(`/api/microcycles/${mc.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ primary_goal: nextGoal }),
+      });
+      mc.primary_goal = nextGoal;
+      const found = state.microcycles.find((m) => m.id === mc.id);
+      if (found) found.primary_goal = nextGoal;
+      showToast(`🎯 Objetivo actualizado: ${nextGoal}`);
+      renderMicrocycleMeta();
+      saveLocalStateSnapshot();
+    } catch (err) {
+      showToast(err.message || 'Error al actualizar objetivo');
+    }
+  });
+
   $('editMcStartDate')?.addEventListener('change', async (e) => {
     const val = e.target.value;
     if (!val) return;
