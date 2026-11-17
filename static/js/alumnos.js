@@ -817,6 +817,9 @@ function renderCurrentDay(resetTimer = true) {
   // Función unificada para renderizar listas de ejercicios con orden numerado (SETS | REPS | MOVE | VIDEO)
   function renderStudentExerciseRows(targetWrap, exercises, prefix = 'ex') {
     if (!targetWrap || !Array.isArray(exercises) || exercises.length === 0) return;
+
+    let headerRendered = false;
+
     exercises.forEach((item, itemIdx) => {
       const orderNum = itemIdx + 1;
       const orderPrefix = `${orderNum}.- `;
@@ -910,7 +913,21 @@ function renderCurrentDay(resetTimer = true) {
         return;
       }
 
-      // 2. Ejercicio individual en su propio cuadro / tarjeta separada
+      // Encabezado SETS | REPS | MOVE | VIDEO solo en la primera línea del primer ejercicio del bloque
+      if (!headerRendered) {
+        const headerEl = document.createElement('div');
+        headerEl.className = 'ex-columns-header';
+        headerEl.innerHTML = `
+          <div class="ex-col-cell ex-col-sets">SETS</div>
+          <div class="ex-col-cell ex-col-reps">REPS</div>
+          <div class="ex-col-name">MOVE</div>
+          <div class="ex-col-action no-print">VIDEO</div>
+        `;
+        targetWrap.appendChild(headerEl);
+        headerRendered = true;
+      }
+
+      // 2. Ejercicio individual en su propia línea limpia
       const hasSubs = Array.isArray(item.sub_exercises) && item.sub_exercises.length > 0;
       const meta = [];
       if (item.load) meta.push(`Carga: ${esc(item.load)}`);
@@ -922,48 +939,34 @@ function renderCurrentDay(resetTimer = true) {
       const displayName = hasOrder ? rawName : `${orderPrefix}${rawName}`;
 
       if (!hasSubs) {
-        const card = document.createElement('div');
-        card.className = 'ex-item-card';
-        card.innerHTML = `
-          <div class="ex-columns-header">
-            <div class="ex-col-cell ex-col-sets">SETS</div>
-            <div class="ex-col-cell ex-col-reps">REPS</div>
-            <div class="ex-col-name">MOVE</div>
-            <div class="ex-col-action no-print">VIDEO</div>
+        const row = document.createElement('div');
+        row.className = 'ex-clean-line';
+        row.innerHTML = `
+          <div class="ex-col-cell ex-col-sets">
+            <span class="clean-pill-val">${cleanSetsVal(item.sets) || '-'}</span>
           </div>
-          <div class="ex-clean-line">
-            <div class="ex-col-cell ex-col-sets">
-              <span class="clean-pill-val">${cleanSetsVal(item.sets) || '-'}</span>
-            </div>
-            <div class="ex-col-cell ex-col-reps">
-              <span class="clean-pill-val">${esc(item.reps || '-')}</span>
-            </div>
-            <div class="ex-col-name">
-              ${buildExerciseNameHtml(displayName, item.video_url)}
-              ${metaHtml}
-              ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
-            </div>
-            <div class="ex-col-action no-print">
-              ${item.video_url ? `
-                <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
-                  🎬 <span class="video-btn-text">Vídeo</span>
-                </button>
-              ` : '<span style="display:inline-block; width:100%;"></span>'}
-            </div>
+          <div class="ex-col-cell ex-col-reps">
+            <span class="clean-pill-val">${esc(item.reps || '-')}</span>
+          </div>
+          <div class="ex-col-name">
+            ${buildExerciseNameHtml(displayName, item.video_url)}
+            ${metaHtml}
+            ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
+          </div>
+          <div class="ex-col-action no-print">
+            ${item.video_url ? `
+              <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(item.name)}" data-url="${esc(item.video_url)}" data-notes="${esc(item.notes || '')}" title="Ver vídeo explicativo">
+                🎬 <span class="video-btn-text">Vídeo</span>
+              </button>
+            ` : '<span style="display:inline-block; width:100%;"></span>'}
           </div>
         `;
-        targetWrap.appendChild(card);
+        targetWrap.appendChild(row);
       } else {
-        // 3. Ejercicio multi-parte / superserie en su propio cuadro
+        // 3. Ejercicio multi-parte / superserie en su propio cuadro agrupado
         const box = document.createElement('div');
         box.className = 'ex-group-card';
         let subHtml = `
-          <div class="ex-columns-header">
-            <div class="ex-col-cell ex-col-sets">SETS</div>
-            <div class="ex-col-cell ex-col-reps">REPS</div>
-            <div class="ex-col-name">MOVE</div>
-            <div class="ex-col-action no-print">VIDEO</div>
-          </div>
           <div class="ex-clean-line" style="margin-bottom:4px;">
             <div class="ex-col-cell ex-col-sets">
               <span class="clean-pill-val">${cleanSetsVal(item.sets) || '1'}</span>
