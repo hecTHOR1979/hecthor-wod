@@ -788,6 +788,18 @@ function renderCurrentDay(resetTimer = true) {
         if (inputEl) inputEl.placeholder = 'Ej: 4 rondas + 12 reps / 11:45';
         if (subInfoEl) subInfoEl.textContent = 'Introduce tu marca conseguida en la sesión de hoy.';
       }
+
+      // Auto-asignar el nombre oficial del alumno registrado (bloqueado para evitar alteraciones)
+      const studentName = state.student?.full_name || localStorage.getItem('crossfit_student_name') || '';
+      if ($('logName')) {
+        $('logName').value = studentName;
+        $('logName').readOnly = true;
+      }
+      // Mostrar campo de adaptación únicamente si es Scaled
+      const isScaled = $('logRx')?.value === 'Scaled';
+      if ($('logWeightsField')) {
+        $('logWeightsField').style.display = isScaled ? 'block' : 'none';
+      }
     }
   }
 
@@ -1211,10 +1223,26 @@ async function loadDayLeaderboard() {
   });
 }
 
-$('btnSubmitLog').addEventListener('click', async () => {
-  const name = $('logName').value.trim();
-  const score = $('logScore').value.trim();
-  if (!name || !score) return showToast('Introduce tu nombre y tu marca');
+$('logRx')?.addEventListener('change', (e) => {
+  const isScaled = e.target.value === 'Scaled';
+  const weightsField = $('logWeightsField');
+  if (weightsField) {
+    weightsField.style.display = isScaled ? 'block' : 'none';
+    if (!isScaled && $('logWeights')) {
+      $('logWeights').value = '';
+    }
+  }
+});
+
+$('btnSubmitLog')?.addEventListener('click', async () => {
+  const name = state.student?.full_name || localStorage.getItem('crossfit_student_name') || $('logName')?.value.trim();
+  const score = $('logScore')?.value.trim();
+  if (!name) return showToast('Inicia sesión con tu cuenta de alumno para registrar resultados');
+  if (!score) return showToast('Introduce tu resultado según la métrica indicada');
+  const rxStatus = $('logRx')?.value || 'Rx';
+  const weightsUsed = rxStatus === 'Scaled' ? ($('logWeights')?.value.trim() || '') : '';
+  const notes = $('logNotes')?.value.trim() || '';
+
   try {
     await api('/api/student/log', {
       method: 'POST',
@@ -1223,14 +1251,14 @@ $('btnSubmitLog').addEventListener('click', async () => {
         day_id: state.selectedDayId,
         student_name: name,
         score,
-        rx_status: $('logRx').value,
-        weights_used: $('logWeights').value.trim(),
-        notes: $('logNotes').value.trim(),
+        rx_status: rxStatus,
+        weights_used: weightsUsed,
+        notes,
       }),
     });
     $('logScore').value = '';
+    if ($('logWeights')) $('logWeights').value = '';
     $('logNotes').value = '';
-    localStorage.setItem('crossfit_student_name', name);
     await loadDayLeaderboard();
     showToast('¡Resultado guardado!');
   } catch (err) {

@@ -115,12 +115,12 @@
         </div>
         <div class="grid-2">
           <div class="field">
-            <label for="logName">Tu nombre</label>
-            <input id="logName" class="input" placeholder="Ej: Laura M." />
+            <label for="logName">Atleta (Nombre de alta en la app)</label>
+            <input id="logName" class="input" readonly style="background:rgba(255,255,255,0.06); color:#cbd5e1; cursor:not-allowed; font-weight:700;" placeholder="Nombre del atleta" />
           </div>
           <div class="field">
-            <label for="logScore" id="logScoreLabel">Marca / Tiempo / Rondas</label>
-            <input id="logScore" class="input" style="font-weight:700; font-size:1.02rem;" placeholder="Ej: 4 rondas + 12 reps / 11:45" />
+            <label for="logScore" id="logScoreLabel">Resultado</label>
+            <input id="logScore" class="input" style="font-weight:700; font-size:1.02rem;" placeholder="Resultado" />
           </div>
           <div class="field">
             <label for="logRx">Categoría de realización</label>
@@ -129,14 +129,14 @@
               <option value="Scaled">🔄 Scaled / Escalado (Adaptado)</option>
             </select>
           </div>
-          <div class="field">
-            <label for="logWeights">Pesos o adaptaciones utilizadas</label>
-            <input id="logWeights" class="input" placeholder="Ej: Barra con 40 kg / Ring Rows..." />
+          <div class="field" id="logWeightsField" style="display:none;">
+            <label for="logWeights">Adaptación realizada (pesos o ejercicios)</label>
+            <input id="logWeights" class="input" placeholder="Ej: Barra con 30 kg / Ring Rows / Step ups..." />
           </div>
         </div>
         <div class="field">
-          <label for="logNotes">Sensaciones / Notas</label>
-          <input id="logNotes" class="input" placeholder="Opcional..." />
+          <label for="logNotes">Notas / Sensaciones (opcional)</label>
+          <input id="logNotes" class="input" placeholder="Ej: Ritmo fluido, transiciones rápidas..." />
         </div>
         <button class="btn btn-primary" id="btnSubmitLog">Guardar Resultado</button>
 
@@ -208,6 +208,6 @@
   </div>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/alumnos.js?v=55"></script>
+  <script type="module" src="/static/js/alumnos.js?v=56"></script>
 </body>
 </html>
