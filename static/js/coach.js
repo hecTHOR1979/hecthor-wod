@@ -798,6 +798,7 @@ async function openDayEditor(dayId) {
         notes: m.notes || '',
         sub_exercises: Array.isArray(m.sub_exercises) ? m.sub_exercises : [],
         is_timed_section: Boolean(m.is_timed_section),
+        is_sub_block: Boolean(m.is_sub_block),
         timer_type: m.timer_type || 'AMRAP',
         timer_minutes: m.timer_minutes || 10,
         tabata_work: m.tabata_work,
@@ -924,6 +925,139 @@ export function createTimedSectionItem(timer_type = 'AMRAP', minutes = 10) {
   };
 }
 
+export function createSubBlockItem(name = '') {
+  return {
+    is_sub_block: true,
+    name,
+    notes: '',
+    sub_exercises: []
+  };
+}
+
+/**
+ * Renderiza un cuadro / sub-bloque numerado en el editor del coach (Warmup, Bloque o WOD).
+ */
+function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
+  const row = document.createElement('div');
+  row.className = 'sub-block-coach-box';
+  const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
+  const hasLoad = Boolean(cfg.showLoad);
+
+  const subExercisesHtml = subs.map((sub, sIdx) => `
+    <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(16,185,129,0.25); display:flex; flex-direction:column; gap:4px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+        <div style="width:${hasLoad ? '65px' : '75px'}; flex-shrink:0;">
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-sub-f="sets" data-sub-idx="${sIdx}" placeholder="SETS" value="${esc(sub.sets || '')}" />
+        </div>
+        <div style="width:${hasLoad ? '75px' : '85px'}; flex-shrink:0;">
+          <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-sub-f="reps" data-sub-idx="${sIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" />
+        </div>
+        ${hasLoad ? `
+          <div style="width:80px; flex-shrink:0;">
+            <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-sub-f="load" data-sub-idx="${sIdx}" placeholder="CARGA" value="${esc(sub.load || '')}" />
+          </div>
+          <div style="width:65px; flex-shrink:0;"></div>
+        ` : ''}
+        <div style="flex:1; min-width:130px;">
+          <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sb-sub-f="name" data-sub-idx="${sIdx}" list="libraryExercisesDatalist" placeholder="MOVE (ejercicio...)" value="${esc(sub.name || '')}" autocomplete="off" />
+        </div>
+        <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
+          <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sb-sub-f="video_url" data-sub-idx="${sIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(sub.video_url || '')}" />
+          <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-sb-play-sub="${sIdx}" title="Ver o buscar vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+        </div>
+        <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+          <button class="btn btn-sm btn-outline" type="button" data-sb-search-sub="${sIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+          <button class="btn btn-danger btn-sm" type="button" data-sb-del-sub="${sIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
+        </div>
+      </div>
+      <div>
+        <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sb-sub-f="notes" data-sub-idx="${sIdx}" placeholder="Notas o detalles..." value="${esc(sub.notes || '')}" />
+      </div>
+    </div>
+  `).join('');
+
+  row.innerHTML = `
+    <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+      <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 8px;">📦 ${boxOrderNum}.- CUADRO / SUB-BLOQUE</span>
+      <button class="btn btn-danger btn-sm" type="button" data-sb-del-box title="Eliminar este cuadro">✕</button>
+    </div>
+    <div style="margin-bottom:6px;">
+      <label style="font-size:0.75rem; color:#10b981; font-weight:700;">Título del cuadro (ej: Carrera, RM de Clean, 85% de 1.-...)</label>
+      <input class="input" style="padding:6px; font-size:0.9rem; font-weight:700;" data-sb-field="name" value="${esc(item.name || '')}" placeholder="Ej: Carrera / RM de Clean / 85% de 1.-..." />
+    </div>
+    <div style="margin-bottom:6px;">
+      <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-sb-field="notes" value="${esc(item.notes || '')}" placeholder="Indicaciones o notas de este cuadro..." />
+    </div>
+    <div style="margin-top:8px; border-top:1px dashed rgba(16,185,129,0.3); padding-top:6px;">
+      <div class="row-between" style="align-items:center; margin-bottom:4px;">
+        <span style="font-size:0.75rem; font-weight:800; color:#10b981; text-transform:uppercase;">Ejercicios de este cuadro</span>
+        <div class="row-wrap" style="gap:4px;">
+          <button class="btn btn-sm btn-primary" type="button" data-sb-add-sub style="font-size:0.78rem; padding:3px 8px;">+ Añadir ejercicio</button>
+          <button class="btn btn-sm btn-outline" type="button" data-sb-add-lib style="font-size:0.78rem; padding:3px 8px;">📚 Biblioteca</button>
+        </div>
+      </div>
+      ${subs.length > 0 ? `
+        <div style="display:flex; align-items:center; gap:6px; padding:2px 8px; font-size:0.72rem; font-weight:800; color:#10b981; text-transform:uppercase; margin-bottom:2px;">
+          <div style="width:${hasLoad ? '65px' : '75px'}; text-align:center;">SETS</div>
+          <div style="width:${hasLoad ? '75px' : '85px'}; text-align:center;">REPS</div>
+          ${hasLoad ? '<div style="width:80px; text-align:center;">CARGA</div><div style="width:65px;"></div>' : ''}
+          <div style="flex:1; min-width:130px;">MOVE</div>
+          <div style="flex:1.2; min-width:150px;">VIDEO</div>
+          <div style="width:130px; text-align:right;">ACCIONES</div>
+        </div>
+      ` : ''}
+      ${subExercisesHtml}
+    </div>
+  `;
+
+  row.querySelector('[data-sb-del-box]')?.addEventListener('click', cfg.onDelete);
+  row.querySelectorAll('[data-sb-field]').forEach((inp) => {
+    inp.addEventListener('input', () => {
+      item[inp.dataset.sbField] = inp.value;
+      triggerAutoSave(false);
+    });
+    inp.addEventListener('change', () => {
+      item[inp.dataset.sbField] = inp.value;
+      triggerAutoSave(true);
+    });
+  });
+  row.querySelector('[data-sb-add-sub]')?.addEventListener('click', cfg.onAddSub);
+  row.querySelector('[data-sb-add-lib]')?.addEventListener('click', cfg.onAddSubLib);
+  row.querySelectorAll('[data-sb-del-sub]').forEach((btn) => {
+    btn.addEventListener('click', () => cfg.onDelSub(Number(btn.dataset.sbDelSub)));
+  });
+  row.querySelectorAll('[data-sb-search-sub]').forEach((btn) => {
+    btn.addEventListener('click', () => cfg.onSearchSub(Number(btn.dataset.sbSearchSub)));
+  });
+  row.querySelectorAll('[data-sb-play-sub]').forEach((btn) => {
+    btn.addEventListener('click', () => cfg.onPlaySub(Number(btn.dataset.sbPlaySub)));
+  });
+  row.querySelectorAll('[data-sb-sub-f]').forEach((inp) => {
+    const sIdx = Number(inp.dataset.subIdx);
+    const handleSub = (immediate) => {
+      const subObj = item.sub_exercises[sIdx];
+      if (!subObj) return;
+      subObj[inp.dataset.sbSubF] = inp.value;
+      if (inp.dataset.sbSubF === 'name') {
+        const subRowEl = inp.closest('.sub-ex-coach-row');
+        if (subRowEl) tryAutoLinkExercise(subObj, subRowEl, 'video_url');
+      }
+      triggerAutoSave(immediate);
+    };
+    inp.addEventListener('input', () => handleSub(false));
+    inp.addEventListener('change', () => handleSub(true));
+    inp.addEventListener('blur', () => {
+      if (inp.dataset.sbSubF === 'name') {
+        const subRowEl = inp.closest('.sub-ex-coach-row');
+        if (subRowEl && item.sub_exercises[sIdx]) {
+          tryAutoLinkExercise(item.sub_exercises[sIdx], subRowEl, 'video_url');
+        }
+      }
+    });
+  });
+  return row;
+}
+
 function renderWarmupList() {
   const list = $('warmupList');
   const items = state.currentDay.warmup_exercises || [];
@@ -944,11 +1078,14 @@ function renderWarmupList() {
   `;
   list.appendChild(hdr);
 
+  let wuBoxNum = 0;
+
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
     // SECCIÓN CON CRONÓMETRO EN CALENTAMIENTO (AMRAP, EMOM, TABATA, FOR TIME)
     if (item.is_timed_section) {
+      wuBoxNum += 1;
       const row = document.createElement('div');
       row.className = 'timed-section-coach-box';
       const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
@@ -987,7 +1124,7 @@ function renderWarmupList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${idx + 1}.- CRONO EN CALENTAMIENTO</span>
+            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wuBoxNum}.- CRONO EN CALENTAMIENTO</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-wu-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -1172,6 +1309,37 @@ function renderWarmupList() {
         });
       });
 
+      list.appendChild(row);
+      return;
+    }
+
+    if (item.is_sub_block) {
+      wuBoxNum += 1;
+      const row = renderSubBlockCoachBox(item, wuBoxNum, {
+        showLoad: false,
+        onDelete: () => {
+          state.currentDay.warmup_exercises.splice(idx, 1);
+          renderWarmupList();
+          triggerAutoSave(true);
+        },
+        onAddSub: () => {
+          item.sub_exercises.push({ sets: '', reps: '10', name: '', video_url: '', notes: '' });
+          renderWarmupList();
+          triggerAutoSave(true);
+        },
+        onAddSubLib: () => openExercisePicker({ type: 'timed_wu_sub_add', idx }, false),
+        onDelSub: (sIdx) => {
+          item.sub_exercises.splice(sIdx, 1);
+          renderWarmupList();
+          triggerAutoSave(true);
+        },
+        onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false),
+        onPlaySub: (sIdx) => {
+          const curSub = item.sub_exercises[sIdx];
+          if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+          else openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false);
+        },
+      });
       list.appendChild(row);
       return;
     }
@@ -1398,6 +1566,7 @@ function renderPartsList() {
         <span class="badge badge-celeste-matte">${esc(blockLabel)}</span>
         <div class="row-wrap" style="gap:6px;">
           <button class="btn btn-primary btn-sm" type="button" data-add-part-line="${pIdx}">+ Añadir ejercicio</button>
+          <button class="btn btn-sm btn-outline" type="button" data-add-part-subblock="${pIdx}" style="border-color:#10b981; color:#10b981; font-weight:800;" title="Añadir cuadro / sub-bloque numerado">📦 + Añadir cuadro</button>
           <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir bloque con crono</button>
           <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           <button class="btn btn-danger btn-sm" type="button" data-del-part="${pIdx}">Eliminar bloque</button>
@@ -1429,6 +1598,7 @@ function renderPartsList() {
           <span style="font-size:0.82rem; font-weight:800; color:#38bdf8; text-transform:uppercase;">📋 Ejercicios del bloque</span>
           <div class="row-wrap" style="gap:6px;">
             <button class="btn btn-sm btn-primary" type="button" data-add-part-line="${pIdx}">+ Añadir ejercicio</button>
+            <button class="btn btn-sm btn-outline" type="button" data-add-part-subblock="${pIdx}" style="border-color:#10b981; color:#10b981; font-weight:800;" title="Añadir cuadro / sub-bloque numerado">📦 + Añadir cuadro</button>
             <button class="btn btn-sm btn-outline" type="button" data-add-part-timed="${pIdx}" style="border-color:#38bdf8; color:#38bdf8; font-weight:800;" title="Añadir bloque con crono (AMRAP, EMOM, TABATA, FOR TIME)">⏱ + Añadir bloque con crono</button>
             <button class="btn btn-sm btn-outline" type="button" data-add-ex="${pIdx}">📚 Biblioteca</button>
           </div>
@@ -1504,6 +1674,15 @@ function renderPartsList() {
         });
         renderPartsList();
         triggerAutoSave(true);
+      });
+    });
+    box.querySelectorAll('[data-add-part-subblock]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!Array.isArray(part.exercises)) part.exercises = [];
+        part.exercises.push(createSubBlockItem(''));
+        renderPartsList();
+        triggerAutoSave(true);
+        showToast('📦 Cuadro añadido al bloque');
       });
     });
     box.querySelectorAll('[data-add-part-timed]').forEach((btn) => {
@@ -1599,11 +1778,14 @@ function renderPartsList() {
       `;
       exWrap.appendChild(hdr);
 
+      let partBoxNum = 0;
+
       partExercises.forEach((ex, eIdx) => {
         if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
 
         // SECCIÓN CON CRONÓMETRO DENTRO DEL BLOQUE (AMRAP, EMOM, TABATA, FOR TIME)
         if (ex.is_timed_section) {
+          partBoxNum += 1;
           const exRow = document.createElement('div');
           exRow.className = 'timed-section-coach-box';
           const curTimer = (ex.timer_type || 'AMRAP').toUpperCase();
@@ -1646,7 +1828,7 @@ function renderPartsList() {
           exRow.innerHTML = `
             <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${eIdx + 1}.- CRONO EN BLOQUE</span>
+                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${partBoxNum}.- CRONO EN BLOQUE</span>
                 <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-part-timed-field="timer_type">
                   ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>
@@ -1833,6 +2015,37 @@ function renderPartsList() {
             });
           });
 
+          exWrap.appendChild(exRow);
+          return;
+        }
+
+        if (ex.is_sub_block) {
+          partBoxNum += 1;
+          const exRow = renderSubBlockCoachBox(ex, partBoxNum, {
+            showLoad: true,
+            onDelete: () => {
+              state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
+              renderPartsList();
+              triggerAutoSave(true);
+            },
+            onAddSub: () => {
+              ex.sub_exercises.push({ sets: '', reps: '10', load: '', name: '', video_url: '', notes: '' });
+              renderPartsList();
+              triggerAutoSave(true);
+            },
+            onAddSubLib: () => openExercisePicker({ type: 'timed_part_sub_add', partIdx: pIdx, exIdx: eIdx }, false),
+            onDelSub: (sIdx) => {
+              ex.sub_exercises.splice(sIdx, 1);
+              renderPartsList();
+              triggerAutoSave(true);
+            },
+            onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false),
+            onPlaySub: (sIdx) => {
+              const curSub = ex.sub_exercises[sIdx];
+              if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+              else openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false);
+            },
+          });
           exWrap.appendChild(exRow);
           return;
         }
@@ -2070,11 +2283,14 @@ function renderWodExercisesList() {
   `;
   list.appendChild(hdr);
 
+  let wodBoxNum = 0;
+
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
     // SECCIÓN CON CRONÓMETRO DENTRO DEL WOD (AMRAP, EMOM, TABATA, FOR TIME)
     if (item.is_timed_section) {
+      wodBoxNum += 1;
       const row = document.createElement('div');
       row.className = 'timed-section-coach-box';
       const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
@@ -2113,7 +2329,7 @@ function renderWodExercisesList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${idx + 1}.- CRONO EN WOD</span>
+            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wodBoxNum}.- CRONO EN WOD</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#f59e0b; background:#0c121e; border-color:#f59e0b;" data-wod-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -2298,6 +2514,37 @@ function renderWodExercisesList() {
         });
       });
 
+      list.appendChild(row);
+      return;
+    }
+
+    if (item.is_sub_block) {
+      wodBoxNum += 1;
+      const row = renderSubBlockCoachBox(item, wodBoxNum, {
+        showLoad: false,
+        onDelete: () => {
+          state.currentDay.wod.exercises.splice(idx, 1);
+          renderWodExercisesList();
+          triggerAutoSave(true);
+        },
+        onAddSub: () => {
+          item.sub_exercises.push({ sets: '', reps: '10', name: '', video_url: '', notes: '' });
+          renderWodExercisesList();
+          triggerAutoSave(true);
+        },
+        onAddSubLib: () => openExercisePicker({ type: 'timed_wod_sub_add', idx }, false),
+        onDelSub: (sIdx) => {
+          item.sub_exercises.splice(sIdx, 1);
+          renderWodExercisesList();
+          triggerAutoSave(true);
+        },
+        onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false),
+        onPlaySub: (sIdx) => {
+          const curSub = item.sub_exercises[sIdx];
+          if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+          else openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false);
+        },
+      });
       list.appendChild(row);
       return;
     }
@@ -2515,6 +2762,19 @@ $('btnAddWodExerciseLib')?.addEventListener('click', () => {
   openExercisePicker({ type: 'wod_add' }, false);
 });
 
+$('btnAddWodSubBlock')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  if (!state.currentDay.wod) state.currentDay.wod = {};
+  if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
+  state.currentDay.wod.exercises.push(createSubBlockItem(''));
+  renderWodExercisesList();
+  triggerAutoSave(true);
+  showToast('📦 Cuadro añadido al WOD');
+});
+
 $('btnAddWodTimedSection')?.addEventListener('click', () => {
   if (!state.currentDay) {
     showToast('Selecciona primero un día en la planificación.');
@@ -2565,6 +2825,18 @@ $('btnAddWarmupLine')?.addEventListener('click', () => {
   renderWarmupList();
   triggerAutoSave(true);
 });
+$('btnAddWarmupSubBlock')?.addEventListener('click', () => {
+  if (!state.currentDay) {
+    showToast('Selecciona primero un día en la planificación.');
+    return;
+  }
+  if (!Array.isArray(state.currentDay.warmup_exercises)) state.currentDay.warmup_exercises = [];
+  state.currentDay.warmup_exercises.push(createSubBlockItem(''));
+  renderWarmupList();
+  triggerAutoSave(true);
+  showToast('📦 Cuadro añadido al Calentamiento');
+});
+
 $('btnAddWarmupTimedBlock')?.addEventListener('click', () => {
   if (!state.currentDay) {
     showToast('Selecciona primero un día en la planificación.');

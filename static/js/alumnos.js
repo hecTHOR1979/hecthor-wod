@@ -819,13 +819,13 @@ function renderCurrentDay(resetTimer = true) {
     if (!targetWrap || !Array.isArray(exercises) || exercises.length === 0) return;
 
     let headerRendered = false;
+    let boxOrderNum = 0;
 
     exercises.forEach((item, itemIdx) => {
-      const orderNum = itemIdx + 1;
-      const orderPrefix = `${orderNum}.- `;
-
       // 1. Bloques con cronómetro incrustados (AMRAP, EMOM, TABATA, FOR TIME) en su propio cuadro
       if (item.is_timed_section) {
+        boxOrderNum += 1;
+        const orderPrefix = `${boxOrderNum}.- `;
         const timedSpec = {
           id: `${prefix}-timed-${itemIdx}`,
           label: item.name || `${item.timer_type || 'AMRAP'} (${item.timer_minutes || 10} min)`,
@@ -911,6 +911,70 @@ function renderCurrentDay(resetTimer = true) {
         return;
       }
 
+      // 1b. Sub-bloques / cuadros numerados sin cronómetro (ej: 1.- Carrera, 1.- RM de Clean, 2.- 85% de 1.-)
+      if (item.is_sub_block) {
+        boxOrderNum += 1;
+        const orderPrefix = `${boxOrderNum}.- `;
+        const sbCard = document.createElement('div');
+        sbCard.className = 'sub-block-student-card';
+
+        const sbRawTitle = (item.name || '').trim() || `Cuadro ${boxOrderNum}`;
+        const sbHasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(sbRawTitle);
+        const displaySbTitle = sbHasOrder ? sbRawTitle : `${orderPrefix}${sbRawTitle}`;
+
+        let subsHtml = '';
+        const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
+        if (subs.length > 0) {
+          subsHtml = `
+            <div class="ex-columns-header" style="margin-top:8px;">
+              <div class="ex-col-cell ex-col-sets">SETS</div>
+              <div class="ex-col-cell ex-col-reps">REPS</div>
+              <div class="ex-col-name">MOVE</div>
+              <div class="ex-col-action no-print">VIDEO</div>
+            </div>
+            ${subs.map((sub) => {
+              const subMeta = [];
+              if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
+              if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
+              const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
+              const subDisplay = (sub.name || '').trim();
+              return `
+                <div class="ex-clean-line">
+                  <div class="ex-col-cell ex-col-sets">
+                    <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
+                  </div>
+                  <div class="ex-col-cell ex-col-reps">
+                    <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
+                  </div>
+                  <div class="ex-col-name">
+                    ${buildExerciseNameHtml(subDisplay, sub.video_url)}
+                    ${subMetaHtml}
+                    ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
+                  </div>
+                  <div class="ex-col-action no-print">
+                    ${sub.video_url ? `
+                      <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
+                        🎬 <span class="video-btn-text">Vídeo</span>
+                      </button>
+                    ` : '<span style="display:inline-block; width:100%;"></span>'}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          `;
+        }
+
+        sbCard.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <span class="sub-block-student-badge">📦 ${esc(displaySbTitle)}</span>
+          </div>
+          ${item.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(item.notes)}</div>` : ''}
+          ${subsHtml}
+        `;
+        targetWrap.appendChild(sbCard);
+        return;
+      }
+
       // Encabezado SETS | REPS | MOVE | VIDEO solo en la primera línea del primer ejercicio del bloque
       if (!headerRendered) {
         const headerEl = document.createElement('div');
@@ -932,9 +996,7 @@ function renderCurrentDay(resetTimer = true) {
       if (item.rest) meta.push(`Descanso: ${esc(item.rest)}`);
       const metaHtml = meta.length > 0 ? `<div class="ex-meta-text">🏋️ ${meta.join(' · ')}</div>` : '';
 
-      const rawName = (item.name || '').trim();
-      const hasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(rawName);
-      const displayName = hasOrder ? rawName : `${orderPrefix}${rawName}`;
+      const displayName = (item.name || '').trim();
 
       if (!hasSubs) {
         const row = document.createElement('div');
@@ -991,9 +1053,7 @@ function renderCurrentDay(resetTimer = true) {
           if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
           if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
           const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-          const subRaw = (sub.name || '').trim();
-          const subHasNum = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(subRaw);
-          const subDisplay = subHasNum ? subRaw : `${orderNum}.${String.fromCharCode(66 + sIdx)}.- ${subRaw}`;
+          const subDisplay = (sub.name || '').trim();
           subHtml += `
             <div class="ex-clean-line" style="margin-top:4px;">
               <div class="ex-col-cell ex-col-sets">

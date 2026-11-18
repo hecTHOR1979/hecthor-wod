@@ -1260,6 +1260,15 @@ textarea.input {
   margin-bottom: 8px;
 }
 
+/* Sub-block / Cuadro card in Coach editor */
+.sub-block-coach-box {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1.5px solid #10b981;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
 /* Individual Exercise card in Student view - separated box */
 .ex-item-card {
   background: var(--bg-card);
@@ -1282,6 +1291,27 @@ textarea.input {
   display: inline-block;
   background: #0284c7;
   color: #ffffff !important;
+  font-weight: 900;
+  font-size: 0.95rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Sub-block / Cuadro card in Student view */
+.sub-block-student-card {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1.5px solid #10b981;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+
+.sub-block-student-badge {
+  display: inline-block;
+  background: #10b981;
+  color: #06281e !important;
   font-weight: 900;
   font-size: 0.95rem;
   padding: 4px 10px;
@@ -1874,9 +1904,11 @@ textarea.input {
     color: #000000 !important;
   }
 
-  /* Bloques con Crono dentro de Warm Up o Bloques en PDF */
+  /* Bloques con Crono y Sub-bloques dentro de Warm Up o Bloques en PDF */
   .timed-section-student-card,
-  body.alumnos-page .timed-section-student-card {
+  body.alumnos-page .timed-section-student-card,
+  .sub-block-student-card,
+  body.alumnos-page .sub-block-student-card {
     background: #ffffff !important;
     border: 1.2px solid #000000 !important;
     color: #000000 !important;
@@ -1890,7 +1922,9 @@ textarea.input {
   }
 
   .timed-section-student-badge,
-  body.alumnos-page .timed-section-student-badge {
+  body.alumnos-page .timed-section-student-badge,
+  .sub-block-student-badge,
+  body.alumnos-page .sub-block-student-badge {
     background: transparent !important;
     color: #000000 !important;
     border: none !important;
