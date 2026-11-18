@@ -934,6 +934,33 @@ export function createSubBlockItem(name = '') {
   };
 }
 
+function getCoachGroupInfo(items) {
+  const groups = [];
+  (items || []).forEach((item, idx) => {
+    if (item && (item.is_timed_section || item.is_sub_block)) {
+      groups.push({ type: 'box', indices: [idx] });
+    } else {
+      const last = groups[groups.length - 1];
+      if (last && last.type === 'plain') last.indices.push(idx);
+      else groups.push({ type: 'plain', indices: [idx] });
+    }
+  });
+  const showOrderNums = groups.length > 1;
+  const idxToBoxNum = {};
+  const plainStartToNum = {};
+  const plainIdxToNum = {};
+  groups.forEach((g, gIdx) => {
+    const num = gIdx + 1;
+    if (g.type === 'box') {
+      idxToBoxNum[g.indices[0]] = showOrderNums ? num : null;
+    } else if (showOrderNums && g.indices.length > 0) {
+      plainStartToNum[g.indices[0]] = num;
+      g.indices.forEach((i) => { plainIdxToNum[i] = num; });
+    }
+  });
+  return { showOrderNums, idxToBoxNum, plainStartToNum, plainIdxToNum };
+}
+
 /**
  * Renderiza un cuadro / sub-bloque numerado en el editor del coach (Warmup, Bloque o WOD).
  */
@@ -978,7 +1005,7 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
 
   row.innerHTML = `
     <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
-      <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 8px;">📦 ${boxOrderNum}.- CUADRO / SUB-BLOQUE</span>
+      <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 8px;">📦 ${boxOrderNum ? `${boxOrderNum}.- ` : ''}CUADRO / SUB-BLOQUE</span>
       <button class="btn btn-danger btn-sm" type="button" data-sb-del-box title="Eliminar este cuadro">✕</button>
     </div>
     <div style="margin-bottom:6px;">
@@ -1078,14 +1105,21 @@ function renderWarmupList() {
   `;
   list.appendChild(hdr);
 
-  let wuBoxNum = 0;
+  const wuGrp = getCoachGroupInfo(items);
 
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
+    if (wuGrp.plainStartToNum[idx]) {
+      const grpHdr = document.createElement('div');
+      grpHdr.style.cssText = 'margin:6px 0 4px 0;';
+      grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${wuGrp.plainStartToNum[idx]}.-</span>`;
+      list.appendChild(grpHdr);
+    }
+
     // SECCIÓN CON CRONÓMETRO EN CALENTAMIENTO (AMRAP, EMOM, TABATA, FOR TIME)
     if (item.is_timed_section) {
-      wuBoxNum += 1;
+      const wuBoxNum = wuGrp.idxToBoxNum[idx];
       const row = document.createElement('div');
       row.className = 'timed-section-coach-box';
       const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
@@ -1124,7 +1158,7 @@ function renderWarmupList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wuBoxNum}.- CRONO EN CALENTAMIENTO</span>
+            <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wuBoxNum ? `${wuBoxNum}.- ` : ''}CRONO EN CALENTAMIENTO</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-wu-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -1314,8 +1348,7 @@ function renderWarmupList() {
     }
 
     if (item.is_sub_block) {
-      wuBoxNum += 1;
-      const row = renderSubBlockCoachBox(item, wuBoxNum, {
+      const row = renderSubBlockCoachBox(item, wuGrp.idxToBoxNum[idx], {
         showLoad: false,
         onDelete: () => {
           state.currentDay.warmup_exercises.splice(idx, 1);
@@ -1778,14 +1811,21 @@ function renderPartsList() {
       `;
       exWrap.appendChild(hdr);
 
-      let partBoxNum = 0;
+      const partGrp = getCoachGroupInfo(partExercises);
 
       partExercises.forEach((ex, eIdx) => {
         if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
 
+        if (partGrp.plainStartToNum[eIdx]) {
+          const grpHdr = document.createElement('div');
+          grpHdr.style.cssText = 'margin:6px 0 4px 0;';
+          grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${partGrp.plainStartToNum[eIdx]}.-</span>`;
+          exWrap.appendChild(grpHdr);
+        }
+
         // SECCIÓN CON CRONÓMETRO DENTRO DEL BLOQUE (AMRAP, EMOM, TABATA, FOR TIME)
         if (ex.is_timed_section) {
-          partBoxNum += 1;
+          const partBoxNum = partGrp.idxToBoxNum[eIdx];
           const exRow = document.createElement('div');
           exRow.className = 'timed-section-coach-box';
           const curTimer = (ex.timer_type || 'AMRAP').toUpperCase();
@@ -1828,7 +1868,7 @@ function renderPartsList() {
           exRow.innerHTML = `
             <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${partBoxNum}.- CRONO EN BLOQUE</span>
+                <span class="badge" style="background:#0284c7; color:#ffffff; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${partBoxNum ? `${partBoxNum}.- ` : ''}CRONO EN BLOQUE</span>
                 <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#38bdf8; background:#0c121e; border-color:#0284c7;" data-part-timed-field="timer_type">
                   ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>
@@ -2020,8 +2060,7 @@ function renderPartsList() {
         }
 
         if (ex.is_sub_block) {
-          partBoxNum += 1;
-          const exRow = renderSubBlockCoachBox(ex, partBoxNum, {
+          const exRow = renderSubBlockCoachBox(ex, partGrp.idxToBoxNum[eIdx], {
             showLoad: true,
             onDelete: () => {
               state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
@@ -2283,14 +2322,21 @@ function renderWodExercisesList() {
   `;
   list.appendChild(hdr);
 
-  let wodBoxNum = 0;
+  const wodGrp = getCoachGroupInfo(items);
 
   items.forEach((item, idx) => {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
+    if (wodGrp.plainStartToNum[idx]) {
+      const grpHdr = document.createElement('div');
+      grpHdr.style.cssText = 'margin:6px 0 4px 0;';
+      grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${wodGrp.plainStartToNum[idx]}.-</span>`;
+      list.appendChild(grpHdr);
+    }
+
     // SECCIÓN CON CRONÓMETRO DENTRO DEL WOD (AMRAP, EMOM, TABATA, FOR TIME)
     if (item.is_timed_section) {
-      wodBoxNum += 1;
+      const wodBoxNum = wodGrp.idxToBoxNum[idx];
       const row = document.createElement('div');
       row.className = 'timed-section-coach-box';
       const curTimer = (item.timer_type || 'AMRAP').toUpperCase();
@@ -2329,7 +2375,7 @@ function renderWodExercisesList() {
       row.innerHTML = `
         <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wodBoxNum}.- CRONO EN WOD</span>
+            <span class="badge" style="background:#f59e0b; color:#000000; font-weight:900; font-size:0.82rem; padding:4px 8px;">⏱ ${wodBoxNum ? `${wodBoxNum}.- ` : ''}CRONO EN WOD</span>
             <select class="input" style="padding:4px 8px; font-size:0.85rem; font-weight:800; width:auto; color:#f59e0b; background:#0c121e; border-color:#f59e0b;" data-wod-timed-field="timer_type">
               ${['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].map((opt) => `<option value="${opt}" ${normTimer === opt ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
@@ -2519,8 +2565,7 @@ function renderWodExercisesList() {
     }
 
     if (item.is_sub_block) {
-      wodBoxNum += 1;
-      const row = renderSubBlockCoachBox(item, wodBoxNum, {
+      const row = renderSubBlockCoachBox(item, wodGrp.idxToBoxNum[idx], {
         showLoad: false,
         onDelete: () => {
           state.currentDay.wod.exercises.splice(idx, 1);
