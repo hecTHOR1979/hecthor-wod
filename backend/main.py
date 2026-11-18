@@ -32,7 +32,26 @@ from .wod_generator import generate_custom_wod
 # Initialize DB on startup
 init_db()
 
-app = FastAPI(title="THR Plan API", version="1.0.0")
+from contextlib import asynccontextmanager
+from . import cloud_sync
+
+
+@asynccontextmanager
+async def _lifespan(_app):
+    yield
+    # Al apagar el servidor: subir cualquier cambio pendiente a la nube
+    cloud_sync.flush()
+
+
+app = FastAPI(title="THR Plan API", version="1.0.0", lifespan=_lifespan)
+
+
+@app.middleware("http")
+async def cloud_sync_after_writes(request: Request, call_next):
+    response = await call_next(request)
+    if request.method in ("POST", "PUT", "PATCH", "DELETE") and response.status_code < 400:
+        cloud_sync.schedule_upload()
+    return response
 
 # CORS middleware
 app.add_middleware(

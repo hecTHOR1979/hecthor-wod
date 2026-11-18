@@ -121,6 +121,12 @@ def try_restore_server_auto_backup():
     return False
 
 def init_db():
+    # En la nube (Render + Neon): recuperar primero la última copia guardada
+    from . import cloud_sync
+    cloud_restored = False
+    if cloud_sync.enabled():
+        cloud_restored = cloud_sync.restore_from_cloud(DB_PATH)
+
     conn = get_db()
     cursor = conn.cursor()
 
@@ -253,18 +259,24 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         seed_exercises(conn)
 
-    # Try auto-restore from latest auto-backup before seeding sample
-    restored = try_restore_server_auto_backup()
+    # Si los datos vienen de la nube, son la fuente de verdad: no restaurar ni sembrar nada encima
+    if not cloud_restored:
+        # Try auto-restore from latest auto-backup before seeding sample
+        restored = try_restore_server_auto_backup()
 
-    # Seed default microcycle only if still empty
-    cursor.execute("SELECT COUNT(*) FROM microcycles")
-    if cursor.fetchone()[0] == 0:
-        seed_sample_microcycle(conn)
+        # Seed default microcycle only if still empty
+        cursor.execute("SELECT COUNT(*) FROM microcycles")
+        if cursor.fetchone()[0] == 0:
+            seed_sample_microcycle(conn)
 
     conn.close()
 
     # Always ensure a valid auto-backup snapshot exists on disk
     save_server_auto_backup()
+
+    # Primera vez en la nube: subir la base local como punto de partida
+    if cloud_sync.enabled() and not cloud_restored:
+        cloud_sync.upload_now()
 
 def seed_exercises(conn):
     cursor = conn.cursor()

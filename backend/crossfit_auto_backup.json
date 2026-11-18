@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": 1794873569.5485318,
+  "saved_at": 1795035434.538285,
   "microcycles": [
     {
       "id": 1,
@@ -19,7 +19,7 @@
       "name": "MESOCICLO I",
       "weeks_count": 6,
       "days_per_week": 3,
-      "primary_goal": "Fuerza",
+      "primary_goal": "STREGHT & ENGINE",
       "description": "",
       "access_code": "CF3075",
       "is_active": 1,
@@ -335,12 +335,12 @@
       "day_number": 1,
       "title": "Semana 1 - Día 1",
       "warmup_notes": "Calentamiento general y movilidad articular GROUND",
-      "warmup_exercises": "[{\"name\": \"Shin Box Flow & Rotaciones de Cadera (GROUND)\", \"sets\": \"3\", \"reps\": \"10\", \"notes\": \"Mantener torso erguido. Intentar no apoyar las manos al cambiar de lado si la movilidad lo permite. Sentir el apoyo activo de rodillas y espinillas. Respiraci\\u00f3n controlada y fluida.\", \"video_url\": \"https://www.youtube.com/watch?v=R9K_p1E0Gcw\", \"sub_exercises\": []}, {\"name\": \"Scorpion Reach & Rotaci\\u00f3n Espinal (GROUND)\", \"sets\": \"3 rondas\", \"reps\": \"10\", \"notes\": \"Llevar el tal\\u00f3n hacia la mano contraria buscando longitud, no solo flexi\\u00f3n. Mantener hombro base en contacto activo.\", \"video_url\": \"https://www.youtube.com/watch?v=Hcx08eW0K6M\", \"sub_exercises\": []}, {\"is_timed_section\": true, \"timer_type\": \"AMRAP\", \"name\": \"AMRAP (10 min)\", \"timer_minutes\": 10, \"emom_interval\": 60, \"emom_rounds\": 10, \"tabata_work\": 20, \"tabata_rest\": 10, \"tabata_rounds\": 8, \"notes\": \"\", \"sub_exercises\": [{\"sets\": \"\", \"reps\": \"10\", \"name\": \"\", \"video_url\": \"\", \"notes\": \"\"}, {\"sets\": \"\", \"reps\": \"10\", \"name\": \"\", \"video_url\": \"\", \"notes\": \"\"}]}]",
+      "warmup_exercises": "[{\"name\": \"RUN\", \"sets\": \"1\", \"reps\": \"500 m.\", \"notes\": \"\", \"video_url\": \"\", \"sub_exercises\": []}, {\"is_timed_section\": true, \"timer_type\": \"AMRAP\", \"name\": \"AMRAP (10 min)\", \"timer_minutes\": 10, \"emom_interval\": 60, \"emom_rounds\": 10, \"tabata_work\": 20, \"tabata_rest\": 10, \"tabata_rounds\": 8, \"notes\": \"\", \"sub_exercises\": [{\"sets\": \"\", \"reps\": \"10/10\", \"name\": \"CAT TOE TAPS\", \"video_url\": \"\", \"notes\": \"\"}, {\"sets\": \"\", \"reps\": \"6/6\", \"name\": \"TRIPOD OVERHEAD\", \"video_url\": \"\", \"notes\": \"\"}, {\"sets\": \"\", \"reps\": \"6\", \"name\": \"ATLETIC POSITION AVANZANDO\", \"video_url\": \"\", \"notes\": \"\"}, {\"sets\": \"\", \"reps\": \"20 m.\", \"name\": \"DUCK MEDIUM\", \"video_url\": \"\", \"notes\": \"\"}]}]",
       "parts": "[{\"part_label\": \"BLOQUE 1\", \"title\": \"baba\", \"type\": \"Fuerza\", \"description\": \"\", \"exercises\": [{\"name\": \"back\", \"sets\": \"2\", \"reps\": \"2\", \"load\": \"\", \"rest\": \"\", \"notes\": \"Core compacto (maniobra de Valsalva), descenso controlado rompiendo paralela, ascenso liderado con el pecho sin colapsar rodillas.\", \"video_url\": \"https://www.youtube.com/watch?v=ultWZbUMPL8\", \"sub_exercises\": []}]}]",
       "wod": "{\"title\": \"Apex Predator\", \"type\": \"AMRAP (15 min)\", \"has_time_cap\": true, \"time_cap\": \"12 Minutos\", \"target_score\": \"5 a 7 rondas completas\", \"description\": \"\", \"rx_weights\": \"Overhead Squats: 50 kg / 35 kg; Pistols (Sentadilla a una pierna): Alterno / Alterno; Box Jumps / Box Jump Overs: 24\\\" / 20\\\"\", \"scaled_weights\": \"Overhead Squats: -35% carga; Pistols (Sentadilla a una pierna): -35% carga; Box Jumps / Box Jump Overs: -35% carga\", \"strategy\": \"Pacing sostenible y transiciones r\\u00e1pidas.\", \"has_score\": true, \"score_type\": \"RONDAS + REPS\", \"equipment\": [\"Barra ol\\u00edmpica\", \"Discos\", \"Caj\\u00f3n\", \"Sin material\"], \"exercises\": [{\"sets\": \"\", \"reps\": \"8\", \"name\": \"Overhead Squats\", \"video_url\": \"\", \"notes\": \"Rx: 50 kg / 35 kg\", \"sub_exercises\": []}, {\"sets\": \"\", \"reps\": \"12\", \"name\": \"Pistols (Sentadilla a una pierna)\", \"video_url\": \"\", \"notes\": \"Rx: Alterno / Alterno\", \"sub_exercises\": []}, {\"sets\": \"\", \"reps\": \"12\", \"name\": \"Box Jumps / Box Jump Overs\", \"video_url\": \"\", \"notes\": \"Rx: 24\\\" / 20\\\"\", \"sub_exercises\": []}], \"movements\": [{\"sets\": \"\", \"reps\": \"8\", \"name\": \"Overhead Squats\", \"video_url\": \"\", \"notes\": \"Rx: 50 kg / 35 kg\", \"sub_exercises\": []}, {\"sets\": \"\", \"reps\": \"12\", \"name\": \"Pistols (Sentadilla a una pierna)\", \"video_url\": \"\", \"notes\": \"Rx: Alterno / Alterno\", \"sub_exercises\": []}, {\"sets\": \"\", \"reps\": \"12\", \"name\": \"Box Jumps / Box Jump Overs\", \"video_url\": \"\", \"notes\": \"Rx: 24\\\" / 20\\\"\", \"sub_exercises\": []}], \"tabata_work\": 20, \"tabata_rest\": 10, \"tabata_rounds\": 8, \"emom_interval\": 60, \"emom_rounds\": 10, \"minutes\": 12}",
       "coaching_tips": "",
       "created_at": "2026-11-15 14:22:34",
-      "warmup_type": "Movilidad GROUND",
+      "warmup_type": "Calentamiento General",
       "warmup_timer": "{\"type\": \"SIN CRONO\", \"minutes\": 8, \"tabata_work\": 20, \"tabata_rest\": 10, \"tabata_rounds\": 8, \"emom_interval\": 60, \"emom_rounds\": 8}"
     },
     {
