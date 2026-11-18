@@ -872,9 +872,7 @@ function renderCurrentDay(resetTimer = true) {
               if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
               if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
               const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-              const subRaw = (sub.name || '').trim();
-              const subHasNum = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(subRaw);
-              const subDisplay = subHasNum ? subRaw : `${orderNum}.${sIdx + 1}.- ${subRaw}`;
+              const subDisplay = (sub.name || '').trim();
               return `
                 <div class="ex-clean-line">
                   <div class="ex-col-cell ex-col-sets">
