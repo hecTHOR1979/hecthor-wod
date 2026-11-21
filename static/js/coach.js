@@ -960,6 +960,18 @@ async function saveExerciseToLibrary({ name, video_url = '', notes = '', categor
   }
 }
 
+function buildMinutesSelectOptions(selectedVal) {
+  const cur = Math.max(1, Number(selectedVal) || 10);
+  const vals = [];
+  for (let m = 1; m <= 60; m++) vals.push(m);
+  [75, 90, 120].forEach((m) => vals.push(m));
+  if (!vals.includes(cur)) {
+    vals.push(cur);
+    vals.sort((a, b) => a - b);
+  }
+  return vals.map((m) => `<option value="${m}" ${m === cur ? 'selected' : ''}>${m} min</option>`).join('');
+}
+
 export function createTimedSectionItem(timer_type = 'AMRAP', minutes = 10) {
   const normType = ['AMRAP', 'EMOM', 'TABATA', 'FOR TIME'].includes(timer_type) ? timer_type : 'AMRAP';
   let defaultMin = Number(minutes) || 10;
@@ -1338,7 +1350,7 @@ function renderWarmupList() {
           </div>
           <div style="flex:1; min-width:100px;">
             <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Minutos / Cap</label>
-            <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-wu-timed-field="timer_minutes" value="${esc(item.timer_minutes || 10)}" />
+            <select class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wu-timed-field="timer_minutes">${buildMinutesSelectOptions(item.timer_minutes || 10)}</select>
           </div>
         </div>
 
@@ -2070,7 +2082,7 @@ function renderPartsList() {
               </div>
               <div style="flex:1; min-width:100px;">
                 <label style="font-size:0.75rem; color:#38bdf8; font-weight:700;">Minutos / Cap</label>
-                <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-part-timed-field="timer_minutes" value="${esc(ex.timer_minutes || 10)}" />
+                <select class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-part-timed-field="timer_minutes">${buildMinutesSelectOptions(ex.timer_minutes || 10)}</select>
               </div>
             </div>
 
@@ -2598,7 +2610,7 @@ function renderWodExercisesList() {
           </div>
           <div style="flex:1; min-width:100px;">
             <label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Minutos / Cap</label>
-            <input class="input" type="number" min="1" max="120" style="padding:6px; font-size:0.88rem;" data-wod-timed-field="timer_minutes" value="${esc(item.timer_minutes || 10)}" />
+            <select class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-wod-timed-field="timer_minutes">${buildMinutesSelectOptions(item.timer_minutes || 10)}</select>
           </div>
         </div>
 
