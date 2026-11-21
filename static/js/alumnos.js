@@ -184,6 +184,12 @@ async function submitStudentLogin() {
     $('loginError').textContent = 'Introduce tu correo (o usuario de Coach) y contraseña.';
     return;
   }
+  const btn = $('btnStudentLogin');
+  const prevText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Entrando...';
+  }
   try {
     const res = await api('/api/student/login', {
       method: 'POST',
@@ -198,7 +204,12 @@ async function submitStudentLogin() {
     const urlCode = new URLSearchParams(location.search).get('code') || '';
     openStudentDashboard(res.student, res.microcycles, urlCode);
   } catch (err) {
-    $('loginError').textContent = err.message;
+    $('loginError').textContent = err?.message || 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = prevText || 'Entrar al Entrenamiento';
+    }
   }
 }
 
@@ -283,8 +294,7 @@ window.addEventListener('focus', () => {
   if (state.microcycle) syncFromServer();
 });
 
-$('btnStudentLogin').addEventListener('click', (e) => {
-  autoFullscreenOnFirstTouch(e);
+$('btnStudentLogin').addEventListener('click', () => {
   submitStudentLogin();
 });
 $('loginPassword').addEventListener('keydown', (e) => {

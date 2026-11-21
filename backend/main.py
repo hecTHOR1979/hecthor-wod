@@ -770,7 +770,7 @@ def student_register(req: StudentRegisterRequest):
 @app.post("/api/student/login")
 def student_login(req: StudentLoginRequest):
     email = (req.email or "").strip().lower()
-    pw = req.password or ""
+    pw = (req.password or "").strip()
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM students WHERE email = ?", (email,))

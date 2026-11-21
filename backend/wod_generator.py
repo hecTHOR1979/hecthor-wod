@@ -361,6 +361,61 @@ MOVEMENT_DATABASE = [
         "reps_emom": 12,
         "reps_ft": 20,
     },
+    {
+        "name": "Med Ball Cleans",
+        "equipment": ["Balón medicinal"],
+        "category": "metcon",
+        "skills": ["Med Ball", "Balón medicinal", "Cleans"],
+        "rx_m": "9 kg",
+        "rx_f": "6 kg",
+        "reps_amrap": 15,
+        "reps_emom": 12,
+        "reps_ft": 20,
+    },
+    {
+        "name": "Sled Push (Empuje de trineo)",
+        "equipment": ["Sled"],
+        "category": "metcon",
+        "skills": ["Sled", "Trineo", "Empuje"],
+        "rx_m": "Carga media-alta",
+        "rx_f": "Carga media",
+        "reps_amrap": "20 m",
+        "reps_emom": "20 m",
+        "reps_ft": "40 m",
+    },
+    {
+        "name": "Yoke Carry",
+        "equipment": ["Yoke"],
+        "category": "strongman",
+        "skills": ["Yoke", "Strongman", "Carry"],
+        "rx_m": "Carga media-alta",
+        "rx_f": "Carga media",
+        "reps_amrap": "20 m",
+        "reps_emom": "20 m",
+        "reps_ft": "40 m",
+    },
+    {
+        "name": "Farmers Carry",
+        "equipment": ["Farmers"],
+        "category": "strongman",
+        "skills": ["Farmers", "Strongman", "Carry"],
+        "rx_m": "2x24 kg",
+        "rx_f": "2x16 kg",
+        "reps_amrap": "40 m",
+        "reps_emom": "30 m",
+        "reps_ft": "60 m",
+    },
+    {
+        "name": "Plate Ground to Overhead (G2OH con disco)",
+        "equipment": ["Discos"],
+        "category": "metcon",
+        "skills": ["Discos", "Plate", "G2OH"],
+        "rx_m": "20 kg",
+        "rx_f": "15 kg",
+        "reps_amrap": 15,
+        "reps_emom": 12,
+        "reps_ft": 20,
+    },
 ]
 
 def generate_custom_wod(
@@ -404,10 +459,14 @@ def generate_custom_wod(
                 "video_url": ex.get("video_url") or "",
             })
 
+    effective_equipment = set(equipment_available or [])
+    if "Barra olímpica" in effective_equipment:
+        effective_equipment.add("Discos")
+
     available_moves = []
     for m in combined_pool:
         needed = m.get("equipment") or ["Sin material"]
-        if all(item in equipment_available for item in needed) or ("Sin material" in needed and has_all_bodyweight):
+        if all(item in effective_equipment for item in needed) or ("Sin material" in needed and has_all_bodyweight):
             available_moves.append(m)
 
     if len(available_moves) < 2:
@@ -450,28 +509,34 @@ def generate_custom_wod(
             selected_moves.append(custom_move)
             used_names.add(skill_name)
 
-    # 2. Completar SIEMPRE combinando con movimientos del material seleccionado arriba
-    base_target = 4 if time_minutes >= 16 else 3
-    target_count = max(base_target, len(selected_moves) + (1 if equipment_available else 0))
-    target_count = min(target_count, 5)
-
-    # Priorizar variedad de materiales seleccionados (ej: Barra + Cajón + EcoBike)
+    # 2. Incluir TODOS los materiales seleccionados arriba (garantizando al menos 1 ejercicio por cada material elegido)
     eq_candidates = [m for m in available_moves if m["name"] not in used_names]
     random.shuffle(eq_candidates)
     non_generic_eq = [eq for eq in equipment_available if eq not in ("Discos", "Sin material")]
-    random.shuffle(non_generic_eq)
+    if "Discos" in equipment_available and "Barra olímpica" not in equipment_available:
+        non_generic_eq.append("Discos")
 
     for eq_name in non_generic_eq:
-        if len(selected_moves) >= target_count:
-            break
+        # Si ya hay un ejercicio seleccionado (por ejemplo desde skills) que usa este material, ya está cubierto
+        if any(eq_name in (m.get("equipment") or []) for m in selected_moves):
+            continue
         match_eq = next((m for m in eq_candidates if eq_name in (m.get("equipment") or []) and m["name"] not in used_names), None)
+        if not match_eq:
+            match_eq = next((m for m in combined_pool if eq_name in (m.get("equipment") or []) and m["name"] not in used_names), None)
         if match_eq:
             selected_moves.append(dict(match_eq))
             used_names.add(match_eq["name"])
 
-    # Rellenar hasta target_count con el resto de movimientos disponibles para ese material
+    if "Sin material" in equipment_available and not any("Sin material" in (m.get("equipment") or []) for m in selected_moves):
+        bw_move = next((m for m in eq_candidates if "Sin material" in (m.get("equipment") or []) and m["name"] not in used_names), None)
+        if bw_move:
+            selected_moves.append(dict(bw_move))
+            used_names.add(bw_move["name"])
+
+    # Si aún quedan pocos movimientos (ej. solo 1 material o ninguno), completar hasta el mínimo base
+    base_target = 4 if time_minutes >= 16 else 3
     for m in eq_candidates:
-        if len(selected_moves) >= target_count:
+        if len(selected_moves) >= base_target:
             break
         if m["name"] not in used_names:
             selected_moves.append(dict(m))
