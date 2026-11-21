@@ -994,8 +994,43 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
   const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
   const hasLoad = Boolean(cfg.showLoad);
 
-  const subExercisesHtml = subs.map((sub, sIdx) => `
-    <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(16,185,129,0.25); display:flex; flex-direction:column; gap:4px;">
+  const subExercisesHtml = subs.map((sub, sIdx) => {
+    if (!Array.isArray(sub.sub_exercises)) sub.sub_exercises = [];
+    const ssHtml = sub.sub_exercises.map((ss, ssIdx) => `
+      <div class="sub-ex-coach-row" style="margin-top:6px; margin-left:14px; padding-top:6px; padding-left:8px; border-top:1px dashed rgba(56,189,248,0.25); border-left:2px solid rgba(56,189,248,0.5); display:flex; flex-direction:column; gap:4px;">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
+          <div style="width:${hasLoad ? '65px' : '75px'}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+            <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">+ ${ssIdx + 2}</span>
+          </div>
+          <div style="width:${hasLoad ? '75px' : '85px'}; flex-shrink:0;">
+            <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-ss-f="reps" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" placeholder="REPS" value="${esc(ss.reps || '')}" />
+          </div>
+          ${hasLoad ? `
+            <div style="width:80px; flex-shrink:0;">
+              <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-ss-f="load" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" placeholder="CARGA" value="${esc(ss.load || '')}" />
+            </div>
+            <div style="width:65px; flex-shrink:0;"></div>
+          ` : ''}
+          <div style="flex:1; min-width:130px;">
+            <input class="input" style="padding:6px; font-size:0.88rem; font-weight:700;" data-sb-ss-f="name" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" list="libraryExercisesDatalist" placeholder="MOVE (superserie...)" value="${esc(ss.name || '')}" autocomplete="off" />
+          </div>
+          <div style="flex:1.2; min-width:150px; display:flex; align-items:center; gap:4px;">
+            <input class="input" style="padding:6px; font-size:0.82rem; flex:1;" data-sb-ss-f="video_url" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" placeholder="VIDEO (URL vídeo...)" value="${esc(ss.video_url || '')}" />
+            <button class="btn btn-sm ${ss.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-sb-play-ss="${sIdx}:${ssIdx}" title="Ver o buscar vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
+          </div>
+          <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+            <button class="btn btn-sm btn-outline" type="button" data-sb-search-ss="${sIdx}:${ssIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
+            <button class="btn btn-danger btn-sm" type="button" data-sb-del-ss="${sIdx}:${ssIdx}" title="Quitar de superserie" style="padding:6px 8px;">✕</button>
+          </div>
+        </div>
+        <div>
+          <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sb-ss-f="notes" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" placeholder="Notas o detalles..." value="${esc(ss.notes || '')}" />
+        </div>
+      </div>
+    `).join('');
+
+    return `
+    <div class="sub-ex-coach-row" style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(16,185,129,0.25); display:flex; flex-direction:column; gap:4px; ${sub.sub_exercises.length > 0 ? 'border-left:3px solid #38bdf8; padding-left:8px; background:rgba(56,189,248,0.03);' : ''}">
       <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
         <div style="width:${hasLoad ? '65px' : '75px'}; flex-shrink:0;">
           <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-sub-f="sets" data-sub-idx="${sIdx}" placeholder="SETS" value="${esc(sub.sets || '')}" />
@@ -1017,6 +1052,7 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
           <button class="btn btn-sm ${sub.video_url ? 'btn-primary' : 'btn-outline'}" type="button" data-sb-play-sub="${sIdx}" title="Ver o buscar vídeo" style="padding:5px 8px; font-size:0.95rem;">🎬</button>
         </div>
         <div class="row-wrap" style="width:130px; justify-content:flex-end; gap:4px; flex-shrink:0;">
+          <button class="btn btn-sm btn-outline" type="button" data-sb-add-ss="${sIdx}" title="Añadir ejercicio en superserie (+)" style="padding:6px 9px; font-weight:800; color:#38bdf8; border-color:rgba(56,189,248,0.4); font-size:1rem;">+</button>
           <button class="btn btn-sm btn-outline" type="button" data-sb-search-sub="${sIdx}" title="Buscar en biblioteca" style="padding:6px 8px;">🔍</button>
           <button class="btn btn-danger btn-sm" type="button" data-sb-del-sub="${sIdx}" title="Quitar este ejercicio" style="padding:6px 8px;">✕</button>
         </div>
@@ -1024,8 +1060,10 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
       <div>
         <input class="input" style="padding:3px 6px; font-size:0.8rem; color:var(--text-muted); background:transparent; border:none; border-bottom:1px dashed rgba(255,255,255,0.08);" data-sb-sub-f="notes" data-sub-idx="${sIdx}" placeholder="Notas o detalles..." value="${esc(sub.notes || '')}" />
       </div>
+      ${ssHtml}
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   row.innerHTML = `
     <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
@@ -1104,6 +1142,58 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
         }
       }
     });
+  });
+
+  // Superseries dentro del sub-bloque
+  row.querySelectorAll('[data-sb-add-ss]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const sIdx = Number(btn.dataset.sbAddSs);
+      const subObj = item.sub_exercises[sIdx];
+      if (!subObj) return;
+      if (!Array.isArray(subObj.sub_exercises)) subObj.sub_exercises = [];
+      subObj.sub_exercises.push({ sets: '', reps: '10', load: '', name: '', video_url: '', notes: '' });
+      if (cfg.onRerender) cfg.onRerender();
+      triggerAutoSave(true);
+    });
+  });
+  row.querySelectorAll('[data-sb-del-ss]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const [sIdx, ssIdx] = btn.dataset.sbDelSs.split(':').map(Number);
+      item.sub_exercises[sIdx]?.sub_exercises?.splice(ssIdx, 1);
+      if (cfg.onRerender) cfg.onRerender();
+      triggerAutoSave(true);
+    });
+  });
+  row.querySelectorAll('[data-sb-search-ss]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const [sIdx, ssIdx] = btn.dataset.sbSearchSs.split(':').map(Number);
+      const ssObj = item.sub_exercises[sIdx]?.sub_exercises?.[ssIdx];
+      if (ssObj) openExercisePicker({ type: 'subblock_ss_replace', subObj: ssObj, rerender: cfg.onRerender }, false, ssObj.name);
+    });
+  });
+  row.querySelectorAll('[data-sb-play-ss]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const [sIdx, ssIdx] = btn.dataset.sbPlaySs.split(':').map(Number);
+      const ssObj = item.sub_exercises[sIdx]?.sub_exercises?.[ssIdx];
+      if (ssObj && ssObj.video_url) openVideoModal(ssObj.name || 'Ejercicio', ssObj.video_url);
+      else if (ssObj) openExercisePicker({ type: 'subblock_ss_replace', subObj: ssObj, rerender: cfg.onRerender }, false, ssObj.name);
+    });
+  });
+  row.querySelectorAll('[data-sb-ss-f]').forEach((inp) => {
+    const sIdx = Number(inp.dataset.subIdx);
+    const ssIdx = Number(inp.dataset.ssIdx);
+    const handleSs = (immediate) => {
+      const ssObj = item.sub_exercises[sIdx]?.sub_exercises?.[ssIdx];
+      if (!ssObj) return;
+      ssObj[inp.dataset.sbSsF] = inp.value;
+      if (inp.dataset.sbSsF === 'name') {
+        const ssRowEl = inp.closest('.sub-ex-coach-row');
+        if (ssRowEl) tryAutoLinkExercise(ssObj, ssRowEl, 'video_url');
+      }
+      triggerAutoSave(immediate);
+    };
+    inp.addEventListener('input', () => handleSs(false));
+    inp.addEventListener('change', () => handleSs(true));
   });
   return row;
 }
@@ -1370,6 +1460,7 @@ function renderWarmupList() {
     if (item.is_sub_block) {
       const row = renderSubBlockCoachBox(item, wuGrp.idxToBoxNum[idx], {
         showLoad: false,
+        onRerender: renderWarmupList,
         onDelete: () => {
           state.currentDay.warmup_exercises.splice(idx, 1);
           renderWarmupList();
@@ -2079,6 +2170,7 @@ function renderPartsList() {
         if (ex.is_sub_block) {
           const exRow = renderSubBlockCoachBox(ex, partGrp.idxToBoxNum[eIdx], {
             showLoad: true,
+            onRerender: renderPartsList,
             onDelete: () => {
               state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
               renderPartsList();
@@ -2581,6 +2673,7 @@ function renderWodExercisesList() {
     if (item.is_sub_block) {
       const row = renderSubBlockCoachBox(item, wodGrp.idxToBoxNum[idx], {
         showLoad: false,
+        onRerender: renderWodExercisesList,
         onDelete: () => {
           state.currentDay.wod.exercises.splice(idx, 1);
           renderWodExercisesList();
@@ -2940,6 +3033,20 @@ $('btnCoachPrintDay')?.addEventListener('click', async () => {
 // Exercise picker & target insertion
 function pickExerciseIntoTarget(ex) {
   if (!state.pickerTarget || !state.currentDay) return;
+  if (state.pickerTarget.type === 'subblock_ss_replace') {
+    const cur = state.pickerTarget.subObj;
+    if (cur) {
+      cur.name = ex.name;
+      cur.video_url = ex.video_url || '';
+      if (!cur.notes && (ex.coaching_cues || ex.description)) {
+        cur.notes = ex.coaching_cues || ex.description;
+      }
+      if (state.pickerTarget.rerender) state.pickerTarget.rerender();
+      triggerAutoSave(true);
+      showToast(`✓ Ejercicio enlazado: "${ex.name}"`);
+    }
+    return;
+  }
   if (state.pickerTarget.type === 'warmup_replace') {
     const cur = (state.currentDay.warmup_exercises || [])[state.pickerTarget.idx];
     if (cur) {

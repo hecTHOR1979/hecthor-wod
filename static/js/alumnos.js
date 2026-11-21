@@ -1039,59 +1039,29 @@ function renderCurrentDay(resetTimer = true) {
         const sbCard = document.createElement('div');
         sbCard.className = 'sub-block-student-card';
 
-        const sbRawTitle = (item.name || '').trim() || `Cuadro ${orderNum}`;
+        const sbRawTitle = (item.name || '').trim();
         const sbHasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(sbRawTitle);
-        const displaySbTitle = sbHasOrder ? sbRawTitle : `${orderPrefix}${sbRawTitle}`;
+        const displaySbTitle = sbRawTitle
+          ? (sbHasOrder ? sbRawTitle : `${orderPrefix}${sbRawTitle}`)
+          : `${orderNum}.-`;
 
-        let subsHtml = '';
-        const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
-        if (subs.length > 0) {
-          subsHtml = `
-            <div class="ex-columns-header" style="margin-top:8px;">
-              <div class="ex-col-cell ex-col-sets">SETS</div>
-              <div class="ex-col-cell ex-col-reps">REPS</div>
-              <div class="ex-col-name">MOVE</div>
-              <div class="ex-col-action no-print">VIDEO</div>
-            </div>
-            ${subs.map((sub) => {
-              const subMeta = [];
-              if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
-              if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
-              const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-              const subDisplay = (sub.name || '').trim();
-              return `
-                <div class="ex-clean-line">
-                  <div class="ex-col-cell ex-col-sets">
-                    <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
-                  </div>
-                  <div class="ex-col-cell ex-col-reps">
-                    <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
-                  </div>
-                  <div class="ex-col-name">
-                    ${buildExerciseNameHtml(subDisplay, sub.video_url)}
-                    ${subMetaHtml}
-                    ${sub.notes ? `<div class="ex-notes-text">${esc(sub.notes)}</div>` : ''}
-                  </div>
-                  <div class="ex-col-action no-print">
-                    ${sub.video_url ? `
-                      <button class="btn-video-sym" type="button" data-video-btn data-name="${esc(sub.name)}" data-url="${esc(sub.video_url)}" data-notes="${esc(sub.notes || '')}" title="Ver vídeo explicativo">
-                        🎬 <span class="video-btn-text">Vídeo</span>
-                      </button>
-                    ` : '<span style="display:inline-block; width:100%;"></span>'}
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          `;
+        const hdrRow = document.createElement('div');
+        hdrRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;';
+        hdrRow.innerHTML = `<span class="sub-block-student-badge">📦 ${esc(displaySbTitle)}</span>`;
+        sbCard.appendChild(hdrRow);
+
+        if (item.notes) {
+          const notesEl = document.createElement('div');
+          notesEl.className = 'session-body-text';
+          notesEl.style.cssText = 'margin-bottom:8px; font-style:italic;';
+          notesEl.textContent = item.notes;
+          sbCard.appendChild(notesEl);
         }
 
-        sbCard.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-            <span class="sub-block-student-badge">📦 ${esc(displaySbTitle)}</span>
-          </div>
-          ${item.notes ? `<div class="session-body-text" style="margin-bottom:8px; font-style:italic;">${esc(item.notes)}</div>` : ''}
-          ${subsHtml}
-        `;
+        const subs = Array.isArray(item.sub_exercises) ? item.sub_exercises : [];
+        if (subs.length > 0) {
+          appendPlainRows(sbCard, subs);
+        }
         targetWrap.appendChild(sbCard);
         return;
       }
