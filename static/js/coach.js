@@ -45,7 +45,56 @@ const state = {
   pickerGroundOnly: false,
   qrMode: 'student',
   serverInfo: null,
+  undoStack: [],
 };
+
+const MAX_UNDO_STEPS = 10;
+
+function updateUndoButtonUI() {
+  const count = (state.undoStack || []).length;
+  ['btnUndoDelete', 'btnUndoDeleteBottom'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.disabled = count === 0;
+    btn.style.opacity = count === 0 ? '0.45' : '1';
+    btn.textContent = `↩️ Deshacer (${count})`;
+  });
+}
+
+function pushUndoSnapshot(label = 'Movimiento eliminado') {
+  if (!state.currentDay) return;
+  if (!Array.isArray(state.undoStack)) state.undoStack = [];
+  state.undoStack.push({
+    dayId: state.currentDay.id,
+    label,
+    warmup_exercises: JSON.parse(JSON.stringify(state.currentDay.warmup_exercises || [])),
+    parts: JSON.parse(JSON.stringify(state.currentDay.parts || [])),
+    wod: JSON.parse(JSON.stringify(state.currentDay.wod || {})),
+  });
+  if (state.undoStack.length > MAX_UNDO_STEPS) {
+    state.undoStack.shift();
+  }
+  updateUndoButtonUI();
+}
+
+function undoLastDelete() {
+  if (!state.currentDay || !Array.isArray(state.undoStack) || state.undoStack.length === 0) return;
+  const snap = state.undoStack.pop();
+  updateUndoButtonUI();
+  if (snap.dayId !== state.currentDay.id) {
+    showToast('Cambia al día correspondiente para restaurar');
+    return;
+  }
+  state.currentDay.warmup_exercises = snap.warmup_exercises;
+  state.currentDay.parts = snap.parts;
+  state.currentDay.wod = snap.wod;
+  renderWarmupList();
+  renderPartsList();
+  renderWodExercisesList();
+  updateWodTimerUI();
+  triggerAutoSave(true);
+  showToast(`↩️ Deshecho: ${snap.label}`);
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -860,6 +909,8 @@ async function openDayEditor(dayId) {
   renderPartsList();
   renderWodExercisesList();
   renderDaysGrid();
+  state.undoStack = (state.undoStack || []).filter((s) => s.dayId === state.currentDay?.id);
+  updateUndoButtonUI();
 }
 
 async function saveExerciseToLibrary({ name, video_url = '', notes = '', category = 'Fuerza', is_ground = 0, ground_flow_level = 'N/A' }) {
@@ -1159,6 +1210,7 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
   row.querySelectorAll('[data-sb-del-ss]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const [sIdx, ssIdx] = btn.dataset.sbDelSs.split(':').map(Number);
+      pushUndoSnapshot();
       item.sub_exercises[sIdx]?.sub_exercises?.splice(ssIdx, 1);
       if (cfg.onRerender) cfg.onRerender();
       triggerAutoSave(true);
@@ -1331,6 +1383,7 @@ function renderWarmupList() {
       `;
 
       row.querySelector('[data-del-wu]').addEventListener('click', () => {
+        pushUndoSnapshot();
         state.currentDay.warmup_exercises.splice(idx, 1);
         renderWarmupList();
         triggerAutoSave(true);
@@ -1411,6 +1464,7 @@ function renderWarmupList() {
 
       (item.sub_exercises || []).forEach((sub, sIdx) => {
         row.querySelector(`[data-del-timed-sub-wu="${sIdx}"]`)?.addEventListener('click', () => {
+          pushUndoSnapshot();
           state.currentDay.warmup_exercises[idx].sub_exercises.splice(sIdx, 1);
           renderWarmupList();
           triggerAutoSave(true);
@@ -1462,6 +1516,7 @@ function renderWarmupList() {
         showLoad: false,
         onRerender: renderWarmupList,
         onDelete: () => {
+          pushUndoSnapshot();
           state.currentDay.warmup_exercises.splice(idx, 1);
           renderWarmupList();
           triggerAutoSave(true);
@@ -1473,6 +1528,7 @@ function renderWarmupList() {
         },
         onAddSubLib: () => openExercisePicker({ type: 'timed_wu_sub_add', idx }, false),
         onDelSub: (sIdx) => {
+          pushUndoSnapshot();
           item.sub_exercises.splice(sIdx, 1);
           renderWarmupList();
           triggerAutoSave(true);
@@ -1590,6 +1646,7 @@ function renderWarmupList() {
     });
 
     row.querySelector('[data-del-wu]').addEventListener('click', () => {
+      pushUndoSnapshot();
       state.currentDay.warmup_exercises.splice(idx, 1);
       renderWarmupList();
       triggerAutoSave(true);
@@ -1644,6 +1701,7 @@ function renderWarmupList() {
     // Sub-exercises event binding
     item.sub_exercises.forEach((sub, subIdx) => {
       row.querySelector(`[data-del-sub-wu="${subIdx}"]`)?.addEventListener('click', () => {
+        pushUndoSnapshot();
         state.currentDay.warmup_exercises[idx].sub_exercises.splice(subIdx, 1);
         renderWarmupList();
         triggerAutoSave(true);
@@ -1800,6 +1858,7 @@ function renderPartsList() {
     `;
 
     box.querySelector('[data-del-part]').addEventListener('click', () => {
+      pushUndoSnapshot();
       state.currentDay.parts.splice(pIdx, 1);
       renderPartsList();
       triggerAutoSave(true);
@@ -2040,6 +2099,7 @@ function renderPartsList() {
           `;
 
           exRow.querySelector(`[data-del-part-ex="${eIdx}"]`).addEventListener('click', () => {
+            pushUndoSnapshot();
             state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
             renderPartsList();
             triggerAutoSave(true);
@@ -2121,6 +2181,7 @@ function renderPartsList() {
 
           (ex.sub_exercises || []).forEach((sub, sIdx) => {
             exRow.querySelector(`[data-del-timed-sub-part="${sIdx}"]`)?.addEventListener('click', () => {
+              pushUndoSnapshot();
               state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.splice(sIdx, 1);
               renderPartsList();
               triggerAutoSave(true);
@@ -2172,6 +2233,7 @@ function renderPartsList() {
             showLoad: true,
             onRerender: renderPartsList,
             onDelete: () => {
+              pushUndoSnapshot();
               state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
               renderPartsList();
               triggerAutoSave(true);
@@ -2183,6 +2245,7 @@ function renderPartsList() {
             },
             onAddSubLib: () => openExercisePicker({ type: 'timed_part_sub_add', partIdx: pIdx, exIdx: eIdx }, false),
             onDelSub: (sIdx) => {
+              pushUndoSnapshot();
               ex.sub_exercises.splice(sIdx, 1);
               renderPartsList();
               triggerAutoSave(true);
@@ -2311,6 +2374,7 @@ function renderPartsList() {
         });
 
         exRow.querySelector('[data-del-ex]').addEventListener('click', () => {
+          pushUndoSnapshot();
           state.currentDay.parts[pIdx].exercises.splice(eIdx, 1);
           renderPartsList();
           triggerAutoSave(true);
@@ -2359,6 +2423,7 @@ function renderPartsList() {
         // Sub-exercises in parts
         ex.sub_exercises.forEach((sub, subIdx) => {
           exRow.querySelector(`[data-del-sub-part="${subIdx}"]`)?.addEventListener('click', () => {
+            pushUndoSnapshot();
             state.currentDay.parts[pIdx].exercises[eIdx].sub_exercises.splice(subIdx, 1);
             renderPartsList();
             triggerAutoSave(true);
@@ -2544,6 +2609,7 @@ function renderWodExercisesList() {
       `;
 
       row.querySelector('[data-del-wod-ex]').addEventListener('click', () => {
+        pushUndoSnapshot();
         state.currentDay.wod.exercises.splice(idx, 1);
         renderWodExercisesList();
         updateWodTimerUI();
@@ -2625,6 +2691,7 @@ function renderWodExercisesList() {
 
       (item.sub_exercises || []).forEach((sub, sIdx) => {
         row.querySelector(`[data-del-timed-sub-wod="${sIdx}"]`)?.addEventListener('click', () => {
+          pushUndoSnapshot();
           state.currentDay.wod.exercises[idx].sub_exercises.splice(sIdx, 1);
           renderWodExercisesList();
           triggerAutoSave(true);
@@ -2676,6 +2743,7 @@ function renderWodExercisesList() {
         showLoad: false,
         onRerender: renderWodExercisesList,
         onDelete: () => {
+          pushUndoSnapshot();
           state.currentDay.wod.exercises.splice(idx, 1);
           renderWodExercisesList();
           triggerAutoSave(true);
@@ -2687,6 +2755,7 @@ function renderWodExercisesList() {
         },
         onAddSubLib: () => openExercisePicker({ type: 'timed_wod_sub_add', idx }, false),
         onDelSub: (sIdx) => {
+          pushUndoSnapshot();
           item.sub_exercises.splice(sIdx, 1);
           renderWodExercisesList();
           triggerAutoSave(true);
@@ -2774,6 +2843,7 @@ function renderWodExercisesList() {
     `;
 
     row.querySelector(`[data-del-wod-ex="${idx}"]`)?.addEventListener('click', () => {
+      pushUndoSnapshot();
       state.currentDay.wod.exercises.splice(idx, 1);
       renderWodExercisesList();
       triggerAutoSave(true);
@@ -2837,6 +2907,7 @@ function renderWodExercisesList() {
 
     item.sub_exercises.forEach((sub, subIdx) => {
       row.querySelector(`[data-del-sub-wod="${subIdx}"]`)?.addEventListener('click', () => {
+        pushUndoSnapshot();
         state.currentDay.wod.exercises[idx].sub_exercises.splice(subIdx, 1);
         renderWodExercisesList();
         triggerAutoSave(true);
@@ -4297,6 +4368,8 @@ async function saveCurrentDay() {
 
 $('btnSaveDay')?.addEventListener('click', saveCurrentDay);
 $('btnSaveDayBottom')?.addEventListener('click', saveCurrentDay);
+$('btnUndoDelete')?.addEventListener('click', undoLastDelete);
+$('btnUndoDeleteBottom')?.addEventListener('click', undoLastDelete);
 
 // Listen to all edits on dayEditorCard for continuous auto-save
 $('dayEditorCard')?.addEventListener('input', (e) => {

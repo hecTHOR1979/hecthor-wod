@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" href="/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icon-512.png" />
-  <link rel="stylesheet" href="/static/css/app.css?v=81" />
+  <link rel="stylesheet" href="/static/css/app.css?v=82" />
 </head>
 <body class="coach-page">
   <header class="topbar">
@@ -101,6 +101,7 @@
             <label for="copyTargetDay" style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">Copiar a:</label>
             <select id="copyTargetDay" class="input" style="width:auto; min-width:96px; font-weight:700;"></select>
             <button class="btn btn-sm" id="btnCopyDay">Copiar a este día</button>
+            <button class="btn btn-sm" id="btnUndoDelete" type="button" disabled style="opacity:0.45;" title="Deshacer movimientos eliminados (hasta 10)">↩️ Deshacer (0)</button>
             <button class="btn btn-sm btn-celeste-matte" id="btnCoachPrintDay" type="button" title="Imprimir o guardar la sesión del día en PDF">🖨️ Imprimir / Guardar en PDF</button>
             <button class="btn btn-primary" id="btnSaveDay">💾 Guardar Sesión</button>
           </div>
@@ -510,7 +511,10 @@
 
         <div class="row-between" style="margin-top:12px;">
           <span class="muted">Los cambios se reflejan al instante en la app de alumnos al guardar.</span>
-          <button class="btn btn-primary" id="btnSaveDayBottom">💾 Guardar Sesión</button>
+          <div class="row-wrap" style="gap:8px;">
+            <button class="btn btn-sm" id="btnUndoDeleteBottom" type="button" disabled style="opacity:0.45;" title="Deshacer movimientos eliminados (hasta 10)">↩️ Deshacer (0)</button>
+            <button class="btn btn-primary" id="btnSaveDayBottom">💾 Guardar Sesión</button>
+          </div>
         </div>
       </div>
     </section>
@@ -862,6 +866,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=81"></script>
+  <script type="module" src="/static/js/coach.js?v=82"></script>
 </body>
 </html>
