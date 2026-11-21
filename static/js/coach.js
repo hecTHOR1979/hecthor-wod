@@ -1019,7 +1019,7 @@ function createCoachPlainGroupHeader(num, firstItem) {
   const grpHdr = document.createElement('div');
   grpHdr.style.cssText = 'margin:8px 0 4px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
   grpHdr.innerHTML = `
-    <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:4px 9px; flex-shrink:0;">📦 ${num}.-</span>
+    <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:4px 9px; flex-shrink:0;">${num}.-</span>
     <input class="input" style="flex:1; min-width:180px; max-width:380px; padding:4px 8px; font-size:0.84rem; font-weight:700; border-color:rgba(16,185,129,0.45);" placeholder="Nombre de esta parte (ej: Carrera, Remo, Fuerza...)" value="${esc(firstItem?.group_title || '')}" />
   `;
   const inp = grpHdr.querySelector('input');
@@ -1119,7 +1119,7 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
   row.innerHTML = `
     <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
       <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:220px; flex-wrap:wrap;">
-        <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 9px; flex-shrink:0;">📦 ${boxOrderNum ? `${boxOrderNum}.-` : ''}</span>
+        <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 9px; flex-shrink:0;">${boxOrderNum ? `${boxOrderNum}.-` : ''}</span>
         <input class="input" style="flex:1; min-width:180px; padding:5px 10px; font-size:0.9rem; font-weight:700; border-color:rgba(16,185,129,0.55);" data-sb-field="name" value="${esc(item.name || '')}" placeholder="Nombre de este cuadro (ej: Carrera, RM de Clean, 85% de 1.-...)" />
       </div>
       <button class="btn btn-danger btn-sm" type="button" data-sb-del-box title="Eliminar este cuadro">✕</button>

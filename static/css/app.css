@@ -431,6 +431,16 @@ body.alumnos-page .brand {
   letter-spacing: 0.5px !important;
 }
 
+.card-session-sheet .ex-col-order,
+.ex-col-order {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
 .card-session-sheet .ex-col-sets,
 .card-session-sheet .ex-col-sets-wu,
 .card-session-sheet .ex-col-sets-pt,
@@ -1314,8 +1324,28 @@ textarea.input {
     padding: 2px 6px !important;
     font-size: 0.72rem !important;
   }
-  .card-session-sheet .ex-col-sets,
-  .card-session-sheet .ex-col-sets,
+  .card-session-sheet .ex-col-order,
+.ex-col-order {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+.card-session-sheet .ex-col-sets,
+  .card-session-sheet .ex-col-order,
+.ex-col-order {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+.card-session-sheet .ex-col-sets,
   .card-session-sheet .ex-col-sets-wu,
   .card-session-sheet .ex-col-sets-pt,
   .ex-col-sets,
@@ -1796,7 +1826,17 @@ textarea.input {
     overflow-wrap: anywhere !important;
     word-break: break-word !important;
   }
-  .card-session-sheet .ex-col-sets,
+  .card-session-sheet .ex-col-order,
+.ex-col-order {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+.card-session-sheet .ex-col-sets,
   .ex-col-sets {
     flex: 0 0 54px !important;
     width: 54px !important;
@@ -2008,6 +2048,15 @@ textarea.input {
     color: #000000 !important;
     font-size: 10.5pt !important;
     line-height: 1.1 !important;
+  }
+
+  .ex-col-order {
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
   }
 
   .ex-col-sets,

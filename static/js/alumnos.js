@@ -877,9 +877,11 @@ function renderCurrentDay(resetTimer = true) {
     const showOrderNums = groups.length > 1;
 
     const appendPlainRows = (container, plainItems) => {
+      const anySuperserie = plainItems.some((it) => Array.isArray(it.sub_exercises) && it.sub_exercises.length > 0);
       const headerEl = document.createElement('div');
       headerEl.className = 'ex-columns-header';
       headerEl.innerHTML = `
+        ${anySuperserie ? '<div class="ex-col-cell ex-col-order"></div>' : ''}
         <div class="ex-col-cell ex-col-sets">SETS</div>
         <div class="ex-col-cell ex-col-reps">REPS</div>
         <div class="ex-col-name">MOVE</div>
@@ -899,6 +901,7 @@ function renderCurrentDay(resetTimer = true) {
           const row = document.createElement('div');
           row.className = 'ex-clean-line';
           row.innerHTML = `
+            ${anySuperserie ? '<div class="ex-col-cell ex-col-order"></div>' : ''}
             <div class="ex-col-cell ex-col-sets">
               <span class="clean-pill-val">${cleanSetsVal(item.sets) || '-'}</span>
             </div>
@@ -922,10 +925,11 @@ function renderCurrentDay(resetTimer = true) {
         } else {
           const box = document.createElement('div');
           box.className = 'ex-group-card';
-          const firstHasNum = /^\s*\d+[\.\-)]/.test(displayName);
-          const firstSsName = firstHasNum ? displayName : `1.- ${displayName}`;
           let subHtml = `
             <div class="ex-clean-line" style="margin-bottom:4px;">
+              <div class="ex-col-cell ex-col-order">
+                <span class="clean-pill-val">1.-</span>
+              </div>
               <div class="ex-col-cell ex-col-sets">
                 <span class="clean-pill-val">${cleanSetsVal(item.sets) || '1'}</span>
               </div>
@@ -933,7 +937,7 @@ function renderCurrentDay(resetTimer = true) {
                 <span class="clean-pill-val">${esc(item.reps || '-')}</span>
               </div>
               <div class="ex-col-name">
-                ${buildExerciseNameHtml(firstSsName, item.video_url)}
+                ${buildExerciseNameHtml(displayName, item.video_url)}
                 ${metaHtml}
                 ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
               </div>
@@ -951,11 +955,12 @@ function renderCurrentDay(resetTimer = true) {
             if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
             if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
             const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-            const subRaw = (sub.name || '').trim();
-            const subHasNum = /^\s*\d+[\.\-)]/.test(subRaw);
-            const subDisplay = subHasNum ? subRaw : `${sIdx + 2}.- ${subRaw}`;
+            const subDisplay = (sub.name || '').trim();
             subHtml += `
               <div class="ex-clean-line" style="margin-top:4px;">
+                <div class="ex-col-cell ex-col-order">
+                  <span class="clean-pill-val">${sIdx + 2}.-</span>
+                </div>
                 <div class="ex-col-cell ex-col-sets">
                   <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
                 </div>
