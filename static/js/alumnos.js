@@ -1013,6 +1013,16 @@ function renderCurrentDay(resetTimer = true) {
         timedBox.className = 'timed-section-student-card';
 
         let timedTitle = (item.name || '').trim();
+        if (timedTitle) {
+          timedTitle = timedTitle.replace(/\b(\d+)\s*s\b/gi, (full, numStr) => {
+            const n = Number(numStr);
+            if (n > 0 && n % 60 === 0) {
+              const m = n / 60;
+              return `${m} ${m === 1 ? 'minuto' : 'minutos'}`;
+            }
+            return full;
+          });
+        }
         if (!timedTitle) {
           if (timedSpec.mode === 'TABATA') {
             timedTitle = `TABATA (${timedSpec.tabataRounds} rondas · ${formatTabataDur(timedSpec.workSec, true)} / ${formatTabataDur(timedSpec.restSec, true)})`;

@@ -1051,7 +1051,7 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
       <div class="sub-ex-coach-row" style="margin-top:6px; margin-left:14px; padding-top:6px; padding-left:8px; border-top:1px dashed rgba(56,189,248,0.25); border-left:2px solid rgba(56,189,248,0.5); display:flex; flex-direction:column; gap:4px;">
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
           <div style="width:${hasLoad ? '65px' : '75px'}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-            <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">+ ${ssIdx + 2}</span>
+            <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">${ssIdx + 2}.-</span>
           </div>
           <div style="width:${hasLoad ? '75px' : '85px'}; flex-shrink:0;">
             <input class="input" style="padding:6px; font-size:0.85rem;" data-sb-ss-f="reps" data-sub-idx="${sIdx}" data-ss-idx="${ssIdx}" placeholder="REPS" value="${esc(ss.reps || '')}" />
@@ -1559,7 +1559,7 @@ function renderWarmupList() {
         <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
             <div style="width:75px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-              <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+              <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">${subIdx + 2}.-</span>
             </div>
             <div style="width:85px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wu-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
@@ -2276,7 +2276,7 @@ function renderPartsList() {
             <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(56,189,248,0.25); display:flex; flex-direction:column; gap:4px;">
               <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
                 <div style="width:65px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-                  <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+                  <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-weight:800; font-size:0.75rem; padding:4px 6px; width:100%; text-align:center;">${subIdx + 2}.-</span>
                 </div>
                 <div style="width:75px; flex-shrink:0;">
                   <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-part-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="REPS (Repeticiones)" />
@@ -2786,7 +2786,7 @@ function renderWodExercisesList() {
         <div class="sub-ex-coach-row" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(245,158,11,0.25); display:flex; flex-direction:column; gap:4px;">
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; width:100%;">
             <div style="width:75px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-              <span class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">+ ${subIdx + 2}</span>
+              <span class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; font-weight:800; font-size:0.75rem; padding:4px 8px; width:100%; text-align:center;">${subIdx + 2}.-</span>
             </div>
             <div style="width:85px; flex-shrink:0;">
               <input class="input" style="padding:6px; font-size:0.85rem;" data-sub-wod-f="reps" data-sub-idx="${subIdx}" placeholder="REPS" value="${esc(sub.reps || '')}" title="Repeticiones o Tiempo (ej: 10 / 30s)" />
