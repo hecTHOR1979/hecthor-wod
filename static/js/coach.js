@@ -961,6 +961,27 @@ function getCoachGroupInfo(items) {
   return { showOrderNums, idxToBoxNum, plainStartToNum, plainIdxToNum };
 }
 
+function createCoachPlainGroupHeader(num, firstItem) {
+  const grpHdr = document.createElement('div');
+  grpHdr.style.cssText = 'margin:8px 0 4px 0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;';
+  grpHdr.innerHTML = `
+    <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:4px 9px; flex-shrink:0;">📦 ${num}.-</span>
+    <input class="input" style="flex:1; min-width:180px; max-width:380px; padding:4px 8px; font-size:0.84rem; font-weight:700; border-color:rgba(16,185,129,0.45);" placeholder="Nombre de esta parte (ej: Carrera, Remo, Fuerza...)" value="${esc(firstItem?.group_title || '')}" />
+  `;
+  const inp = grpHdr.querySelector('input');
+  if (inp && firstItem) {
+    inp.addEventListener('input', () => {
+      firstItem.group_title = inp.value;
+      triggerAutoSave(false);
+    });
+    inp.addEventListener('change', () => {
+      firstItem.group_title = inp.value;
+      triggerAutoSave(true);
+    });
+  }
+  return grpHdr;
+}
+
 /**
  * Renderiza un cuadro / sub-bloque numerado en el editor del coach (Warmup, Bloque o WOD).
  */
@@ -1111,10 +1132,7 @@ function renderWarmupList() {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
     if (wuGrp.plainStartToNum[idx]) {
-      const grpHdr = document.createElement('div');
-      grpHdr.style.cssText = 'margin:6px 0 4px 0;';
-      grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${wuGrp.plainStartToNum[idx]}.-</span>`;
-      list.appendChild(grpHdr);
+      list.appendChild(createCoachPlainGroupHeader(wuGrp.plainStartToNum[idx], item));
     }
 
     // SECCIÓN CON CRONÓMETRO EN CALENTAMIENTO (AMRAP, EMOM, TABATA, FOR TIME)
@@ -1817,10 +1835,7 @@ function renderPartsList() {
         if (!Array.isArray(ex.sub_exercises)) ex.sub_exercises = [];
 
         if (partGrp.plainStartToNum[eIdx]) {
-          const grpHdr = document.createElement('div');
-          grpHdr.style.cssText = 'margin:6px 0 4px 0;';
-          grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${partGrp.plainStartToNum[eIdx]}.-</span>`;
-          exWrap.appendChild(grpHdr);
+          exWrap.appendChild(createCoachPlainGroupHeader(partGrp.plainStartToNum[eIdx], ex));
         }
 
         // SECCIÓN CON CRONÓMETRO DENTRO DEL BLOQUE (AMRAP, EMOM, TABATA, FOR TIME)
@@ -2328,10 +2343,7 @@ function renderWodExercisesList() {
     if (!Array.isArray(item.sub_exercises)) item.sub_exercises = [];
 
     if (wodGrp.plainStartToNum[idx]) {
-      const grpHdr = document.createElement('div');
-      grpHdr.style.cssText = 'margin:6px 0 4px 0;';
-      grpHdr.innerHTML = `<span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.78rem; padding:3px 8px;">📦 ${wodGrp.plainStartToNum[idx]}.-</span>`;
-      list.appendChild(grpHdr);
+      list.appendChild(createCoachPlainGroupHeader(wodGrp.plainStartToNum[idx], item));
     }
 
     // SECCIÓN CON CRONÓMETRO DENTRO DEL WOD (AMRAP, EMOM, TABATA, FOR TIME)

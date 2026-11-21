@@ -1100,9 +1100,12 @@ function renderCurrentDay(resetTimer = true) {
       if (showOrderNums) {
         const plainCard = document.createElement('div');
         plainCard.className = 'sub-block-student-card';
+        const customTitle = (grp.items[0]?.group_title || '').trim();
+        const hasOrder = /^\s*(?:\d+[\.\-)]|[A-Z][\.\-)]|parte\s+[0-9ivx]+)/i.test(customTitle);
+        const badgeText = customTitle ? (hasOrder ? customTitle : `${orderNum}.- ${customTitle}`) : `${orderNum}.-`;
         const badgeRow = document.createElement('div');
         badgeRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;';
-        badgeRow.innerHTML = `<span class="sub-block-student-badge">${orderNum}.-</span>`;
+        badgeRow.innerHTML = `<span class="sub-block-student-badge">${esc(badgeText)}</span>`;
         plainCard.appendChild(badgeRow);
         appendPlainRows(plainCard, grp.items);
         targetWrap.appendChild(plainCard);
