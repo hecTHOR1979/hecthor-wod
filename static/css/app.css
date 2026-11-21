@@ -1049,8 +1049,8 @@ textarea.input {
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  color: inherit;
-  text-decoration: none;
+  color: inherit !important;
+  text-decoration: none !important;
   cursor: pointer;
 }
 
