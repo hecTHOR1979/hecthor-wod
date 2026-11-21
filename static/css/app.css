@@ -541,37 +541,72 @@ body.alumnos-page .brand {
     color: #ffffff !important;
   }
 
+  body.alumnos-page {
+    background: #04060b !important;
+  }
+
+  body.alumnos-page .topbar,
+  body.alumnos-page .bottom-nav {
+    background: rgba(6, 10, 20, 0.95) !important;
+    border-color: #1e3a8a !important;
+  }
+
   body.alumnos-page input::placeholder,
   body.alumnos-page textarea::placeholder {
-    color: rgba(255, 255, 255, 0.45) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
   }
 
   body.alumnos-page .clean-pill-val {
-    background: #0284c7 !important;
+    background: #1e3a8a !important;
     color: #ffffff !important;
-    border: 1.5px solid #38bdf8 !important;
+    border: 1.5px solid #2563eb !important;
     font-weight: 900 !important;
   }
 
-  body.alumnos-page .card-session-sheet {
-    background: var(--bg-card, #151923) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  body.alumnos-page .card,
+  body.alumnos-page .card-session-sheet,
+  body.alumnos-page .item-box {
+    background: #080d18 !important;
+    border: 1px solid #1e3a8a !important;
     color: #ffffff !important;
   }
 
+  body.alumnos-page .section-badge-banner {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    border: 1px solid #2563eb !important;
+  }
+
+  body.alumnos-page .timed-section-student-card,
+  body.alumnos-page .sub-block-student-card,
+  body.alumnos-page .ex-group-card {
+    background: rgba(12, 26, 56, 0.55) !important;
+    border: 1.5px solid #1e3a8a !important;
+    color: #ffffff !important;
+  }
+
+  body.alumnos-page .timed-section-student-badge,
+  body.alumnos-page .sub-block-student-badge,
+  body.alumnos-page .btn-crono-pro-action {
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    border: 1px solid #2563eb !important;
+    box-shadow: none !important;
+  }
+
   body.alumnos-page .ex-clean-line {
-    background: #0c121e !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: #050811 !important;
+    border: 1px solid rgba(30, 64, 175, 0.45) !important;
     color: #ffffff !important;
   }
 
   body.alumnos-page .btn {
+    background: #0b1324 !important;
+    border-color: #1e3a8a !important;
     color: #ffffff !important;
   }
 
-  /* ========================================================
-     TECLAS AMARILLAS EN LA PÁGINA DEL ALUMNO: LETRAS EN NEGRO
-     ======================================================== */
+  /* Botones principales y activos en la página del alumno: azul oscuro con letras en blanco */
   body.alumnos-page .btn-primary,
   body.alumnos-page .btn-primary *,
   body.alumnos-page button.btn-primary,
@@ -581,33 +616,35 @@ body.alumnos-page .brand {
   body.alumnos-page #btnStudentRegister,
   body.alumnos-page .active-tab,
   body.alumnos-page .btn.active-tab,
+  body.alumnos-page .week-tab.active,
   body.alumnos-page .btn-accent,
   body.alumnos-page .badge-accent {
-    background: var(--accent) !important;
-    color: #000000 !important;
-    border-color: var(--accent) !important;
+    background: #1e3a8a !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
     font-weight: 900 !important;
   }
 
   body.alumnos-page .btn-primary:hover,
   body.alumnos-page button.btn-primary:hover,
-  body.alumnos-page [data-block-score-btn]:hover {
-    background: #d5fb61 !important;
-    color: #000000 !important;
+  body.alumnos-page [data-block-score-btn]:hover,
+  body.alumnos-page .btn-crono-pro-action:hover {
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
   }
 
   body.alumnos-page input,
   body.alumnos-page select,
   body.alumnos-page textarea {
     color: #ffffff !important;
-    background: #0b111e !important;
-    border-color: rgba(255, 255, 255, 0.25) !important;
+    background: #050811 !important;
+    border-color: #1e3a8a !important;
   }
 
   body.alumnos-page .badge {
     color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background: #0f2147 !important;
+    border: 1px solid #1e3a8a !important;
   }
 }
 
