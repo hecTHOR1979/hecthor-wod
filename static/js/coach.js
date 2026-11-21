@@ -1029,15 +1029,14 @@ function renderSubBlockCoachBox(item, boxOrderNum, cfg) {
 
   row.innerHTML = `
     <div class="row-between" style="align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
-      <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 8px;">📦 ${boxOrderNum ? `${boxOrderNum}.- ` : ''}CUADRO / SUB-BLOQUE</span>
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:220px; flex-wrap:wrap;">
+        <span class="badge" style="background:#10b981; color:#06281e; font-weight:900; font-size:0.82rem; padding:4px 9px; flex-shrink:0;">📦 ${boxOrderNum ? `${boxOrderNum}.-` : ''}</span>
+        <input class="input" style="flex:1; min-width:180px; padding:5px 10px; font-size:0.9rem; font-weight:700; border-color:rgba(16,185,129,0.55);" data-sb-field="name" value="${esc(item.name || '')}" placeholder="Nombre de este cuadro (ej: Carrera, RM de Clean, 85% de 1.-...)" />
+      </div>
       <button class="btn btn-danger btn-sm" type="button" data-sb-del-box title="Eliminar este cuadro">✕</button>
     </div>
     <div style="margin-bottom:6px;">
-      <label style="font-size:0.75rem; color:#10b981; font-weight:700;">Título del cuadro (ej: Carrera, RM de Clean, 85% de 1.-...)</label>
-      <input class="input" style="padding:6px; font-size:0.9rem; font-weight:700;" data-sb-field="name" value="${esc(item.name || '')}" placeholder="Ej: Carrera / RM de Clean / 85% de 1.-..." />
-    </div>
-    <div style="margin-bottom:6px;">
-      <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-sb-field="notes" value="${esc(item.notes || '')}" placeholder="Indicaciones o notas de este cuadro..." />
+      <input class="input" style="padding:4px 6px; font-size:0.82rem;" data-sb-field="notes" value="${esc(item.notes || '')}" placeholder="Indicaciones o notas de este cuadro (opcional)..." />
     </div>
     <div style="margin-top:8px; border-top:1px dashed rgba(16,185,129,0.3); padding-top:6px;">
       <div class="row-between" style="align-items:center; margin-bottom:4px;">
