@@ -121,26 +121,25 @@ def enrich_day_videos(d: dict, lookup: Optional[dict] = None):
         def attach_video(item: dict):
             if not isinstance(item, dict):
                 return
-            name = item.get("name") or ""
-            cur_vid = (item.get("video_url") or "").strip()
-            if not cur_vid and name:
-                norm = normalize_ex_name(name)
-                match = lookup.get(norm)
-                if not match:
-                    for part in re.split(r'[\(\)\/]', name):
-                        norm_p = normalize_ex_name(part)
-                        if norm_p in lookup:
-                            match = lookup[norm_p]
-                            break
-                if not match and len(norm) >= 4:
-                    for k, v in lookup.items():
-                        if k.startswith(norm) or norm.startswith(k):
-                            match = v
-                            break
-                if match:
-                    item["video_url"] = match["video_url"]
-                    if not item.get("notes") and match.get("notes"):
-                        item["notes"] = match["notes"]
+            if not item.get("is_timed_section") and not item.get("is_sub_block"):
+                name = item.get("name") or ""
+                cur_vid = (item.get("video_url") or "").strip()
+                if not cur_vid and name:
+                    norm = normalize_ex_name(name)
+                    match = lookup.get(norm)
+                    if not match:
+                        for part in re.split(r'[\(\)\/]', name):
+                            norm_p = normalize_ex_name(part)
+                            if norm_p in lookup:
+                                match = lookup[norm_p]
+                                break
+                    if not match and len(norm) >= 4:
+                        for k, v in lookup.items():
+                            if k.startswith(norm) or norm.startswith(k):
+                                match = v
+                                break
+                    if match:
+                        item["video_url"] = match["video_url"]
             
             # Check sub_exercises
             for sub in (item.get("sub_exercises") or []):
@@ -165,11 +164,12 @@ def auto_sync_exercises_to_db(warmup_exercises, parts, wod, cursor):
         def collect(item, default_cat="Fuerza"):
             if not isinstance(item, dict):
                 return
-            name = (item.get("name") or "").strip()
-            vid = (item.get("video_url") or "").strip()
-            notes = (item.get("notes") or "").strip()
-            if name and vid:
-                items_to_sync.append({"name": name, "video_url": vid, "notes": notes, "category": default_cat})
+            if not item.get("is_timed_section") and not item.get("is_sub_block"):
+                name = (item.get("name") or "").strip()
+                vid = (item.get("video_url") or "").strip()
+                notes = (item.get("notes") or "").strip()
+                if name and vid:
+                    items_to_sync.append({"name": name, "video_url": vid, "notes": notes, "category": default_cat})
             for sub in (item.get("sub_exercises") or []):
                 collect(sub, default_cat)
 

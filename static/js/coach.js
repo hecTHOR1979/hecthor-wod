@@ -4161,13 +4161,12 @@ function buildCurrentDayPayload() {
   // Asegurar que cualquier ejercicio con nombre enlace automáticamente su vídeo de biblioteca si está vacío,
   // y auto-sincronizar en la biblioteca cualquier ejercicio que tenga nombre y vídeo introducido
   const ensureExerciseVideo = (item, defaultCat = 'Fuerza') => {
-    if (!item || !item.name) return;
-    if (!item.video_url || item.video_url.trim() === '') {
-      const match = findLibraryExercise(item.name);
-      if (match && match.video_url) {
-        item.video_url = match.video_url;
-        if (!item.notes && (match.coaching_cues || match.description)) {
-          item.notes = match.coaching_cues || match.description;
+    if (!item) return;
+    if (!item.is_timed_section && !item.is_sub_block && item.name) {
+      if (!item.video_url || item.video_url.trim() === '') {
+        const match = findLibraryExercise(item.name);
+        if (match && match.video_url) {
+          item.video_url = match.video_url;
         }
       }
     }
