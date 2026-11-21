@@ -4269,7 +4269,7 @@ async function saveCurrentDay() {
   const payload = buildCurrentDayPayload();
   if (!payload) return;
   try {
-    await api(`/api/days/${state.currentDay.id}`, {
+    await api(`/api/days/${state.currentDay.id}?sync_lib=1`, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });

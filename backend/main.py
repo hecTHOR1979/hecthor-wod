@@ -183,9 +183,13 @@ def auto_sync_exercises_to_db(warmup_exercises, parts, wod, cursor):
             for m in (wod.get("exercises") or wod.get("movements") or []):
                 collect(m, "WOD")
 
+        seen_norms = set()
         for item in items_to_sync:
             norm = normalize_ex_name(item["name"])
-            cursor.execute("SELECT id, video_url FROM exercises WHERE LOWER(name) = LOWER(?)", (item["name"],))
+            if not norm or norm in seen_norms:
+                continue
+            seen_norms.add(norm)
+            cursor.execute("SELECT id, video_url FROM exercises WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))", (item["name"],))
             existing = cursor.fetchone()
             if existing:
                 ex_id = existing[0]
@@ -555,7 +559,7 @@ def get_day(day_id: int, _coach=Depends(require_coach)):
     return row_to_day(row)
 
 @app.put("/api/days/{day_id}")
-def update_day(day_id: int, d: DayUpdate, _coach=Depends(require_coach)):
+def update_day(day_id: int, d: DayUpdate, sync_lib: bool = Query(default=False), _coach=Depends(require_coach)):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -573,7 +577,8 @@ def update_day(day_id: int, d: DayUpdate, _coach=Depends(require_coach)):
         d.coaching_tips or "",
         day_id
     ))
-    auto_sync_exercises_to_db(d.warmup_exercises, d.parts, d.wod, cursor)
+    if sync_lib:
+        auto_sync_exercises_to_db(d.warmup_exercises, d.parts, d.wod, cursor)
     conn.commit()
     conn.close()
     save_server_auto_backup()
