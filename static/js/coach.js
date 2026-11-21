@@ -80,7 +80,10 @@ document.querySelectorAll('[data-tab]').forEach((btn) => {
     ['planner', 'library', 'students', 'logs'].forEach((t) => {
       $(`tab-${t}`).classList.toggle('hidden', t !== btn.dataset.tab);
     });
-    if (btn.dataset.tab === 'library') renderLibrary();
+    if (btn.dataset.tab === 'library') {
+      await loadExercises();
+      renderLibrary();
+    }
     if (btn.dataset.tab === 'students') loadStudents();
     if (btn.dataset.tab === 'logs') loadLogs();
   });
@@ -3980,8 +3983,6 @@ function buildCurrentDayPayload() {
           item.notes = match.coaching_cues || match.description;
         }
       }
-    } else {
-      autoSyncExerciseToLibrary(item.name, item.video_url, item.notes, defaultCat);
     }
     (item.sub_exercises || []).forEach((sub) => ensureExerciseVideo(sub, defaultCat));
   };
@@ -4127,6 +4128,8 @@ async function doAutoSave() {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
+    await loadExercises();
+    if ($('tab-library') && !$('tab-library').classList.contains('hidden')) renderLibrary();
     if (state.currentMicrocycle && Array.isArray(state.currentMicrocycle.days)) {
       const idx = state.currentMicrocycle.days.findIndex((d) => d.id === state.currentDay.id);
       if (idx >= 0) {
@@ -4160,6 +4163,8 @@ async function saveCurrentDay() {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
+    await loadExercises();
+    if ($('tab-library') && !$('tab-library').classList.contains('hidden')) renderLibrary();
     pendingSave = false;
     if (state.currentMicrocycle?.id) {
       const mc = await api(`/api/microcycles/${state.currentMicrocycle.id}`);

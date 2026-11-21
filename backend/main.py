@@ -153,7 +153,7 @@ def enrich_day_videos(d: dict, lookup: Optional[dict] = None):
                 attach_video(ex)
         wod = d.get("wod")
         if isinstance(wod, dict):
-            for m in (wod.get("movements") or []):
+            for m in (wod.get("exercises") or wod.get("movements") or []):
                 attach_video(m)
     except Exception as err:
         print("enrich_day_videos error:", err)
@@ -180,7 +180,7 @@ def auto_sync_exercises_to_db(warmup_exercises, parts, wod, cursor):
             for ex in (part.get("exercises") or []):
                 collect(ex, p_cat)
         if isinstance(wod, dict):
-            for m in (wod.get("movements") or []):
+            for m in (wod.get("exercises") or wod.get("movements") or []):
                 collect(m, "WOD")
 
         for item in items_to_sync:
