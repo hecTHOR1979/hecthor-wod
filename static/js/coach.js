@@ -960,16 +960,36 @@ async function saveExerciseToLibrary({ name, video_url = '', notes = '', categor
   }
 }
 
+function formatCapLabel(mins) {
+  const totalSec = Math.round(Number(mins) * 60);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return s > 0 ? `${m}m ${s}s` : `${m} min`;
+}
+
+function setCapSelectValue(sel, mins) {
+  if (!sel) return;
+  const valStr = String(mins);
+  let opt = Array.from(sel.options).find((o) => Number(o.value) === Number(mins));
+  if (!opt) {
+    opt = document.createElement('option');
+    opt.value = valStr;
+    opt.textContent = formatCapLabel(mins);
+    sel.appendChild(opt);
+  }
+  sel.value = opt.value;
+}
+
 function buildMinutesSelectOptions(selectedVal) {
-  const cur = Math.max(1, Number(selectedVal) || 10);
+  const cur = Math.max(0.1, Number(selectedVal) || 10);
   const vals = [];
   for (let m = 1; m <= 60; m++) vals.push(m);
   [75, 90, 120].forEach((m) => vals.push(m));
-  if (!vals.includes(cur)) {
+  if (!vals.some((v) => Math.abs(v - cur) < 0.001)) {
     vals.push(cur);
     vals.sort((a, b) => a - b);
   }
-  return vals.map((m) => `<option value="${m}" ${m === cur ? 'selected' : ''}>${m} min</option>`).join('');
+  return vals.map((m) => `<option value="${m}" ${Math.abs(m - cur) < 0.001 ? 'selected' : ''}>${formatCapLabel(m)}</option>`).join('');
 }
 
 export function createTimedSectionItem(timer_type = 'AMRAP', minutes = 10) {
@@ -1446,17 +1466,15 @@ function renderWarmupList() {
             triggerAutoSave(false);
           } else if (field === 'emom_interval') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));
-            const mins = Math.max(1, Number(item.timer_minutes || 10));
-            item.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
-            const rInp = row.querySelector('[data-wu-timed-field="emom_rounds"]');
-            if (rInp) rInp.value = item.emom_rounds;
+            const rounds = Math.max(1, Number(item.emom_rounds || 10));
+            item.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+            setCapSelectValue(row.querySelector('[data-wu-timed-field="timer_minutes"]'), item.timer_minutes);
             triggerAutoSave(false);
           } else if (field === 'emom_rounds') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));
             const rounds = Math.max(1, Number(item.emom_rounds || 10));
-            item.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
-            const mInp = row.querySelector('[data-wu-timed-field="timer_minutes"]');
-            if (mInp) mInp.value = item.timer_minutes;
+            item.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+            setCapSelectValue(row.querySelector('[data-wu-timed-field="timer_minutes"]'), item.timer_minutes);
             triggerAutoSave(false);
           } else if (field === 'timer_minutes' && (item.timer_type || '').toUpperCase() === 'EMOM') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));
@@ -2179,17 +2197,15 @@ function renderPartsList() {
                 triggerAutoSave(false);
               } else if (field === 'emom_interval') {
                 const intSec = Math.max(5, Number(ex.emom_interval || 60));
-                const mins = Math.max(1, Number(ex.timer_minutes || 10));
-                ex.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
-                const rInp = exRow.querySelector('[data-part-timed-field="emom_rounds"]');
-                if (rInp) rInp.value = ex.emom_rounds;
+                const rounds = Math.max(1, Number(ex.emom_rounds || 10));
+                ex.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+                setCapSelectValue(exRow.querySelector('[data-part-timed-field="timer_minutes"]'), ex.timer_minutes);
                 triggerAutoSave(false);
               } else if (field === 'emom_rounds') {
                 const intSec = Math.max(5, Number(ex.emom_interval || 60));
                 const rounds = Math.max(1, Number(ex.emom_rounds || 10));
-                ex.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
-                const mInp = exRow.querySelector('[data-part-timed-field="timer_minutes"]');
-                if (mInp) mInp.value = ex.timer_minutes;
+                ex.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+                setCapSelectValue(exRow.querySelector('[data-part-timed-field="timer_minutes"]'), ex.timer_minutes);
                 triggerAutoSave(false);
               } else if (field === 'timer_minutes' && (ex.timer_type || '').toUpperCase() === 'EMOM') {
                 const intSec = Math.max(5, Number(ex.emom_interval || 60));
@@ -2707,17 +2723,15 @@ function renderWodExercisesList() {
             triggerAutoSave(false);
           } else if (field === 'emom_interval') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));
-            const mins = Math.max(1, Number(item.timer_minutes || 10));
-            item.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
-            const rInp = row.querySelector('[data-wod-timed-field="emom_rounds"]');
-            if (rInp) rInp.value = item.emom_rounds;
+            const rounds = Math.max(1, Number(item.emom_rounds || 10));
+            item.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+            setCapSelectValue(row.querySelector('[data-wod-timed-field="timer_minutes"]'), item.timer_minutes);
             triggerAutoSave(false);
           } else if (field === 'emom_rounds') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));
             const rounds = Math.max(1, Number(item.emom_rounds || 10));
-            item.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
-            const mInp = row.querySelector('[data-wod-timed-field="timer_minutes"]');
-            if (mInp) mInp.value = item.timer_minutes;
+            item.timer_minutes = Number(((intSec * rounds) / 60).toFixed(2));
+            setCapSelectValue(row.querySelector('[data-wod-timed-field="timer_minutes"]'), item.timer_minutes);
             triggerAutoSave(false);
           } else if (field === 'timer_minutes' && (item.timer_type || '').toUpperCase() === 'EMOM') {
             const intSec = Math.max(5, Number(item.emom_interval || 60));

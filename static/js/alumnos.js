@@ -510,7 +510,11 @@ function formatSpecSummary(spec) {
   } else if (spec.mode === 'EMOM') {
     const intSec = spec.intervalSec || 60;
     const r = spec.emomRounds || Math.max(1, Math.round(((spec.minutes || 10) * 60) / intSec));
-    return `⚡ Cada ${intSec}s · ${r} rondas (${spec.minutes} min en total)`;
+    const totalSec = intSec * r;
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const tStr = s > 0 ? `${m}m ${s}s` : `${m} min`;
+    return `⚡ Cada ${intSec}s · ${r} rondas (${tStr} en total)`;
   } else if (spec.mode === 'AMRAP') {
     return `⚡ ${spec.minutes} min de trabajo continuado (AMRAP)`;
   } else if (spec.mode === 'FOR TIME') {
@@ -535,7 +539,12 @@ function formatSpecButtonLabel(spec) {
     return `TABATA ${spec.tabataRounds || 8}R (${wTxt}/${rTxt})`;
   } else if (spec.mode === 'EMOM') {
     const intSec = spec.intervalSec || 60;
-    return `EMOM ${spec.minutes || 10}' (cada ${intSec}s)`;
+    const r = spec.emomRounds || Math.max(1, Math.round(((spec.minutes || 10) * 60) / intSec));
+    const totalSec = intSec * r;
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const tStr = s > 0 ? `${m}m ${s}s` : `${m}'`;
+    return `EMOM ${r}R · ${tStr} (cada ${intSec}s)`;
   } else if (spec.mode === 'AMRAP') {
     return `AMRAP ${spec.minutes || 8}'`;
   } else if (spec.mode === 'FOR TIME') {
@@ -607,6 +616,7 @@ function renderCurrentDay(resetTimer = true) {
           restSec: Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10),
           tabataRounds: Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8),
           intervalSec: Number(ex.emom_interval !== undefined ? ex.emom_interval : 60),
+          emomRounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10),
           rounds: Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10),
         };
       }
@@ -1005,6 +1015,7 @@ function renderCurrentDay(resetTimer = true) {
           restSec: Number(item.tabata_rest !== undefined ? item.tabata_rest : 10),
           tabataRounds: Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8),
           intervalSec: Number(item.emom_interval !== undefined ? item.emom_interval : 60),
+          emomRounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10),
           rounds: Number(item.emom_rounds !== undefined ? item.emom_rounds : 10),
         };
         currentDaySpecs[timedSpec.id] = timedSpec;
