@@ -472,9 +472,10 @@ function getWodTimerSpec(wod) {
   const emomRounds = wod?.emom_rounds !== undefined && wod?.emom_rounds !== '' ? Number(wod.emom_rounds) : 10;
 
   const capStr = `${wod?.time_cap || ''} ${wod?.description || ''} ${wod?.title || ''}`;
+  const isNoTimeCap = mode === 'FOR TIME' && (Boolean(wod?.no_time_cap) || /sin\s*(?:tiempo|l[ií]mite|cap)/i.test(wod?.time_cap || ''));
   const minMatch = capStr.match(/(\d+)\s*(?:min|minutos|'|m\b)/i);
-  let minutes = minMatch ? Math.max(1, Math.min(90, parseInt(minMatch[1], 10))) : 12;
-  if (wod?.minutes && !isNaN(Number(wod.minutes))) {
+  let minutes = isNoTimeCap ? 0 : (minMatch ? Math.max(1, Math.min(90, parseInt(minMatch[1], 10))) : 12);
+  if (!isNoTimeCap && wod?.minutes && !isNaN(Number(wod.minutes))) {
     minutes = Math.max(1, Math.min(90, Number(wod.minutes)));
   }
 
@@ -488,6 +489,7 @@ function getWodTimerSpec(wod) {
     id: 'wod',
     sectionTitle: `WOD FINAL · ${wod?.title || 'WOD'}`,
     mode,
+    noTimeCap: isNoTimeCap,
     minutes,
     workSec,
     restSec,
@@ -528,6 +530,7 @@ function formatSpecSummary(spec) {
   } else if (spec.mode === 'AMRAP') {
     return `⚡ ${spec.minutes} min de trabajo continuado (AMRAP)`;
   } else if (spec.mode === 'FOR TIME') {
+    if (spec.noTimeCap || !spec.minutes) return `⚡ FOR TIME · Crono progresivo (Sin tiempo límite)`;
     return `⚡ Time Cap: ${spec.minutes} min`;
   }
   return `⚡ Cronómetro listo (${spec.minutes} min)`;
@@ -558,6 +561,7 @@ function formatSpecButtonLabel(spec) {
   } else if (spec.mode === 'AMRAP') {
     return `AMRAP ${spec.minutes || 8}'`;
   } else if (spec.mode === 'FOR TIME') {
+    if (spec.noTimeCap || !spec.minutes) return `FOR TIME (Sin tiempo)`;
     return `FOR TIME (Cap: ${spec.minutes || 10}')`;
   }
   return `${spec.mode || 'CRONO'} ${spec.minutes ? spec.minutes + "'" : ''}`;
@@ -1609,7 +1613,7 @@ function openCronoProModal(spec) {
       if (spec.workSec !== undefined) p.set('work', spec.workSec);
       if (spec.restSec !== undefined) p.set('rest', spec.restSec);
       if (spec.tabataRounds !== undefined) p.set('rounds', spec.tabataRounds);
-      if (spec.minutes !== undefined) p.set('time', spec.minutes);
+      if (spec.minutes !== undefined && !spec.noTimeCap && Number(spec.minutes) > 0) p.set('time', spec.minutes);
       if (spec.intervalSec !== undefined) p.set('interval', spec.intervalSec);
       url += `?${p.toString()}`;
     }

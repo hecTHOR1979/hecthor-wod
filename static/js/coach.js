@@ -888,6 +888,7 @@ async function openDayEditor(dayId) {
   if ($('wodEmomInterval')) $('wodEmomInterval').value = wod.emom_interval || 60;
   if ($('wodEmomRounds')) $('wodEmomRounds').value = wod.emom_rounds || 10;
   if ($('wodMinutes')) $('wodMinutes').value = wod.minutes || 12;
+  if ($('wodNoTimeCap')) $('wodNoTimeCap').checked = Boolean(wod.no_time_cap);
   if ($('wodHasScore')) {
     const hasScore = wod.has_score !== undefined ? Boolean(wod.has_score) : true;
     $('wodHasScore').checked = hasScore;
@@ -3820,7 +3821,7 @@ function openCoachCronoProModal(spec) {
       if (spec.workSec !== undefined) p.set('work', spec.workSec);
       if (spec.restSec !== undefined) p.set('rest', spec.restSec);
       if (spec.tabataRounds !== undefined) p.set('rounds', spec.tabataRounds);
-      if (spec.minutes !== undefined) p.set('time', spec.minutes);
+      if (spec.minutes !== undefined && !spec.noTimeCap && Number(spec.minutes) > 0) p.set('time', spec.minutes);
       if (spec.intervalSec !== undefined) p.set('interval', spec.intervalSec);
       url += `?${p.toString()}`;
     }
@@ -3994,6 +3995,15 @@ function updateWodTimerUI() {
     }
   }
 
+  const isForTimeLike = !isSin && (rawType.includes('FOR TIME') || rawType.includes('CHIPPER') || rawType.includes('RFT') || (rawType.includes('TIME') && !rawType.includes('AMRAP')));
+  const noTimeCap = isForTimeLike && Boolean($('wodNoTimeCap')?.checked);
+  $('wodNoTimeCapWrap')?.classList.toggle('hidden', !isForTimeLike);
+  if ($('wodMinutesStepperWrap')) {
+    $('wodMinutesStepperWrap').style.opacity = noTimeCap ? '0.4' : '1';
+    $('wodMinutesStepperWrap').style.pointerEvents = noTimeCap ? 'none' : '';
+  }
+  if ($('wodMinutes')) $('wodMinutes').disabled = noTimeCap;
+
   if (isSin) {
     if (sumEl) sumEl.textContent = 'Sin crono configurado para el WOD';
   } else if (isTabata) {
@@ -4017,10 +4027,17 @@ function updateWodTimerUI() {
       $('wodTimeCap').value = `EMOM ${rounds}' (cada ${intSec}s)`;
     }
   } else if (isCap) {
-    const mins = Number($('wodMinutes')?.value) || 12;
-    if (sumEl) sumEl.innerHTML = `⚡ Duración / Time Cap: <strong>${mins} minutos</strong>`;
-    if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
-      $('wodTimeCap').value = `${mins} Minutos`;
+    if (noTimeCap) {
+      if (sumEl) sumEl.innerHTML = `⚡ <strong>FOR TIME · Sin tiempo límite</strong> (Crono progresivo)`;
+      if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+        $('wodTimeCap').value = 'Sin tiempo';
+      }
+    } else {
+      const mins = Number($('wodMinutes')?.value) || 12;
+      if (sumEl) sumEl.innerHTML = `⚡ Duración / Time Cap: <strong>${mins} minutos</strong>`;
+      if (hasCapChecked && $('wodTimeCap') && !$('wodTimeCap').dataset.manualEdited) {
+        $('wodTimeCap').value = `${mins} Minutos`;
+      }
     }
   } else {
     if (sumEl) sumEl.textContent = 'Configura el formato de entrenamiento';
@@ -4175,15 +4192,23 @@ function initCoachWodTimerControls() {
 
 
 
+  $('wodNoTimeCap')?.addEventListener('change', () => {
+    delete $('wodTimeCap').dataset.manualEdited;
+    updateWodTimerUI();
+    triggerAutoSave(true);
+  });
+
   $('btnLaunchWodCronoPro')?.addEventListener('click', () => {
     const rawType = ($('wodType')?.value || '').toUpperCase();
     if (rawType.includes('SIN CRONO') || rawType === 'SIN') {
       return showToast('Elige un formato de crono para el WOD');
     }
     const mode = rawType.includes('TABATA') ? 'TABATA' : (rawType.includes('EMOM') ? 'EMOM' : (rawType.includes('TIME') ? 'FOR TIME' : 'AMRAP'));
+    const noTimeCap = mode === 'FOR TIME' && Boolean($('wodNoTimeCap')?.checked);
     const spec = {
       mode,
-      minutes: Number($('wodMinutes')?.value) || 12,
+      noTimeCap,
+      minutes: noTimeCap ? 0 : (Number($('wodMinutes')?.value) || 12),
       workSec: Number($('wodTabataWork')?.value) || 20,
       restSec: Number($('wodTabataRest')?.value) || 10,
       tabataRounds: Number($('wodTabataRounds')?.value) || 8,
@@ -4444,6 +4469,7 @@ function buildCurrentDayPayload() {
       emom_interval: Number($('wodEmomInterval')?.value) || 60,
       emom_rounds: Number($('wodEmomRounds')?.value) || 10,
       minutes: Number($('wodMinutes')?.value) || 12,
+      no_time_cap: Boolean($('wodNoTimeCap')?.checked),
     },
     coaching_tips: $('dayCoachingTips')?.value.trim() || '',
   };

@@ -407,7 +407,13 @@
 
             <!-- AMRAP / FOR TIME COACH CONFIG -->
             <div id="wodCfgCap" class="hidden">
-              <div class="timer-stepper-box">
+              <div id="wodNoTimeCapWrap" class="hidden" style="margin-bottom:10px;">
+                <label class="row-wrap" style="gap:8px; cursor:pointer; align-items:center; font-size:0.85rem; font-weight:700; color:#facc15;">
+                  <input id="wodNoTimeCap" type="checkbox" style="width:16px; height:16px; accent-color:#facc15;" />
+                  <span>♾️ Sin tiempo límite (crono progresivo sin Time Cap)</span>
+                </label>
+              </div>
+              <div id="wodMinutesStepperWrap" class="timer-stepper-box">
                 <label for="wodMinutes" style="font-size:0.78rem; font-weight:800; color:#38bdf8;">⏱ DURACIÓN / TIME CAP (MINUTOS)</label>
                 <div class="stepper-row">
                   <button type="button" class="stepper-btn" id="btnCoachDecWodMins" title="Restar 1m">-1m</button>
@@ -879,6 +885,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=93"></script>
+  <script type="module" src="/static/js/coach.js?v=94"></script>
 </body>
 </html>
