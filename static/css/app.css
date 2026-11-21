@@ -433,10 +433,10 @@ body.alumnos-page .brand {
 
 .card-session-sheet .ex-col-order,
 .ex-col-order {
-  flex: 0 0 42px !important;
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
@@ -1326,10 +1326,10 @@ textarea.input {
   }
   .card-session-sheet .ex-col-order,
 .ex-col-order {
-  flex: 0 0 42px !important;
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
@@ -1337,10 +1337,10 @@ textarea.input {
 .card-session-sheet .ex-col-sets,
   .card-session-sheet .ex-col-order,
 .ex-col-order {
-  flex: 0 0 42px !important;
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }
@@ -1828,10 +1828,10 @@ textarea.input {
   }
   .card-session-sheet .ex-col-order,
 .ex-col-order {
-  flex: 0 0 42px !important;
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
   text-align: center !important;
   box-sizing: border-box !important;
 }

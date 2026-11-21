@@ -959,7 +959,7 @@ function renderCurrentDay(resetTimer = true) {
             subHtml += `
               <div class="ex-clean-line" style="margin-top:4px;">
                 <div class="ex-col-cell ex-col-order">
-                  <span class="clean-pill-val">${sIdx + 2}.-</span>
+                  <span class="clean-pill-val">+ ${sIdx + 2}.-</span>
                 </div>
                 <div class="ex-col-cell ex-col-sets">
                   <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
