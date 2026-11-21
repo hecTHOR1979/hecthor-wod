@@ -922,6 +922,8 @@ function renderCurrentDay(resetTimer = true) {
         } else {
           const box = document.createElement('div');
           box.className = 'ex-group-card';
+          const firstHasNum = /^\s*\d+[\.\-)]/.test(displayName);
+          const firstSsName = firstHasNum ? displayName : `1.- ${displayName}`;
           let subHtml = `
             <div class="ex-clean-line" style="margin-bottom:4px;">
               <div class="ex-col-cell ex-col-sets">
@@ -931,7 +933,7 @@ function renderCurrentDay(resetTimer = true) {
                 <span class="clean-pill-val">${esc(item.reps || '-')}</span>
               </div>
               <div class="ex-col-name">
-                ${buildExerciseNameHtml(displayName, item.video_url)}
+                ${buildExerciseNameHtml(firstSsName, item.video_url)}
                 ${metaHtml}
                 ${item.notes ? `<div class="ex-notes-text">${esc(item.notes)}</div>` : ''}
               </div>
@@ -949,11 +951,13 @@ function renderCurrentDay(resetTimer = true) {
             if (sub.load) subMeta.push(`Carga: ${esc(sub.load)}`);
             if (sub.rest) subMeta.push(`Descanso: ${esc(sub.rest)}`);
             const subMetaHtml = subMeta.length > 0 ? `<div class="ex-meta-text">🏋️ ${subMeta.join(' · ')}</div>` : '';
-            const subDisplay = (sub.name || '').trim();
+            const subRaw = (sub.name || '').trim();
+            const subHasNum = /^\s*\d+[\.\-)]/.test(subRaw);
+            const subDisplay = subHasNum ? subRaw : `${sIdx + 2}.- ${subRaw}`;
             subHtml += `
               <div class="ex-clean-line" style="margin-top:4px;">
                 <div class="ex-col-cell ex-col-sets">
-                  <span class="clean-pill-val" style="opacity:0.75;">+ ${sIdx + 2}</span>
+                  <span class="clean-pill-val">${cleanSetsVal(sub.sets) || '-'}</span>
                 </div>
                 <div class="ex-col-cell ex-col-reps">
                   <span class="clean-pill-val">${esc(sub.reps || '-')}</span>
@@ -1086,7 +1090,7 @@ function renderCurrentDay(resetTimer = true) {
 
         const hdrRow = document.createElement('div');
         hdrRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;';
-        hdrRow.innerHTML = `<span class="sub-block-student-badge">📦 ${esc(displaySbTitle)}</span>`;
+        hdrRow.innerHTML = `<span class="sub-block-student-badge">${esc(displaySbTitle)}</span>`;
         sbCard.appendChild(hdrRow);
 
         if (item.notes) {
