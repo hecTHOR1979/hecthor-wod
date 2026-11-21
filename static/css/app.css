@@ -777,6 +777,26 @@ textarea.input {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
 }
 
+#pickerList {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) rgba(255, 255, 255, 0.1);
+}
+
+#pickerList::-webkit-scrollbar {
+  width: 10px;
+}
+
+#pickerList::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+#pickerList::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 8px;
+  border: 2px solid var(--bg-elev);
+}
+
 .video-frame {
   width: 100%;
   aspect-ratio: 16 / 9;

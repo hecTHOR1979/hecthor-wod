@@ -3227,6 +3227,10 @@ function renderPickerList() {
     }
     return true;
   });
+  const titleEl = $('pickerTitle');
+  if (titleEl) {
+    titleEl.textContent = `📚 Biblioteca (${filtered.length} ${filtered.length === 1 ? 'ejercicio' : 'ejercicios'})`;
+  }
   list.innerHTML = '';
   if (filtered.length === 0) {
     list.innerHTML = '<p class="muted">No se encontraron ejercicios con ese filtro. Usa "+ Crear nuevo" arriba para añadirlo a la biblioteca.</p>';
