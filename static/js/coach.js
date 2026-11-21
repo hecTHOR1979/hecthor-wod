@@ -2546,6 +2546,7 @@ function renderWodExercisesList() {
       row.querySelector('[data-del-wod-ex]').addEventListener('click', () => {
         state.currentDay.wod.exercises.splice(idx, 1);
         renderWodExercisesList();
+        updateWodTimerUI();
         triggerAutoSave(true);
       });
 
@@ -2923,6 +2924,7 @@ $('btnAddWodSubBlock')?.addEventListener('click', () => {
   if (!Array.isArray(state.currentDay.wod.exercises)) state.currentDay.wod.exercises = [];
   state.currentDay.wod.exercises.push(createSubBlockItem(''));
   renderWodExercisesList();
+  updateWodTimerUI();
   triggerAutoSave(true);
   showToast('📦 Cuadro añadido al WOD');
 });
@@ -2943,6 +2945,7 @@ $('btnAddWodTimedSection')?.addEventListener('click', () => {
     sub_exercises: []
   });
   renderWodExercisesList();
+  updateWodTimerUI();
   triggerAutoSave(true);
 });
 
@@ -3687,7 +3690,8 @@ initCoachWarmupTimerControls();
 // ================= COACH WOD TIMER CONTROLS =================
 function updateWodTimerUI() {
   const rawType = ($('wodType')?.value || '').toUpperCase();
-  const isSin = rawType.includes('SIN CRONO');
+  const hasModularWodTimers = Array.isArray(state.currentDay?.wod?.exercises) && state.currentDay.wod.exercises.some((x) => x && x.is_timed_section);
+  const isSin = rawType.includes('SIN CRONO') || hasModularWodTimers;
   const isTabata = !isSin && rawType.includes('TABATA');
   const isEmom = !isSin && rawType.includes('EMOM');
   const isCap = !isSin && (rawType.includes('AMRAP') || rawType.includes('FOR TIME') || rawType.includes('TIME') || rawType.includes('CHIPPER') || rawType.includes('ENDURANCE'));

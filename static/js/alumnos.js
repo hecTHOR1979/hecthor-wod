@@ -742,7 +742,7 @@ function renderCurrentDay(resetTimer = true) {
         ${wod.rx_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Rx:</strong> ${esc(wod.rx_weights)}</div>` : ''}
         ${wod.scaled_weights ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:2px;"><strong>Escalado:</strong> ${esc(wod.scaled_weights)}</div>` : ''}
         ${wod.strategy ? `<div class="session-body-text" style="font-size:0.88rem; margin-top:4px;"><strong>Estrategia:</strong> ${esc(wod.strategy)}</div>` : ''}
-        ${wodSpec ? renderCronoProLinkHtml(wodSpec) : ''}
+        ${(wodSpec && !wodExercises.some((e) => e && e.is_timed_section)) ? renderCronoProLinkHtml(wodSpec) : ''}
       ` : `
         <div class="session-body-text" style="margin-top:4px; font-style:italic;">Sin WOD programado de forma manual para esta sesión.</div>
       `}
