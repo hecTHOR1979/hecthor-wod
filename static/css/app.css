@@ -537,22 +537,48 @@ body.alumnos-page .brand {
   body.alumnos-page .badge,
   body.alumnos-page .muted,
   body.alumnos-page .text-muted,
-  body.alumnos-page .wod-pre-clean {
+  body.alumnos-page .wod-pre-clean,
+  body.coach-page,
+  body.coach-page h1,
+  body.coach-page h2,
+  body.coach-page h3,
+  body.coach-page h4,
+  body.coach-page p,
+  body.coach-page span,
+  body.coach-page div,
+  body.coach-page strong,
+  body.coach-page label,
+  body.coach-page button,
+  body.coach-page a,
+  body.coach-page input,
+  body.coach-page select,
+  body.coach-page textarea,
+  body.coach-page .section-title,
+  body.coach-page .brand-title,
+  body.coach-page .brand-sub,
+  body.coach-page .badge,
+  body.coach-page .muted,
+  body.coach-page .text-muted {
     color: #ffffff !important;
   }
 
-  body.alumnos-page {
+  body.alumnos-page,
+  body.coach-page {
     background: #04060b !important;
   }
 
   body.alumnos-page .topbar,
-  body.alumnos-page .bottom-nav {
+  body.alumnos-page .bottom-nav,
+  body.coach-page .topbar,
+  body.coach-page .bottom-nav {
     background: rgba(6, 10, 20, 0.95) !important;
     border-color: #1e3a8a !important;
   }
 
   body.alumnos-page input::placeholder,
-  body.alumnos-page textarea::placeholder {
+  body.alumnos-page textarea::placeholder,
+  body.coach-page input::placeholder,
+  body.coach-page textarea::placeholder {
     color: rgba(255, 255, 255, 0.5) !important;
   }
 
@@ -565,7 +591,12 @@ body.alumnos-page .brand {
 
   body.alumnos-page .card,
   body.alumnos-page .card-session-sheet,
-  body.alumnos-page .item-box {
+  body.alumnos-page .item-box,
+  body.coach-page .card,
+  body.coach-page .item-box,
+  body.coach-page .item-box-celeste,
+  body.coach-page .modal,
+  body.coach-page .day-card {
     background: #080d18 !important;
     border: 1px solid #1e3a8a !important;
     color: #ffffff !important;
@@ -579,7 +610,9 @@ body.alumnos-page .brand {
 
   body.alumnos-page .timed-section-student-card,
   body.alumnos-page .sub-block-student-card,
-  body.alumnos-page .ex-group-card {
+  body.alumnos-page .ex-group-card,
+  body.coach-page .timed-section-coach-box,
+  body.coach-page .sub-block-coach-box {
     background: rgba(12, 26, 56, 0.55) !important;
     border: 1.5px solid #1e3a8a !important;
     color: #ffffff !important;
@@ -594,19 +627,23 @@ body.alumnos-page .brand {
     box-shadow: none !important;
   }
 
-  body.alumnos-page .ex-clean-line {
+  body.alumnos-page .ex-clean-line,
+  body.coach-page .ex-coach-line,
+  body.coach-page .sub-ex-coach-row {
     background: #050811 !important;
     border: 1px solid rgba(30, 64, 175, 0.45) !important;
     color: #ffffff !important;
   }
 
-  body.alumnos-page .btn {
+  body.alumnos-page .btn,
+  body.coach-page .btn,
+  body.coach-page .chip {
     background: #0b1324 !important;
     border-color: #1e3a8a !important;
     color: #ffffff !important;
   }
 
-  /* Botones principales y activos en la página del alumno: azul oscuro con letras en blanco */
+  /* Botones principales y activos en azul oscuro con letras en blanco */
   body.alumnos-page .btn-primary,
   body.alumnos-page .btn-primary *,
   body.alumnos-page button.btn-primary,
@@ -618,30 +655,52 @@ body.alumnos-page .brand {
   body.alumnos-page .btn.active-tab,
   body.alumnos-page .week-tab.active,
   body.alumnos-page .btn-accent,
-  body.alumnos-page .badge-accent {
+  body.alumnos-page .badge-accent,
+  body.coach-page .btn-primary,
+  body.coach-page .btn-primary *,
+  body.coach-page button.btn-primary,
+  body.coach-page .active-tab,
+  body.coach-page .btn.active-tab,
+  body.coach-page .day-card.active,
+  body.coach-page .chip.selected,
+  body.coach-page .week-tab.active,
+  body.coach-page .btn-accent,
+  body.coach-page .badge-accent {
     background: #1e3a8a !important;
     color: #ffffff !important;
     border-color: #2563eb !important;
     font-weight: 900 !important;
   }
 
+  body.coach-page .btn-danger {
+    background: rgba(127, 29, 29, 0.65) !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+  }
+
   body.alumnos-page .btn-primary:hover,
   body.alumnos-page button.btn-primary:hover,
   body.alumnos-page [data-block-score-btn]:hover,
-  body.alumnos-page .btn-crono-pro-action:hover {
+  body.alumnos-page .btn-crono-pro-action:hover,
+  body.coach-page .btn-primary:hover,
+  body.coach-page button.btn-primary:hover {
     background: #1d4ed8 !important;
     color: #ffffff !important;
   }
 
   body.alumnos-page input,
   body.alumnos-page select,
-  body.alumnos-page textarea {
+  body.alumnos-page textarea,
+  body.coach-page input,
+  body.coach-page select,
+  body.coach-page textarea {
     color: #ffffff !important;
     background: #050811 !important;
     border-color: #1e3a8a !important;
   }
 
-  body.alumnos-page .badge {
+  body.alumnos-page .badge,
+  body.coach-page .badge {
     color: #ffffff !important;
     background: #0f2147 !important;
     border: 1px solid #1e3a8a !important;
