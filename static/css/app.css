@@ -1870,7 +1870,7 @@ textarea.input {
     padding: 3px 5px !important;
   }
 
-  /* Encabezados principales en LETRA 11.5pt SUBRAYADA Y COMPACTA PARA A4 */
+  /* Encabezados principales en LETRA 12.5pt SUBRAYADA Y COMPACTA PARA A4 */
   .session-section-title,
   .session-main-header,
   body.alumnos-page .session-main-header,
@@ -1880,7 +1880,7 @@ textarea.input {
   .section-title,
   h1, h2, h3 {
     color: #000000 !important;
-    font-size: 11.5pt !important;
+    font-size: 12.5pt !important;
     font-weight: 900 !important;
     text-decoration: underline !important;
     text-underline-offset: 2px !important;
@@ -1888,22 +1888,22 @@ textarea.input {
     margin: 0 0 1.5px 0 !important;
     text-transform: uppercase !important;
     display: block !important;
-    line-height: 1.14 !important;
+    line-height: 1.12 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Subencabezados de bloque en letra 10.5pt */
+  /* Subencabezados de bloque en letra 11pt */
   .session-subheading,
   body.alumnos-page .session-subheading,
   .session-sub-header,
   body.alumnos-page .session-sub-header,
   h2.session-sub-header {
     color: #000000 !important;
-    font-size: 10.5pt !important;
+    font-size: 11pt !important;
     font-weight: 800 !important;
-    line-height: 1.14 !important;
-    margin: 0 0 2px 0 !important;
+    line-height: 1.12 !important;
+    margin: 0 0 1.5px 0 !important;
   }
 
   .sub-header-desktop {
@@ -1917,15 +1917,15 @@ textarea.input {
     margin: 1px 0 !important;
   }
 
-  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS - Letra 10pt compacta */
+  /* Filas de ejercicios en fondo BLANCO con letras NEGRAS - Letra grande y líneas compactas */
   .ex-clean-line,
   body.alumnos-page .ex-clean-line {
     background: #ffffff !important;
     background-color: #ffffff !important;
     border: 1px solid #000000 !important;
     color: #000000 !important;
-    font-size: 10pt !important;
-    line-height: 1.12 !important;
+    font-size: 11pt !important;
+    line-height: 1.1 !important;
     padding: 1.5px 4px !important;
     margin-bottom: 1.5px !important;
     border-radius: 3px !important;
@@ -1939,24 +1939,24 @@ textarea.input {
   .ex-columns-header {
     color: #000000 !important;
     font-weight: 800 !important;
-    font-size: 8.5pt !important;
-    line-height: 1.1 !important;
-    padding: 1px 4px !important;
+    font-size: 9pt !important;
+    line-height: 1.08 !important;
+    padding: 0 4px !important;
     margin-bottom: 1px !important;
   }
 
   .ex-col-cell {
     color: #000000 !important;
-    font-size: 9.5pt !important;
-    line-height: 1.12 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.1 !important;
   }
 
   .ex-col-sets,
   .ex-col-reps {
-    flex: 0 0 62px !important;
-    width: 62px !important;
-    min-width: 62px !important;
-    max-width: 62px !important;
+    flex: 0 0 64px !important;
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
     text-align: center !important;
     box-sizing: border-box !important;
   }
@@ -1975,8 +1975,8 @@ textarea.input {
   body.alumnos-page .ex-col-name,
   body.alumnos-page .ex-col-name strong {
     color: #000000 !important;
-    font-size: 10pt !important;
-    line-height: 1.12 !important;
+    font-size: 11pt !important;
+    line-height: 1.1 !important;
     font-weight: 700 !important;
     background: transparent !important;
   }
@@ -2106,4 +2106,56 @@ textarea.input {
     text-decoration: none !important;
     pointer-events: none !important;
   }
+}
+
+/* Medición exacta del layout compacto de impresión antes de escalar a 1 página A4 */
+body.pdf-measuring #dayContent {
+  width: 740px !important;
+  font-size: 9.5pt !important;
+  line-height: 1.12 !important;
+}
+body.pdf-measuring #dayContent .no-print,
+body.pdf-measuring #dayContent .crono-pro-link-wrap,
+body.pdf-measuring #dayContent .btn-crono-pro-action,
+body.pdf-measuring #dayContent .block-score-box,
+body.pdf-measuring #dayContent .ex-col-action {
+  display: none !important;
+}
+body.pdf-measuring #dayContent .card,
+body.pdf-measuring #dayContent .card-session-sheet,
+body.pdf-measuring #dayContent .timed-section-student-card,
+body.pdf-measuring #dayContent .sub-block-student-card,
+body.pdf-measuring #dayContent .ex-group-card {
+  padding: 3px 5px !important;
+  margin-bottom: 3px !important;
+}
+body.pdf-measuring #dayContent .ex-clean-line {
+  padding: 1.5px 4px !important;
+  margin-bottom: 1.5px !important;
+  font-size: 11pt !important;
+  line-height: 1.1 !important;
+}
+body.pdf-measuring #dayContent .ex-columns-header {
+  padding: 0 4px !important;
+  margin-bottom: 1px !important;
+  font-size: 9pt !important;
+}
+body.pdf-measuring #dayContent .section-badge-banner,
+body.pdf-measuring #dayContent .session-main-header {
+  font-size: 12.5pt !important;
+  line-height: 1.12 !important;
+  margin-bottom: 1.5px !important;
+  padding: 0 !important;
+}
+body.pdf-measuring #dayContent .session-subheading,
+body.pdf-measuring #dayContent .session-sub-header {
+  font-size: 11pt !important;
+  line-height: 1.12 !important;
+  margin-bottom: 1.5px !important;
+}
+body.pdf-measuring #dayContent .timed-section-student-badge,
+body.pdf-measuring #dayContent .sub-block-student-badge {
+  font-size: 11pt !important;
+  padding: 0 !important;
+  margin-bottom: 1px !important;
 }

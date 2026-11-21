@@ -803,24 +803,17 @@ function renderCurrentDay(resetTimer = true) {
     }
   }
 
-  // Print Day to PDF handler (auto-escala a 1 sola página A4)
+  // Print Day to PDF handler (mide con el layout real de impresión y solo escala si excede 1 hoja A4)
   const applySinglePagePdfScale = () => {
     const dayEl = $('dayContent');
     if (!dayEl) return;
     dayEl.style.zoom = '';
-    const prevWidth = dayEl.style.width;
-    dayEl.style.width = '740px';
-    const hiddenNoPrints = [];
-    dayEl.querySelectorAll('.no-print').forEach((el) => {
-      hiddenNoPrints.push([el, el.style.display]);
-      el.style.display = 'none';
-    });
+    document.body.classList.add('pdf-measuring');
     const measuredH = dayEl.getBoundingClientRect().height;
-    hiddenNoPrints.forEach(([el, prev]) => { el.style.display = prev; });
-    dayEl.style.width = prevWidth;
-    const maxA4HeightPx = 960;
+    document.body.classList.remove('pdf-measuring');
+    const maxA4HeightPx = 1040;
     if (measuredH > maxA4HeightPx) {
-      const scale = Math.max(0.5, Math.min(1, maxA4HeightPx / measuredH));
+      const scale = Math.max(0.55, Math.min(1, maxA4HeightPx / measuredH));
       dayEl.style.zoom = scale.toFixed(3);
     }
   };
