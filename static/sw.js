@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thr-plan-v78';
+const CACHE_NAME = 'thr-plan-v79';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

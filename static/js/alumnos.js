@@ -487,6 +487,15 @@ function getWodTimerSpec(wod) {
   };
 }
 
+function formatTabataDur(sec, full = false) {
+  const s = Number(sec) || 0;
+  if (s > 0 && s % 60 === 0) {
+    const m = s / 60;
+    return full ? `${m} ${m === 1 ? 'minuto' : 'minutos'}` : `${m}'`;
+  }
+  return `${s}s`;
+}
+
 function formatSpecSummary(spec) {
   if (!spec) return '';
   if (spec.mode === 'TABATA') {
@@ -495,7 +504,9 @@ function formatSpecSummary(spec) {
     const totalM = Math.floor(totalSec / 60);
     const totalS = totalSec % 60;
     const tStr = totalS > 0 ? `${totalM}m ${totalS}s` : `${totalM} min`;
-    return `⚡ ${spec.tabataRounds || 8} rondas · ${spec.workSec || 20}s Trabajo (Azul) / ${spec.restSec !== undefined ? spec.restSec : 10}s Descanso (Verde) · Total: ${tStr}`;
+    const wTxt = formatTabataDur(spec.workSec || 20, true);
+    const rTxt = formatTabataDur(spec.restSec !== undefined ? spec.restSec : 10, true);
+    return `⚡ ${spec.tabataRounds || 8} rondas · ${wTxt} Trabajo (Azul) / ${rTxt} Descanso (Verde) · Total: ${tStr}`;
   } else if (spec.mode === 'EMOM') {
     const intSec = spec.intervalSec || 60;
     const r = spec.emomRounds || Math.max(1, Math.round(((spec.minutes || 10) * 60) / intSec));
@@ -519,7 +530,9 @@ function cleanSetsVal(val) {
 function formatSpecButtonLabel(spec) {
   if (!spec) return 'Crono Pro';
   if (spec.mode === 'TABATA') {
-    return `TABATA ${spec.tabataRounds || 8}R (${spec.workSec || 20}s/${spec.restSec !== undefined ? spec.restSec : 10}s)`;
+    const wTxt = formatTabataDur(spec.workSec || 20, false);
+    const rTxt = formatTabataDur(spec.restSec !== undefined ? spec.restSec : 10, false);
+    return `TABATA ${spec.tabataRounds || 8}R (${wTxt}/${rTxt})`;
   } else if (spec.mode === 'EMOM') {
     const intSec = spec.intervalSec || 60;
     return `EMOM ${spec.minutes || 10}' (cada ${intSec}s)`;
@@ -993,7 +1006,7 @@ function renderCurrentDay(resetTimer = true) {
         let timedTitle = (item.name || '').trim();
         if (!timedTitle) {
           if (timedSpec.mode === 'TABATA') {
-            timedTitle = `TABATA (${timedSpec.tabataRounds} rondas · ${timedSpec.workSec}s / ${timedSpec.restSec}s)`;
+            timedTitle = `TABATA (${timedSpec.tabataRounds} rondas · ${formatTabataDur(timedSpec.workSec, true)} / ${formatTabataDur(timedSpec.restSec, true)})`;
           } else if (timedSpec.mode === 'EMOM') {
             timedTitle = `EMOM (${timedSpec.rounds} rondas · cada ${timedSpec.intervalSec}s)`;
           } else if (timedSpec.mode === 'FOR TIME') {
