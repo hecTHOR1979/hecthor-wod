@@ -3531,13 +3531,53 @@ function renderPickerList() {
 }
 
 // WOD Generator
+function getHiddenSet(storageKey) {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+  } catch (_) {
+    return new Set();
+  }
+}
+
+function addToHiddenSet(storageKey, items) {
+  const cur = getHiddenSet(storageKey);
+  items.forEach((it) => cur.add(it));
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(Array.from(cur)));
+  } catch (_) {}
+}
+
+function getEquipmentList() {
+  const hidden = getHiddenSet('hecthor_hidden_equipment');
+  return EQUIPMENT_LIST.filter((eq) => !hidden.has(eq));
+}
+
 function renderEquipmentChips() {
   const wrap = $('genEquipmentChips');
+  if (!wrap) return;
   wrap.innerHTML = '';
-  EQUIPMENT_LIST.forEach((eq) => {
+  getEquipmentList().forEach((eq) => {
     const chip = document.createElement('span');
     chip.className = `chip ${state.selectedEquipment.has(eq) ? 'selected' : ''}`;
-    chip.textContent = eq;
+    chip.style.display = 'inline-flex';
+    chip.style.alignItems = 'center';
+    chip.style.gap = '6px';
+    const lbl = document.createElement('span');
+    lbl.textContent = eq;
+    const del = document.createElement('span');
+    del.textContent = '×';
+    del.title = `Eliminar "${eq}"`;
+    del.style.cssText = 'opacity:0.75; font-weight:900; padding:0 2px; cursor:pointer;';
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`¿Eliminar "${eq}" de la lista de material?`)) return;
+      addToHiddenSet('hecthor_hidden_equipment', [eq]);
+      state.selectedEquipment.delete(eq);
+      renderEquipmentChips();
+      showToast(`Material eliminado: ${eq}`);
+    });
+    chip.appendChild(lbl);
+    chip.appendChild(del);
     chip.addEventListener('click', () => {
       if (state.selectedEquipment.has(eq)) state.selectedEquipment.delete(eq);
       else state.selectedEquipment.add(eq);
@@ -3548,15 +3588,31 @@ function renderEquipmentChips() {
 }
 
 function getSkillsList() {
+  const hidden = getHiddenSet('hecthor_hidden_skills');
   let custom = [];
   try {
     custom = JSON.parse(localStorage.getItem('hecthor_custom_skills') || '[]');
   } catch (_) {}
-  const all = [...DEFAULT_SKILLS];
+  const all = [];
+  DEFAULT_SKILLS.forEach((s) => {
+    if (!hidden.has(s)) all.push(s);
+  });
   custom.forEach((s) => {
-    if (s && !all.includes(s)) all.push(s);
+    if (s && !hidden.has(s) && !all.includes(s)) all.push(s);
   });
   return all;
+}
+
+function removeSkillsFromLists(skillsToRemove) {
+  if (!skillsToRemove || skillsToRemove.length === 0) return;
+  const remSet = new Set(skillsToRemove);
+  try {
+    const saved = JSON.parse(localStorage.getItem('hecthor_custom_skills') || '[]');
+    localStorage.setItem('hecthor_custom_skills', JSON.stringify(saved.filter((s) => !remSet.has(s))));
+  } catch (_) {}
+  addToHiddenSet('hecthor_hidden_skills', skillsToRemove.filter((s) => DEFAULT_SKILLS.includes(s)));
+  skillsToRemove.forEach((s) => state.selectedSkills?.delete(s));
+  renderSkillsChips();
 }
 
 function renderSkillsChips() {
@@ -3567,7 +3623,23 @@ function renderSkillsChips() {
   skills.forEach((skill) => {
     const chip = document.createElement('span');
     chip.className = `chip ${state.selectedSkills && state.selectedSkills.has(skill) ? 'selected' : ''}`;
-    chip.textContent = skill;
+    chip.style.display = 'inline-flex';
+    chip.style.alignItems = 'center';
+    chip.style.gap = '6px';
+    const lbl = document.createElement('span');
+    lbl.textContent = skill;
+    const del = document.createElement('span');
+    del.textContent = '×';
+    del.title = `Eliminar "${skill}"`;
+    del.style.cssText = 'opacity:0.75; font-weight:900; padding:0 2px; cursor:pointer;';
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`¿Eliminar "${skill}" de la lista de skills?`)) return;
+      removeSkillsFromLists([skill]);
+      showToast(`Skill eliminada: ${skill}`);
+    });
+    chip.appendChild(lbl);
+    chip.appendChild(del);
     chip.addEventListener('click', () => {
       if (!state.selectedSkills) state.selectedSkills = new Set();
       if (state.selectedSkills.has(skill)) state.selectedSkills.delete(skill);
@@ -3577,6 +3649,28 @@ function renderSkillsChips() {
     wrap.appendChild(chip);
   });
 }
+
+$('btnDeleteSelectedEquipment')?.addEventListener('click', () => {
+  const selected = Array.from(state.selectedEquipment || []);
+  if (selected.length === 0) {
+    return showToast('Selecciona primero los materiales que quieras eliminar (o pulsa × en uno concreto)');
+  }
+  if (!confirm(`¿Eliminar ${selected.length} material(es) seleccionado(s) de la lista?`)) return;
+  addToHiddenSet('hecthor_hidden_equipment', selected);
+  state.selectedEquipment.clear();
+  renderEquipmentChips();
+  showToast('Materiales eliminados de la lista');
+});
+
+$('btnDeleteSelectedSkills')?.addEventListener('click', () => {
+  const selected = Array.from(state.selectedSkills || []);
+  if (selected.length === 0) {
+    return showToast('Selecciona primero las skills que quieras eliminar (o pulsa × en una concreta)');
+  }
+  if (!confirm(`¿Eliminar ${selected.length} skill(s) seleccionada(s) de la lista?`)) return;
+  removeSkillsFromLists(selected);
+  showToast('Skills eliminadas de la lista');
+});
 
 function addCustomSkill() {
   const val = ($('newSkillInput')?.value || '').trim();
