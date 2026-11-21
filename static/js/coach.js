@@ -1352,7 +1352,7 @@ function renderWarmupList() {
 
         ${normTimer === 'EMOM' ? `
           <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
-            <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-wu-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="5" max="300" step="1" data-wu-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-wu-timed-field="emom_rounds" value="${esc(item.emom_rounds !== undefined ? item.emom_rounds : 10)}" style="padding:4px;" /></div>
           </div>
         ` : ''}
@@ -1429,11 +1429,28 @@ function renderWarmupList() {
             const r = Number(item.tabata_rest !== undefined ? item.tabata_rest : 10);
             const rounds = Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8);
             item.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+            const mInp = row.querySelector('[data-wu-timed-field="timer_minutes"]');
+            if (mInp) mInp.value = item.timer_minutes;
             triggerAutoSave(false);
-          } else if (field === 'emom_interval' || field === 'emom_rounds') {
-            const intSec = Number(item.emom_interval !== undefined ? item.emom_interval : 60);
-            const rounds = Number(item.emom_rounds !== undefined ? item.emom_rounds : 10);
-            item.timer_minutes = Math.round((intSec * rounds) / 60);
+          } else if (field === 'emom_interval') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            const mins = Math.max(1, Number(item.timer_minutes || 10));
+            item.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
+            const rInp = row.querySelector('[data-wu-timed-field="emom_rounds"]');
+            if (rInp) rInp.value = item.emom_rounds;
+            triggerAutoSave(false);
+          } else if (field === 'emom_rounds') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            const rounds = Math.max(1, Number(item.emom_rounds || 10));
+            item.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
+            const mInp = row.querySelector('[data-wu-timed-field="timer_minutes"]');
+            if (mInp) mInp.value = item.timer_minutes;
+            triggerAutoSave(false);
+          } else if (field === 'timer_minutes' && (item.timer_type || '').toUpperCase() === 'EMOM') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            item.emom_rounds = Math.max(1, Math.round((Math.max(1, Number(val || 10)) * 60) / intSec));
+            const rInp = row.querySelector('[data-wu-timed-field="emom_rounds"]');
+            if (rInp) rInp.value = item.emom_rounds;
             triggerAutoSave(false);
           } else {
             triggerAutoSave(false);
@@ -2067,7 +2084,7 @@ function renderPartsList() {
 
             ${normTimer === 'EMOM' ? `
               <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
-                <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-part-timed-field="emom_interval" value="${esc(ex.emom_interval !== undefined ? ex.emom_interval : 60)}" style="padding:4px;" /></div>
+                <div><label style="font-size:0.75rem; color:#0284c7; font-weight:700;">Cada (s)</label><input class="input" type="number" min="5" max="300" step="1" data-part-timed-field="emom_interval" value="${esc(ex.emom_interval !== undefined ? ex.emom_interval : 60)}" style="padding:4px;" /></div>
                 <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-part-timed-field="emom_rounds" value="${esc(ex.emom_rounds !== undefined ? ex.emom_rounds : 10)}" style="padding:4px;" /></div>
               </div>
             ` : ''}
@@ -2145,11 +2162,28 @@ function renderPartsList() {
                 const r = Number(ex.tabata_rest !== undefined ? ex.tabata_rest : 10);
                 const rounds = Number(ex.tabata_rounds !== undefined ? ex.tabata_rounds : 8);
                 ex.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+                const mInp = exRow.querySelector('[data-part-timed-field="timer_minutes"]');
+                if (mInp) mInp.value = ex.timer_minutes;
                 triggerAutoSave(false);
-              } else if (field === 'emom_interval' || field === 'emom_rounds') {
-                const intSec = Number(ex.emom_interval !== undefined ? ex.emom_interval : 60);
-                const rounds = Number(ex.emom_rounds !== undefined ? ex.emom_rounds : 10);
-                ex.timer_minutes = Math.round((intSec * rounds) / 60);
+              } else if (field === 'emom_interval') {
+                const intSec = Math.max(5, Number(ex.emom_interval || 60));
+                const mins = Math.max(1, Number(ex.timer_minutes || 10));
+                ex.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
+                const rInp = exRow.querySelector('[data-part-timed-field="emom_rounds"]');
+                if (rInp) rInp.value = ex.emom_rounds;
+                triggerAutoSave(false);
+              } else if (field === 'emom_rounds') {
+                const intSec = Math.max(5, Number(ex.emom_interval || 60));
+                const rounds = Math.max(1, Number(ex.emom_rounds || 10));
+                ex.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
+                const mInp = exRow.querySelector('[data-part-timed-field="timer_minutes"]');
+                if (mInp) mInp.value = ex.timer_minutes;
+                triggerAutoSave(false);
+              } else if (field === 'timer_minutes' && (ex.timer_type || '').toUpperCase() === 'EMOM') {
+                const intSec = Math.max(5, Number(ex.emom_interval || 60));
+                ex.emom_rounds = Math.max(1, Math.round((Math.max(1, Number(val || 10)) * 60) / intSec));
+                const rInp = exRow.querySelector('[data-part-timed-field="emom_rounds"]');
+                if (rInp) rInp.value = ex.emom_rounds;
                 triggerAutoSave(false);
               } else {
                 triggerAutoSave(false);
@@ -2578,7 +2612,7 @@ function renderWodExercisesList() {
 
         ${normTimer === 'EMOM' ? `
           <div class="grid-2" style="background:rgba(0,0,0,0.25); border-radius:6px; padding:6px 8px; margin-bottom:6px;">
-            <div><label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Cada (s)</label><input class="input" type="number" min="10" max="300" step="10" data-wod-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
+            <div><label style="font-size:0.75rem; color:#f59e0b; font-weight:700;">Cada (s)</label><input class="input" type="number" min="5" max="300" step="1" data-wod-timed-field="emom_interval" value="${esc(item.emom_interval !== undefined ? item.emom_interval : 60)}" style="padding:4px;" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Rondas</label><input class="input" type="number" min="1" max="60" data-wod-timed-field="emom_rounds" value="${esc(item.emom_rounds !== undefined ? item.emom_rounds : 10)}" style="padding:4px;" /></div>
           </div>
         ` : ''}
@@ -2656,11 +2690,28 @@ function renderWodExercisesList() {
             const r = Number(item.tabata_rest !== undefined ? item.tabata_rest : 10);
             const rounds = Number(item.tabata_rounds !== undefined ? item.tabata_rounds : 8);
             item.timer_minutes = Math.ceil(((w + r) * rounds) / 60);
+            const mInp = row.querySelector('[data-wod-timed-field="timer_minutes"]');
+            if (mInp) mInp.value = item.timer_minutes;
             triggerAutoSave(false);
-          } else if (field === 'emom_interval' || field === 'emom_rounds') {
-            const intSec = Number(item.emom_interval !== undefined ? item.emom_interval : 60);
-            const rounds = Number(item.emom_rounds !== undefined ? item.emom_rounds : 10);
-            item.timer_minutes = Math.round((intSec * rounds) / 60);
+          } else if (field === 'emom_interval') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            const mins = Math.max(1, Number(item.timer_minutes || 10));
+            item.emom_rounds = Math.max(1, Math.round((mins * 60) / intSec));
+            const rInp = row.querySelector('[data-wod-timed-field="emom_rounds"]');
+            if (rInp) rInp.value = item.emom_rounds;
+            triggerAutoSave(false);
+          } else if (field === 'emom_rounds') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            const rounds = Math.max(1, Number(item.emom_rounds || 10));
+            item.timer_minutes = Math.max(1, Math.round((intSec * rounds) / 60));
+            const mInp = row.querySelector('[data-wod-timed-field="timer_minutes"]');
+            if (mInp) mInp.value = item.timer_minutes;
+            triggerAutoSave(false);
+          } else if (field === 'timer_minutes' && (item.timer_type || '').toUpperCase() === 'EMOM') {
+            const intSec = Math.max(5, Number(item.emom_interval || 60));
+            item.emom_rounds = Math.max(1, Math.round((Math.max(1, Number(val || 10)) * 60) / intSec));
+            const rInp = row.querySelector('[data-wod-timed-field="emom_rounds"]');
+            if (rInp) rInp.value = item.emom_rounds;
             triggerAutoSave(false);
           } else {
             triggerAutoSave(false);
