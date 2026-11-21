@@ -722,12 +722,19 @@ def delete_exercise(id: int, _coach=Depends(require_coach)):
 
 @app.post("/api/generate-wod")
 def generate_wod_endpoint(req: WodGeneratorRequest, _coach=Depends(require_coach)):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, category, equipment, video_url, coaching_cues FROM exercises")
+    db_exercises = [row_to_exercise(r) for r in cursor.fetchall()]
+    conn.close()
+
     wod = generate_custom_wod(
         equipment_available=req.equipment,
         time_minutes=req.time_minutes,
         wod_type=req.wod_type,
         goal=req.goal or "Híbrido",
-        skills=req.skills or []
+        skills=req.skills or [],
+        library_exercises=db_exercises
     )
     return wod
 

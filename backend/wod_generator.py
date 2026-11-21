@@ -368,67 +368,123 @@ def generate_custom_wod(
     time_minutes: int,
     wod_type: str,
     goal: str = "Híbrido",
-    skills: Optional[List[str]] = None
+    skills: Optional[List[str]] = None,
+    library_exercises: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     """
-    Compone inteligentemente un WOD balanceado según material, tiempo, tipo y habilidades (skills) deseadas.
+    Compone inteligentemente un WOD combinado usando:
+      1. Las Skills seleccionadas abajo (si las hay), con su ficha real de movimientos o de la Biblioteca.
+      2. Movimientos variados del Material seleccionado arriba (y de la Biblioteca del coach),
+         combinando ambos para lograr un WOD equilibrado.
     """
     has_all_bodyweight = "Sin material" in equipment_available or len(equipment_available) == 0
 
+    # Pool combinado: base de movimientos + ejercicios de la biblioteca del coach compatibles con el material
+    combined_pool = list(MOVEMENT_DATABASE)
+    lib_video_map = {}
+    for ex in (library_exercises or []):
+        ex_name = (ex.get("name") or "").strip()
+        if not ex_name:
+            continue
+        lib_video_map[ex_name.lower()] = ex.get("video_url") or ""
+        eq_list = ex.get("equipment") if isinstance(ex.get("equipment"), list) else []
+        if not eq_list:
+            eq_list = ["Sin material"]
+        if not any(m["name"].lower() == ex_name.lower() for m in combined_pool):
+            combined_pool.append({
+                "name": ex_name,
+                "equipment": eq_list,
+                "category": (ex.get("category") or "metcon").lower(),
+                "skills": [ex_name],
+                "rx_m": "Rx",
+                "rx_f": "Rx",
+                "reps_amrap": 10,
+                "reps_emom": 8,
+                "reps_ft": 15,
+                "video_url": ex.get("video_url") or "",
+            })
+
     available_moves = []
-    for m in MOVEMENT_DATABASE:
-        needed = m["equipment"]
+    for m in combined_pool:
+        needed = m.get("equipment") or ["Sin material"]
         if all(item in equipment_available for item in needed) or ("Sin material" in needed and has_all_bodyweight):
             available_moves.append(m)
 
     if len(available_moves) < 2:
-        available_moves = [m for m in MOVEMENT_DATABASE if "Sin material" in m["equipment"]]
+        available_moves = [m for m in combined_pool if "Sin material" in (m.get("equipment") or [])]
 
     selected_moves = []
     used_names = set()
 
-    # 1. Si el usuario seleccionó skills técnicas, se limita exclusivamente a ellas
+    # 1. Incluir todas las skills técnicas elegidas abajo (buscando primero en toda la base + biblioteca)
     active_skills = [s.strip() for s in (skills or []) if s and s.strip()]
-    if active_skills:
-        for skill_name in active_skills:
-            s_lower = skill_name.lower()
-            matched = None
-            for m in available_moves:
-                if m["name"] in used_names:
-                    continue
-                m_skills = [sk.lower() for sk in m.get("skills", [])]
-                if s_lower in m["name"].lower() or any(s_lower in sk for sk in m_skills):
-                    matched = m
-                    break
-            if matched:
-                selected_moves.append(matched)
-                used_names.add(matched["name"])
-            else:
-                # Skill custom añadida por el usuario no en la lista de movimientos: inyectarla directamente
-                custom_move = {
-                    "name": skill_name,
-                    "equipment": ["Sin material"],
-                    "category": "metcon",
-                    "skills": [skill_name],
-                    "rx_m": "Rx",
-                    "rx_f": "Rx",
-                    "reps_amrap": 10,
-                    "reps_emom": 8,
-                    "reps_ft": 15
-                }
-                selected_moves.append(custom_move)
-                used_names.add(skill_name)
-    else:
-        # 2. Si no se seleccionaron skills específicas, autocompletar con movimientos variados (weightlifting, gymnastics, mono)
-        target_count = 3 if time_minutes >= 12 else 2
-        shuffled = list(available_moves)
-        random.shuffle(shuffled)
-        for m in shuffled:
-            if m["name"] not in used_names:
-                selected_moves.append(m)
-                used_names.add(m["name"])
-            if len(selected_moves) >= target_count:
+    for skill_name in active_skills:
+        s_lower = skill_name.lower()
+        matched = None
+        for m in combined_pool:
+            if m["name"] in used_names:
+                continue
+            m_skills = [sk.lower() for sk in m.get("skills", [])]
+            if s_lower in m["name"].lower() or any(s_lower in sk for sk in m_skills):
+                matched = dict(m)
                 break
+        if matched:
+            if not matched.get("video_url") and matched["name"].lower() in lib_video_map:
+                matched["video_url"] = lib_video_map[matched["name"].lower()]
+            selected_moves.append(matched)
+            used_names.add(matched["name"])
+        else:
+            is_run = any(k in s_lower for k in ("run", "carrera", "sprint", "shuttle"))
+            custom_move = {
+                "name": skill_name,
+                "equipment": ["Sin material"],
+                "category": "monostructural" if is_run else "metcon",
+                "skills": [skill_name],
+                "rx_m": "Rx",
+                "rx_f": "Rx",
+                "reps_amrap": "200 m" if is_run else 10,
+                "reps_emom": "100 m" if is_run else 8,
+                "reps_ft": "400 m" if is_run else 15,
+                "video_url": lib_video_map.get(s_lower, ""),
+            }
+            selected_moves.append(custom_move)
+            used_names.add(skill_name)
+
+    # 2. Completar SIEMPRE combinando con movimientos del material seleccionado arriba
+    base_target = 4 if time_minutes >= 16 else 3
+    target_count = max(base_target, len(selected_moves) + (1 if equipment_available else 0))
+    target_count = min(target_count, 5)
+
+    # Priorizar variedad de materiales seleccionados (ej: Barra + Cajón + EcoBike)
+    eq_candidates = [m for m in available_moves if m["name"] not in used_names]
+    random.shuffle(eq_candidates)
+    non_generic_eq = [eq for eq in equipment_available if eq not in ("Discos", "Sin material")]
+    random.shuffle(non_generic_eq)
+
+    for eq_name in non_generic_eq:
+        if len(selected_moves) >= target_count:
+            break
+        match_eq = next((m for m in eq_candidates if eq_name in (m.get("equipment") or []) and m["name"] not in used_names), None)
+        if match_eq:
+            selected_moves.append(dict(match_eq))
+            used_names.add(match_eq["name"])
+
+    # Rellenar hasta target_count con el resto de movimientos disponibles para ese material
+    for m in eq_candidates:
+        if len(selected_moves) >= target_count:
+            break
+        if m["name"] not in used_names:
+            selected_moves.append(dict(m))
+            used_names.add(m["name"])
+
+    # Enlazar vídeos de biblioteca si coinciden por nombre
+    for m in selected_moves:
+        if not m.get("video_url"):
+            m_low = m["name"].lower()
+            for k, vid in lib_video_map.items():
+                if vid and (k in m_low or m_low in k):
+                    m["video_url"] = vid
+                    break
 
     wt = wod_type.strip().upper()
     if wt == "AMRAP":
