@@ -3229,8 +3229,9 @@ function renderPickerList() {
           </div>
         </div>
         <div class="row-wrap">
-          ${ex.video_url ? `<button class="btn btn-sm" data-preview>▶</button>` : ''}
+          ${ex.video_url ? `<button class="btn btn-sm" data-preview title="Ver vídeo">▶</button>` : ''}
           <button class="btn btn-primary btn-sm" data-pick>Añadir</button>
+          <button class="btn btn-danger btn-sm" data-picker-del title="Eliminar de la biblioteca">🗑</button>
         </div>
       </div>
     `;
@@ -3238,6 +3239,14 @@ function renderPickerList() {
     row.querySelector('[data-pick]').addEventListener('click', () => {
       pickExerciseIntoTarget(ex);
       closeModal('pickerModal');
+    });
+    row.querySelector('[data-picker-del]').addEventListener('click', async () => {
+      if (!confirm(`¿Eliminar "${ex.name}" de la biblioteca?`)) return;
+      await api(`/api/exercises/${ex.id}`, { method: 'DELETE' });
+      await loadExercises();
+      renderPickerList();
+      if ($('tab-library') && !$('tab-library').classList.contains('hidden')) renderLibrary();
+      showToast('Ejercicio eliminado de la biblioteca');
     });
     list.appendChild(row);
   });
