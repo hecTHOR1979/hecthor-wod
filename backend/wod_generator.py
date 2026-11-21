@@ -526,6 +526,22 @@ def generate_custom_wod(
         if match_eq:
             selected_moves.append(dict(match_eq))
             used_names.add(match_eq["name"])
+        else:
+            fallback_name = f"Trabajo con {eq_name}"
+            if fallback_name not in used_names:
+                selected_moves.append({
+                    "name": fallback_name,
+                    "equipment": [eq_name],
+                    "category": "metcon",
+                    "skills": [eq_name],
+                    "rx_m": "Rx",
+                    "rx_f": "Rx",
+                    "reps_amrap": 12,
+                    "reps_emom": 10,
+                    "reps_ft": 15,
+                    "video_url": lib_video_map.get(eq_name.lower(), ""),
+                })
+                used_names.add(fallback_name)
 
     if "Sin material" in equipment_available and not any("Sin material" in (m.get("equipment") or []) for m in selected_moves):
         bw_move = next((m for m in eq_candidates if "Sin material" in (m.get("equipment") or []) and m["name"] not in used_names), None)

@@ -431,7 +431,14 @@
             <div class="field">
               <div class="row-between" style="align-items:center; margin-bottom:4px;">
                 <label style="margin:0;">Material disponible (pulsa para seleccionar)</label>
-                <button class="btn btn-danger btn-sm" id="btnDeleteSelectedEquipment" type="button" style="font-size:0.75rem; padding:2px 8px; font-weight:800;">🗑 Eliminar material</button>
+                <div class="row-wrap" style="gap:6px;">
+                  <button class="btn btn-danger btn-sm" id="btnDeleteSelectedEquipment" type="button" style="font-size:0.75rem; padding:2px 8px; font-weight:800;">🗑 Eliminar material</button>
+                  <button class="btn btn-sm btn-outline" id="btnToggleNewEquipment" type="button" style="font-size:0.75rem; padding:2px 8px; border-color:#38bdf8; color:#38bdf8; font-weight:800;">+ Añadir material</button>
+                </div>
+              </div>
+              <div id="newEquipmentInputBox" class="row-wrap hidden" style="margin-bottom:8px; gap:6px;">
+                <input id="newEquipmentInput" class="input" style="flex:1; padding:5px 8px; font-size:0.85rem;" placeholder="Ej: GHD / TRX / Banda elástica / Chaleco..." />
+                <button class="btn btn-primary btn-sm" id="btnSaveNewEquipment" type="button" style="font-size:0.82rem; font-weight:800;">Guardar Material</button>
               </div>
               <div id="genEquipmentChips" class="chip-group"></div>
             </div>
@@ -872,6 +879,6 @@
   <datalist id="libraryExercisesDatalist"></datalist>
 
   <div id="toast" class="toast"></div>
-  <script type="module" src="/static/js/coach.js?v=91"></script>
+  <script type="module" src="/static/js/coach.js?v=93"></script>
 </body>
 </html>

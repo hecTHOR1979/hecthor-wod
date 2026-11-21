@@ -3549,7 +3549,30 @@ function addToHiddenSet(storageKey, items) {
 
 function getEquipmentList() {
   const hidden = getHiddenSet('hecthor_hidden_equipment');
-  return EQUIPMENT_LIST.filter((eq) => !hidden.has(eq));
+  let custom = [];
+  try {
+    custom = JSON.parse(localStorage.getItem('hecthor_custom_equipment') || '[]');
+  } catch (_) {}
+  const all = [];
+  EQUIPMENT_LIST.forEach((eq) => {
+    if (!hidden.has(eq)) all.push(eq);
+  });
+  custom.forEach((eq) => {
+    if (eq && !hidden.has(eq) && !all.includes(eq)) all.push(eq);
+  });
+  return all;
+}
+
+function removeEquipmentFromLists(eqToRemove) {
+  if (!eqToRemove || eqToRemove.length === 0) return;
+  const remSet = new Set(eqToRemove);
+  try {
+    const saved = JSON.parse(localStorage.getItem('hecthor_custom_equipment') || '[]');
+    localStorage.setItem('hecthor_custom_equipment', JSON.stringify(saved.filter((eq) => !remSet.has(eq))));
+  } catch (_) {}
+  addToHiddenSet('hecthor_hidden_equipment', eqToRemove.filter((eq) => EQUIPMENT_LIST.includes(eq)));
+  eqToRemove.forEach((eq) => state.selectedEquipment?.delete(eq));
+  renderEquipmentChips();
 }
 
 function renderEquipmentChips() {
@@ -3571,9 +3594,7 @@ function renderEquipmentChips() {
     del.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!confirm(`¿Eliminar "${eq}" de la lista de material?`)) return;
-      addToHiddenSet('hecthor_hidden_equipment', [eq]);
-      state.selectedEquipment.delete(eq);
-      renderEquipmentChips();
+      removeEquipmentFromLists([eq]);
       showToast(`Material eliminado: ${eq}`);
     });
     chip.appendChild(lbl);
@@ -3656,11 +3677,32 @@ $('btnDeleteSelectedEquipment')?.addEventListener('click', () => {
     return showToast('Selecciona primero los materiales que quieras eliminar (o pulsa × en uno concreto)');
   }
   if (!confirm(`¿Eliminar ${selected.length} material(es) seleccionado(s) de la lista?`)) return;
-  addToHiddenSet('hecthor_hidden_equipment', selected);
-  state.selectedEquipment.clear();
-  renderEquipmentChips();
+  removeEquipmentFromLists(selected);
   showToast('Materiales eliminados de la lista');
 });
+
+function addCustomEquipment() {
+  const val = ($('newEquipmentInput')?.value || '').trim();
+  if (!val) return;
+  try {
+    const hidden = getHiddenSet('hecthor_hidden_equipment');
+    if (hidden.has(val)) {
+      hidden.delete(val);
+      localStorage.setItem('hecthor_hidden_equipment', JSON.stringify(Array.from(hidden)));
+    }
+    const saved = JSON.parse(localStorage.getItem('hecthor_custom_equipment') || '[]');
+    if (!saved.includes(val) && !EQUIPMENT_LIST.includes(val)) {
+      saved.push(val);
+      localStorage.setItem('hecthor_custom_equipment', JSON.stringify(saved));
+    }
+  } catch (_) {}
+  if (!state.selectedEquipment) state.selectedEquipment = new Set();
+  state.selectedEquipment.add(val);
+  if ($('newEquipmentInput')) $('newEquipmentInput').value = '';
+  $('newEquipmentInputBox')?.classList.add('hidden');
+  renderEquipmentChips();
+  showToast(`Material añadido: ${val}`);
+}
 
 $('btnDeleteSelectedSkills')?.addEventListener('click', () => {
   const selected = Array.from(state.selectedSkills || []);
@@ -4213,6 +4255,20 @@ $('newGenGoalInput')?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     addCustomGenGoal();
+  }
+});
+
+$('btnToggleNewEquipment')?.addEventListener('click', () => {
+  $('newEquipmentInputBox')?.classList.toggle('hidden');
+  if (!$('newEquipmentInputBox')?.classList.contains('hidden')) {
+    $('newEquipmentInput')?.focus();
+  }
+});
+$('btnSaveNewEquipment')?.addEventListener('click', addCustomEquipment);
+$('newEquipmentInput')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addCustomEquipment();
   }
 });
 
