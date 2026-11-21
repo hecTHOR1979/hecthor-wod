@@ -3355,12 +3355,14 @@ function renderPickerList() {
         </div>
         <div class="row-wrap">
           ${ex.video_url ? `<button class="btn btn-sm" data-preview title="Ver vídeo">▶</button>` : ''}
+          <button class="btn btn-sm" data-picker-edit title="Modificar ejercicio">✏️</button>
           <button class="btn btn-primary btn-sm" data-pick>Añadir</button>
           <button class="btn btn-danger btn-sm" data-picker-del title="Eliminar de la biblioteca">🗑</button>
         </div>
       </div>
     `;
     row.querySelector('[data-preview]')?.addEventListener('click', () => openVideoModal(ex.name, ex.video_url));
+    row.querySelector('[data-picker-edit]').addEventListener('click', () => openExerciseModal(ex));
     row.querySelector('[data-pick]').addEventListener('click', () => {
       pickExerciseIntoTarget(ex);
       closeModal('pickerModal');
@@ -4835,6 +4837,7 @@ $('btnSaveExerciseSubmit').addEventListener('click', async () => {
     closeModal('exerciseModal');
     await loadExercises();
     renderLibrary();
+    if ($('pickerModal')?.classList.contains('open')) renderPickerList();
   } catch (err) {
     showToast(err.message);
   }
