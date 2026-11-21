@@ -1369,7 +1369,7 @@ function renderWarmupList() {
         onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false),
         onPlaySub: (sIdx) => {
           const curSub = item.sub_exercises[sIdx];
-          if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+          if (curSub && curSub.video_url) openVideoModal(curSub.name || 'Ejercicio', curSub.video_url);
           else openExercisePicker({ type: 'timed_wu_sub_replace', idx, subIdx: sIdx }, false);
         },
       });
@@ -2081,7 +2081,7 @@ function renderPartsList() {
             onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false),
             onPlaySub: (sIdx) => {
               const curSub = ex.sub_exercises[sIdx];
-              if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+              if (curSub && curSub.video_url) openVideoModal(curSub.name || 'Ejercicio', curSub.video_url);
               else openExercisePicker({ type: 'timed_part_sub_replace', partIdx: pIdx, exIdx: eIdx, subIdx: sIdx }, false);
             },
           });
@@ -2586,7 +2586,7 @@ function renderWodExercisesList() {
         onSearchSub: (sIdx) => openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false),
         onPlaySub: (sIdx) => {
           const curSub = item.sub_exercises[sIdx];
-          if (curSub && curSub.video_url) openVideoPreviewModal(curSub.name || 'Ejercicio', curSub.video_url, curSub.notes || '');
+          if (curSub && curSub.video_url) openVideoModal(curSub.name || 'Ejercicio', curSub.video_url);
           else openExercisePicker({ type: 'timed_wod_sub_replace', idx, subIdx: sIdx }, false);
         },
       });
