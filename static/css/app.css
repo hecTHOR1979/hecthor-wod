@@ -1742,10 +1742,17 @@ textarea.input {
     overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 10pt !important;
-    line-height: 1.14 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.12 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  #dayContent {
+    width: 100% !important;
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Ocultar barras de navegación, botones, cronómetros interactivos, modales y vídeos */

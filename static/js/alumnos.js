@@ -803,14 +803,47 @@ function renderCurrentDay(resetTimer = true) {
     }
   }
 
-  // Print Day to PDF handler
+  // Print Day to PDF handler (auto-escala a 1 sola página A4)
+  const applySinglePagePdfScale = () => {
+    const dayEl = $('dayContent');
+    if (!dayEl) return;
+    dayEl.style.zoom = '';
+    const prevWidth = dayEl.style.width;
+    dayEl.style.width = '740px';
+    const hiddenNoPrints = [];
+    dayEl.querySelectorAll('.no-print').forEach((el) => {
+      hiddenNoPrints.push([el, el.style.display]);
+      el.style.display = 'none';
+    });
+    const measuredH = dayEl.getBoundingClientRect().height;
+    hiddenNoPrints.forEach(([el, prev]) => { el.style.display = prev; });
+    dayEl.style.width = prevWidth;
+    const maxA4HeightPx = 960;
+    if (measuredH > maxA4HeightPx) {
+      const scale = Math.max(0.5, Math.min(1, maxA4HeightPx / measuredH));
+      dayEl.style.zoom = scale.toFixed(3);
+    }
+  };
+  const resetSinglePagePdfScale = () => {
+    const dayEl = $('dayContent');
+    if (dayEl) dayEl.style.zoom = '';
+  };
+
+  if (!window.__thrPrintListenersBound) {
+    window.__thrPrintListenersBound = true;
+    window.addEventListener('beforeprint', applySinglePagePdfScale);
+    window.addEventListener('afterprint', resetSinglePagePdfScale);
+  }
+
   $('btnPrintDayPdf')?.addEventListener('click', () => {
     const prevTitle = document.title;
     const cleanDayTitle = (day.title || `Dia ${day.day_number}`).replace(/[/\\?%*:|"<>]/g, '-');
     document.title = `THR Plan - Semana ${day.week_number} / Día ${day.day_number} - ${cleanDayTitle}`;
+    applySinglePagePdfScale();
     window.print();
     setTimeout(() => {
       document.title = prevTitle;
+      resetSinglePagePdfScale();
     }, 1500);
   });
 
