@@ -5281,13 +5281,13 @@ function renderStudentsTab() {
         box.style.borderColor = 'rgba(255, 107, 53, 0.45)';
         box.innerHTML = `
           <div class="row-between">
-            <div>
+            <div style="min-width:0; max-width:100%;">
               <strong>${esc(s.full_name)}</strong>
               <span class="badge badge-orange" style="margin-left:6px;">Pendiente</span>
-              <div class="muted" style="margin-top:4px;">📧 ${esc(s.email)}${s.phone ? ` · 📱 ${esc(s.phone)}` : ''}</div>
+              <div class="muted" style="margin-top:4px; overflow-wrap:anywhere;">📧 ${esc(s.email)}${s.phone ? ` · 📱 ${esc(s.phone)}` : ''}</div>
             </div>
-            <div class="row-wrap">
-              <select class="input" data-stu-mc style="width:auto; min-width:190px; padding:6px 10px; font-size:0.84rem;">
+            <div class="row-wrap stu-actions-wrap">
+              <select class="input stu-mc-select" data-stu-mc>
                 ${buildMicrocycleOptionsHtml(s.assigned_microcycle_id)}
               </select>
               <button class="btn btn-primary btn-sm" data-approve>✓ Aprobar</button>
@@ -5333,15 +5333,15 @@ function renderStudentsTab() {
         box.className = 'item-box';
         box.innerHTML = `
           <div class="row-between">
-            <div>
+            <div style="min-width:0; max-width:100%;">
               <strong>${esc(s.full_name)}</strong>
               <span class="badge ${isApproved ? 'badge-ground' : 'badge-danger'}" style="margin-left:6px;">
                 ${isApproved ? 'Aprobado' : 'Bloqueado / Rechazado'}
               </span>
-              <div class="muted" style="margin-top:4px;">📧 ${esc(s.email)}${s.phone ? ` · 📱 ${esc(s.phone)}` : ''}</div>
+              <div class="muted" style="margin-top:4px; overflow-wrap:anywhere;">📧 ${esc(s.email)}${s.phone ? ` · 📱 ${esc(s.phone)}` : ''}</div>
             </div>
-            <div class="row-wrap">
-              <select class="input" data-stu-mc style="width:auto; min-width:190px; padding:6px 10px; font-size:0.84rem;">
+            <div class="row-wrap stu-actions-wrap">
+              <select class="input stu-mc-select" data-stu-mc>
                 ${buildMicrocycleOptionsHtml(s.assigned_microcycle_id)}
               </select>
               ${isApproved

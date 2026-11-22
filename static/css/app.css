@@ -773,6 +773,21 @@ textarea.input {
   flex-wrap: wrap;
 }
 
+.stu-actions-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+select.input.stu-mc-select {
+  width: auto;
+  min-width: 190px;
+  max-width: 100%;
+  padding: 6px 10px;
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
 .week-tabs {
   display: flex;
   gap: 8px;
@@ -1815,6 +1830,20 @@ textarea.input {
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+  }
+  .stu-actions-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  select.input.stu-mc-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
   .ex-col-name,
   .session-body-text,
