@@ -1305,7 +1305,7 @@ function renderCurrentDay(resetTimer = true) {
       btn.textContent = 'Guardando...';
       try {
         const studentName = state.student?.full_name || $('logName')?.value || 'Alumno';
-        await apiFetch('/api/student/log', {
+        await api('/api/student/log', {
           method: 'POST',
           body: JSON.stringify({
             microcycle_id: state.microcycle.id,
@@ -1383,12 +1383,25 @@ $('logRx')?.addEventListener('change', (e) => {
 $('btnSubmitLog')?.addEventListener('click', async () => {
   const name = state.student?.full_name || localStorage.getItem('crossfit_student_name') || $('logName')?.value.trim();
   const score = $('logScore')?.value.trim();
-  if (!name) return showToast('Inicia sesión con tu cuenta de alumno para registrar resultados');
-  if (!score) return showToast('Introduce tu resultado según la métrica indicada');
+  const statusEl = $('wodLogStatusMsg');
+  if (statusEl) statusEl.textContent = '';
+  if (!name) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#fda4af;">Inicia sesión con tu cuenta de alumno para registrar resultados.</span>';
+    return showToast('Inicia sesión con tu cuenta de alumno para registrar resultados');
+  }
+  if (!score) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#fda4af;">Introduce tu resultado antes de guardar.</span>';
+    return showToast('Introduce tu resultado según la métrica indicada');
+  }
   const rxStatus = $('logRx')?.value || 'Rx';
   const weightsUsed = rxStatus === 'Scaled' ? ($('logWeights')?.value.trim() || '') : '';
   const notes = $('logNotes')?.value.trim() || '';
 
+  const btn = $('btnSubmitLog');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+  }
   try {
     await api('/api/student/log', {
       method: 'POST',
@@ -1406,9 +1419,16 @@ $('btnSubmitLog')?.addEventListener('click', async () => {
     if ($('logWeights')) $('logWeights').value = '';
     $('logNotes').value = '';
     await loadDayLeaderboard();
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--ground); font-weight:700;">✓ ¡Resultado guardado!</span>';
     showToast('¡Resultado guardado!');
   } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span style="color:#fda4af;">Error: ${esc(err?.message || 'No se pudo guardar')}</span>`;
     showToast(err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Guardar Resultado';
+    }
   }
 });
 
